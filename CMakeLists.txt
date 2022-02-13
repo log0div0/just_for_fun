@@ -35,5 +35,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/lib)
 
 include_directories(${CMAKE_SOURCE_DIR}/3rd_party)
+include_directories(${CMAKE_SOURCE_DIR}/lib)
 
+add_subdirectory(3rd_party)
 add_subdirectory(lib)
+add_subdirectory(src)
