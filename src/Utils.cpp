@@ -19,8 +19,8 @@ std::string LoadTextFile(const fs::path& path) {
 	return str;
 }
 
-uint32_t LoadShader(const GLenum type, const fs::path& path) {
-	uint32_t handler = glCreateShader(type);
+GLuint LoadShader(const GLenum type, const fs::path& path) {
+	GLuint handler = glCreateShader(type);
 	SCOPE_FAIL{ glDeleteShader(handler); };
 
 	std::string text = LoadTextFile(path);
@@ -45,13 +45,13 @@ uint32_t LoadShader(const GLenum type, const fs::path& path) {
 	return handler;
 }
 
-uint32_t LoadShaderProgram(const fs::path& vertex_path, const fs::path& fragment_path) {
-	uint32_t vertex_shader = LoadShader(GL_VERTEX_SHADER, vertex_path);
+GLuint LoadShaderProgram(const fs::path& vertex_path, const fs::path& fragment_path) {
+	GLuint vertex_shader = LoadShader(GL_VERTEX_SHADER, vertex_path);
 	SCOPE_EXIT{ glDeleteShader(vertex_shader); };
-	uint32_t fragment_shader = LoadShader(GL_FRAGMENT_SHADER, fragment_path);
+	GLuint fragment_shader = LoadShader(GL_FRAGMENT_SHADER, fragment_path);
 	SCOPE_EXIT{ glDeleteShader(fragment_shader); };
 
-	uint32_t shader_program = glCreateProgram();
+	GLuint shader_program = glCreateProgram();
 	SCOPE_FAIL{ glDeleteProgram(shader_program); };
 
 	glAttachShader(shader_program, vertex_shader);

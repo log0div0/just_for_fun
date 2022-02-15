@@ -16,11 +16,14 @@ App::~App()
 	if (shader_program) {
 		glDeleteProgram(shader_program);
 	}
-	if (vao) {
-		glDeleteVertexArrays(1, &vao);
+	if (vertex_array) {
+		glDeleteVertexArrays(1, &vertex_array);
 	}
-	if (vbo) {
-		glDeleteBuffers(1, &vbo);
+	if (vertex_pos_buffer) {
+		glDeleteBuffers(1, &vertex_pos_buffer);
+	}
+	if (index_buffer) {
+		glDeleteBuffers(1, &index_buffer);
 	}
 }
 
@@ -47,25 +50,29 @@ void App::InitShaders() {
 }
 
 void App::InitMesh() {
-  float vertices[] = {
-		-0.5f, -0.5f, 0.0f, // left
-		0.5f, -0.5f, 0.0f, // right
-		0.0f,  0.5f, 0.0f  // top
+	float vertices[] = {
+		 0.5f,  0.5f, 0.0f,  // top right
+		 0.5f, -0.5f, 0.0f,  // bottom right
+		-0.5f, -0.5f, 0.0f,  // bottom left
+		-0.5f,  0.5f, 0.0f   // top left
+	};
+	unsigned int indices[] = {
+		0, 1, 3,
+		1, 2, 3
 	};
 
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
+	glGenVertexArrays(1, &vertex_array);
+	glBindVertexArray(vertex_array);
 
-	WithVertexArray(vao, [&]
-	{
-		WithBuffer(GL_ARRAY_BUFFER, vbo, [&]
-		{
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glGenBuffers(1, &vertex_pos_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_pos_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-		});
-	});
+	glGenBuffers(1, &index_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 }
 
 void App::Run()
@@ -93,6 +100,7 @@ void App::Render()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(shader_program);
-	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glBindVertexArray(vertex_array);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }

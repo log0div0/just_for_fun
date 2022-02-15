@@ -23,8 +23,10 @@ private:
 
 	fs::path assets_dir;
 
-	uint32_t shader_program = 0;
-	uint32_t vbo = 0, vao = 0;
+	GLuint shader_program = 0;
+	GLuint vertex_array = 0;
+	GLuint vertex_pos_buffer = 0;
+	GLuint index_buffer = 0;
 
 	glfw::Window window;
 };
