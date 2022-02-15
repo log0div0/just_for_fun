@@ -1,5 +1,7 @@
 
 #include "Utils.hpp"
+#include <iostream>
+#include <scope_guard.hpp>
 
 std::string LoadTextFile(const fs::path& path) {
 	if (!fs::exists(path)) {
@@ -19,6 +21,56 @@ std::string LoadTextFile(const fs::path& path) {
 
 uint32_t LoadShader(const GLenum type, const fs::path& path) {
 	uint32_t handler = glCreateShader(type);
+	SCOPE_FAIL{ glDeleteShader(handler); };
+
+	std::string text = LoadTextFile(path);
+	const char* c_text = text.c_str();
+	glShaderSource(handler, 1, &c_text, nullptr);
+	glCompileShader(handler);
+
+	int success = 0;
+	glGetShaderiv(handler, GL_COMPILE_STATUS, &success);
+
+	if(!success)
+	{
+		int log_length = 0;
+		glGetShaderiv(handler, GL_INFO_LOG_LENGTH, &log_length);
+		std::string log;
+		log.resize(log_length);
+		glGetShaderInfoLog(handler, log_length, NULL, &log[0]);
+
+		throw std::runtime_error("Failed to compile " + path.string() + ": " + log);
+	}
 
 	return handler;
+}
+
+uint32_t LoadShaderProgram(const fs::path& vertex_path, const fs::path& fragment_path) {
+	uint32_t vertex_shader = LoadShader(GL_VERTEX_SHADER, vertex_path);
+	SCOPE_EXIT{ glDeleteShader(vertex_shader); };
+	uint32_t fragment_shader = LoadShader(GL_FRAGMENT_SHADER, fragment_path);
+	SCOPE_EXIT{ glDeleteShader(fragment_shader); };
+
+	uint32_t shader_program = glCreateProgram();
+	SCOPE_FAIL{ glDeleteProgram(shader_program); };
+
+	glAttachShader(shader_program, vertex_shader);
+	glAttachShader(shader_program, fragment_shader);
+	glLinkProgram(shader_program);
+
+	int success = 0;
+	glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
+
+	if(!success)
+	{
+		int log_length = 0;
+		glGetProgramiv(shader_program, GL_INFO_LOG_LENGTH, &log_length);
+		std::string log;
+		log.resize(log_length);
+		glGetProgramInfoLog(shader_program, log_length, NULL, &log[0]);
+
+		throw std::runtime_error("Failed to link shaders " + vertex_path.string() + " and " + fragment_path.string() + ": " + log);
+	}
+
+	return shader_program;
 }

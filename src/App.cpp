@@ -33,8 +33,7 @@ void App::InitWindow() {
 }
 
 void App::InitShaders() {
-	uint32_t vertex_shader = LoadShader(GL_VERTEX_SHADER, assets_dir / "hello.vert");
-	SCOPE_EXIT{ glDeleteShader(vertex_shader); };
+	shader_program = LoadShaderProgram(assets_dir / "shader.vert", assets_dir / "shader.frag");
 }
 
 void App::Run()

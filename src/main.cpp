@@ -3,7 +3,7 @@
 #include <clipp.h>
 #include "App.hpp"
 
-int main(int argc, char** argv) {
+int do_main(int argc, char** argv) {
 	using namespace clipp;
 
 	std::string assets_dir;
@@ -41,4 +41,14 @@ int main(int argc, char** argv) {
 	app.Run();
 
 	return 0;
+}
+
+int main(int argc, char** argv) {
+	try {
+		return do_main(argc, argv);
+	}
+	catch (const std::exception& error) {
+		std::cerr << error.what() << std::endl;
+		return 1;
+	}
 }

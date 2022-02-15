@@ -22,5 +22,7 @@ private:
 
 	fs::path assets_dir;
 
+	uint32_t shader_program = 0;
+
 	glfw::Window window;
 };
