@@ -85,8 +85,7 @@ namespace mogl
 
         if ((it = _attribs.find(name)) != _attribs.end())
             return it->second;
-        std::cerr << "Shader attribute \'" << name << "\' does not exist" << std::endl;
-        return -1;
+        throw std::runtime_error("Shader attribute \'" + name + "\' does not exist");
     }
 
     inline GLint ShaderProgram::getUniformLocation(const std::string& name) const
@@ -95,8 +94,7 @@ namespace mogl
 
         if ((it = _uniforms.find(name)) != _uniforms.end())
             return it->second;
-        std::cerr << "Shader uniform \'" << name << "\' does not exist" << std::endl;
-        return -1;
+        throw std::runtime_error("Shader uniform \'" + name + "\' does not exist");
     }
 
     inline void ShaderProgram::setTransformFeedbackVaryings(GLsizei count, const char** varyings, GLenum bufferMode)
