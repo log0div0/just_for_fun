@@ -16,6 +16,7 @@ struct App {
 private:
 	void InitWindow();
 	void InitShaders();
+	void InitMesh();
 
 	void ProcessInput();
 	void Render();
@@ -23,6 +24,7 @@ private:
 	fs::path assets_dir;
 
 	uint32_t shader_program = 0;
+	uint32_t vbo = 0, vao = 0;
 
 	glfw::Window window;
 };
