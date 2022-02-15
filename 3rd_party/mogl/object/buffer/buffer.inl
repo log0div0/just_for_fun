@@ -30,7 +30,7 @@ namespace mogl
 
     inline void Buffer::setStorage(GLsizeiptr size, const void* data, GLbitfield flags)
     {
-        glNamedBufferStorage(_handle, size, data, static_cast<BufferStorageMask>(flags)); // TODO Find solution to remove glbinding dependance
+        glNamedBufferStorage(_handle, size, data, flags);
     }
 
     inline void Buffer::setData(GLsizeiptr size, const void* data, GLenum usage)
@@ -75,7 +75,7 @@ namespace mogl
 
     inline void* Buffer::mapRange(GLintptr offset, GLsizeiptr length, GLbitfield access)
     {
-        return glMapNamedBufferRange(_handle, offset, length, static_cast<BufferAccessMask>(access)); // TODO Find solution to remove glbinding dependance
+        return glMapNamedBufferRange(_handle, offset, length, access);
     }
 
     inline bool Buffer::unmap()

@@ -28,9 +28,9 @@ namespace mogl
         void                attach(const Shader& object);
         void                detach(const Shader& object);
         void                bindAttribLocation(GLuint location, const std::string& attribute);
-        bool                link();
+        void                link();
         void                use();
-        const std::string&  getLog() const;
+        std::string         getLog() const;
         GLint               getAttribLocation(const std::string& name) const;
         GLint               getUniformLocation(const std::string& name) const;
         void                setTransformFeedbackVaryings(GLsizei count,
@@ -68,8 +68,8 @@ namespace mogl
 
     public:
         void    printDebug();
-        void    get(GLenum property, GLint* value); // Direct call to glGetProgramiv()
-        GLint   get(GLenum property);
+        void    get(GLenum property, GLint* value) const; // Direct call to glGetProgramiv()
+        GLint   get(GLenum property) const;
         void    set(GLenum property, GLint value);
         bool    isValid() const override final;
 
@@ -86,7 +86,6 @@ namespace mogl
         using SubroutineMap = std::map<std::string, SubroutineUniform>;
         using ShaderSubroutineMap = std::map<GLenum, SubroutineMap>;
 
-        std::string         _log;
         HandleMap           _attribs;
         HandleMap           _uniforms;
         ShaderSubroutineMap _subroutines;

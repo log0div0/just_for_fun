@@ -6,9 +6,10 @@ namespace fs = ghc::filesystem;
 
 #include <glad/glad.h>
 #include <glfwpp/glfwpp.h>
+#include <mogl/mogl.hpp>
 
 struct App {
-	App(fs::path assets_dir_);
+	App(glfw::Window window_, fs::path assets_dir_);
 	~App();
 
 	void Run();
@@ -21,12 +22,11 @@ private:
 	void ProcessInput();
 	void Render();
 
+	glfw::Window window;
 	fs::path assets_dir;
 
-	GLuint shader_program = 0;
-	GLuint vertex_array = 0;
-	GLuint vertex_pos_buffer = 0;
-	GLuint index_buffer = 0;
-
-	glfw::Window window;
+	mogl::ShaderProgram shader_program;
+	mogl::ArrayBuffer vertex_pos_buffer;
+	mogl::ElementArrayBuffer index_buffer;
+	mogl::VertexArray vertex_array;
 };

@@ -42,24 +42,13 @@ namespace mogl
         glBindAttribLocation(_handle, location, attribute.c_str());
     }
 
-    inline bool ShaderProgram::link()
+    inline void ShaderProgram::link()
     {
-        GLint       logLength = 0;
-
         glLinkProgram(_handle);
         if (get(GL_LINK_STATUS) == static_cast<GLint>(GL_FALSE))
         {
-            logLength = get(GL_INFO_LOG_LENGTH);
-            if (logLength > 1)
-            {
-                std::vector<GLchar> infoLog(logLength);
-                glGetProgramInfoLog(_handle, logLength, &logLength, &infoLog[0]);
-                infoLog[logLength - 1] = '\0'; // Overwrite endline
-                _log = &infoLog[0];
-            }
-            return false;
+            throw std::runtime_error("Failed to link shaders: " + getLog());
         }
-        _log = std::string();
         retrieveLocations();
         // NOTE can be improved
         retrieveSubroutines(GL_VERTEX_SHADER);
@@ -68,17 +57,26 @@ namespace mogl
         retrieveSubroutines(GL_TESS_EVALUATION_SHADER);
         retrieveSubroutines(GL_COMPUTE_SHADER);
         retrieveSubroutines(GL_FRAGMENT_SHADER);
-        return true;
     }
 
     inline void ShaderProgram::use()
     {
         glUseProgram(_handle);
+        MOGL_ASSERT_GLSTATE();
     }
 
-    inline const std::string& ShaderProgram::getLog() const
+    inline std::string ShaderProgram::getLog() const
     {
-        return _log;
+        GLint logLength = get(GL_INFO_LOG_LENGTH);
+        if (logLength > 1)
+        {
+            std::vector<GLchar> infoLog(logLength);
+            glGetProgramInfoLog(_handle, logLength, &logLength, &infoLog[0]);
+            infoLog[logLength - 1] = '\0'; // Overwrite endline
+            return &infoLog[0];
+        } else {
+            return {};
+        }
     }
 
     inline GLint ShaderProgram::getAttribLocation(const std::string& name) const
@@ -126,12 +124,12 @@ namespace mogl
         }
     }
 
-    inline void ShaderProgram::get(GLenum property, GLint* value)
+    inline void ShaderProgram::get(GLenum property, GLint* value) const
     {
         glGetProgramiv(_handle, property, value);
     }
 
-    inline GLint ShaderProgram::get(GLenum property)
+    inline GLint ShaderProgram::get(GLenum property) const
     {
         GLint   value;
         glGetProgramiv(_handle, property, &value);
@@ -469,25 +467,25 @@ namespace mogl
         glProgramUniformMatrix4fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
-    inline void ShaderProgram::setUniformSubroutine(GLenum type, const std::string& uniform, const std::string& subroutine)
-    {
-        if (!_subroutines.count(type))
-            throw(mogl::ShaderException("no subroutine for this shader stage"));
-        SubroutineMap& routineMap = _subroutines.at(type);
+    // inline void ShaderProgram::setUniformSubroutine(GLenum type, const std::string& uniform, const std::string& subroutine)
+    // {
+    //     if (!_subroutines.count(type))
+    //         throw(mogl::ShaderException("no subroutine for this shader stage"));
+    //     SubroutineMap& routineMap = _subroutines.at(type);
 
-        if (!routineMap.count(uniform))
-            throw(mogl::ShaderException("invalid uniform name"));
-        SubroutineUniform& subUniform = routineMap.at(uniform);
+    //     if (!routineMap.count(uniform))
+    //         throw(mogl::ShaderException("invalid uniform name"));
+    //     SubroutineUniform& subUniform = routineMap.at(uniform);
 
-        if (!subUniform.subroutines.count(subroutine))
-            throw(mogl::ShaderException("invalid subroutine"));
+    //     if (!subUniform.subroutines.count(subroutine))
+    //         throw(mogl::ShaderException("invalid subroutine"));
 
-        GLuint  uniformIdx = subUniform.uniform;
-        GLuint  subroutineIdx = subUniform.subroutines.at(subroutine);
-        GLsizei size = routineMap.size();
-        GLuint  indices[size];
+    //     GLuint  uniformIdx = subUniform.uniform;
+    //     GLuint  subroutineIdx = subUniform.subroutines.at(subroutine);
+    //     GLsizei size = routineMap.size();
+    //     GLuint  indices[size];
 
-        indices[uniformIdx] = subroutineIdx;
-        glUniformSubroutinesuiv(static_cast<GLenum>(type), size, indices);
-    }
+    //     indices[uniformIdx] = subroutineIdx;
+    //     glUniformSubroutinesuiv(static_cast<GLenum>(type), size, indices);
+    // }
 }

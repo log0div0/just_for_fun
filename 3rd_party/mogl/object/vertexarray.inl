@@ -25,11 +25,13 @@ namespace mogl
     inline void VertexArray::bind()
     {
         glBindVertexArray(_handle);
+        MOGL_ASSERT_GLSTATE();
     }
 
     inline void VertexArray::enableAttrib(GLuint index)
     {
         glEnableVertexArrayAttrib(_handle, index);
+        MOGL_ASSERT_GLSTATE();
     }
 
     inline void VertexArray::disableAttrib(GLuint index)
@@ -40,6 +42,7 @@ namespace mogl
     inline void VertexArray::setVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
     {
         glVertexArrayVertexBuffer(_handle, bindingindex, buffer, offset, stride);
+        MOGL_ASSERT_GLSTATE();
     }
 
     inline void VertexArray::setVertexBuffers(GLuint first, GLsizei count, const GLuint* buffers, const GLintptr* offsets, const GLsizei* strides)
@@ -50,11 +53,13 @@ namespace mogl
     inline void VertexArray::setElementBuffer(GLuint buffer)
     {
         glVertexArrayElementBuffer(_handle, buffer);
+        MOGL_ASSERT_GLSTATE();
     }
 
     inline void VertexArray::setAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
     {
         glVertexArrayAttribFormat(_handle, attribindex, size, type, normalized, relativeoffset);
+        MOGL_ASSERT_GLSTATE();
     }
 
     inline void VertexArray::setAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)

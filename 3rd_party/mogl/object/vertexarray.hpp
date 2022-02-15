@@ -32,12 +32,12 @@ namespace mogl
         void    bind();
         void    enableAttrib(GLuint index);
         void    disableAttrib(GLuint index);
-        void    setVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset = GLintptr(0), GLsizei stride = 0);
+        void    setVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
         void    setVertexBuffers(GLuint first, GLsizei count, const GLuint* buffers, const GLintptr* offsets, const GLsizei* strides);
         void    setElementBuffer(GLuint buffer);
-        void    setAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
-        void    setAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
-        void    setAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+        void    setAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized = false, GLuint relativeoffset = 0);
+        void    setAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset = 0);
+        void    setAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset = 0);
         void    setAttribBinding(GLuint attribindex, GLuint bindingindex);
         void    setBindingDivisor(GLuint bindingindex, GLuint divisor);
         template <class T> void get(GLenum property, T* value); // Direct call to glGetVertexArray*v()

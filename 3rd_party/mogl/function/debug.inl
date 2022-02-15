@@ -144,12 +144,11 @@ namespace mogl
 
         inline void assertGLState(const char* file, const char* func, int line)
         {
-            std::ostringstream  stream;
-            std::string         errorDescription;
-            GLenum              errorNo = glGetError();
-
+            GLenum errorNo = glGetError();
             if (errorNo != GL_NO_ERROR)
             {
+                std::ostringstream  stream;
+                std::string         errorDescription;
                 errorDescription = getErrorString(errorNo);
                 stream << file << ':' << line << ": in '" << func << "': (" << static_cast<GLuint>(errorNo) << ") " << errorDescription;
                 throw (mogl::MoGLException(stream.str()));

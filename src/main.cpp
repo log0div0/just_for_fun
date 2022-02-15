@@ -37,7 +37,15 @@ int do_main(int argc, char** argv) {
 						.contextVersionMinor = 6,
 						.openglProfile = glfw::OpenGlProfile::Core }.apply();
 
-	App app(assets_dir);
+	glfw::Window window {640, 480, "Hello World"};
+	glfw::makeContextCurrent(window);
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		throw std::runtime_error("Failed to initialize GLAD");
+	}
+
+	App app(std::move(window), assets_dir);
 	app.Run();
 
 	return 0;
@@ -48,6 +56,7 @@ int main(int argc, char** argv) {
 		return do_main(argc, argv);
 	}
 	catch (const std::exception& error) {
+		std::cerr << "UNHANDLED EXCEPTION!" << std::endl;
 		std::cerr << error.what() << std::endl;
 		return 1;
 	}

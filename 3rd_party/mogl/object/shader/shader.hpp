@@ -27,8 +27,8 @@ namespace mogl
         Shader& operator=(const Shader& other) = delete;
 
     public:
-        bool                compile(const std::string& source);
-        bool                compile(std::istream& sourceFile);
+        void                compile(const std::string& source);
+        void                compile(std::istream& sourceFile);
         const std::string   getSource() const;
         GLenum              getType() const;
         const std::string   getLog() const;

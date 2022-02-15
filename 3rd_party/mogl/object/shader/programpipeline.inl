@@ -23,7 +23,7 @@ namespace mogl
 
     inline void ProgramPipeline::useStages(GLbitfield stages, GLuint program)
     {
-        glUseProgramStages(_handle, static_cast<UseProgramStageMask>(stages), program); // TODO Find solution to remove glbinding dependance
+        glUseProgramStages(_handle, stages, program);
     }
 
     inline void ProgramPipeline::setActiveProgram(GLuint program)

@@ -26,19 +26,21 @@ namespace mogl
             glDeleteShader(_handle);
     }
 
-    inline bool Shader::compile(const std::string& source)
+    inline void Shader::compile(const std::string& source)
     {
         char const* srcPtr = source.c_str();
 
         glShaderSource(_handle, 1, &srcPtr, 0);
         glCompileShader(_handle);
-        return isCompiled();
+        if (!isCompiled()) {
+            throw std::runtime_error("Failed to compile shader: " + getLog());
+        }
     }
 
-    inline bool Shader::compile(std::istream& sourceFile)
+    inline void Shader::compile(std::istream& sourceFile)
     {
         std::string source(std::istreambuf_iterator<char>(static_cast<std::istream&>(sourceFile)), std::istreambuf_iterator<char>());
-        return compile(source);
+        compile(source);
     }
 
     inline const std::string Shader::getSource() const
