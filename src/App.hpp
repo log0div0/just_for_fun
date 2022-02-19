@@ -17,6 +17,7 @@ struct App {
 private:
 	void InitWindow();
 	void InitShaders();
+	void InitTextures();
 	void InitMesh();
 
 	void ProcessInput();
@@ -26,7 +27,9 @@ private:
 	fs::path assets_dir;
 
 	mogl::ShaderProgram shader_program;
-	mogl::ArrayBuffer vertex_pos_buffer;
+	mogl::Texture wood_texture = GL_TEXTURE_2D;
+	mogl::Texture lambda_texture = GL_TEXTURE_2D;
+	mogl::ArrayBuffer vertex_buffer;
 	mogl::ElementArrayBuffer index_buffer;
 	mogl::VertexArray vertex_array;
 };

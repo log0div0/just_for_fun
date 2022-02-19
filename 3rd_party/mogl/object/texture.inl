@@ -26,6 +26,7 @@ namespace mogl
     inline void Texture::bind(GLuint unit)
     {
         glBindTextureUnit(unit, _handle);
+        MOGL_ASSERT_GLSTATE();
     }
 
     inline void Texture::setBuffer(GLenum internalformat, GLuint buffer)
@@ -46,6 +47,7 @@ namespace mogl
     inline void Texture::setStorage2D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
     {
         glTextureStorage2D(_handle, levels, internalformat, width, height);
+        MOGL_ASSERT_GLSTATE();
     }
 
     inline void Texture::setStorage3D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
@@ -71,6 +73,7 @@ namespace mogl
     inline void Texture::setSubImage2D(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels)
     {
         glTextureSubImage2D(_handle, level, xoffset, yoffset, width, height, format, type, pixels);
+        MOGL_ASSERT_GLSTATE();
     }
 
     inline void Texture::setSubImage3D(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* pixels)
@@ -111,6 +114,7 @@ namespace mogl
     inline void Texture::generateMipmap()
     {
         glGenerateTextureMipmap(_handle);
+        MOGL_ASSERT_GLSTATE();
     }
 
     inline void Texture::getImage(GLint level, GLenum format, GLenum type, GLsizei bufSize, void* pixels)
