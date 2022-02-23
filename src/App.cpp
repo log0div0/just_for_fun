@@ -6,12 +6,15 @@
 #include <scope_guard.hpp>
 #include <stb/Image.hpp>
 
+using namespace math::literals;
+
 App::App(glfw::Window window_, fs::path assets_dir_): window(std::move(window_)), assets_dir(std::move(assets_dir_))
 {
 	InitWindow();
 	InitShaders();
 	InitTextures();
 	InitMesh();
+	InitRenderer();
 }
 
 App::~App()
@@ -64,20 +67,52 @@ void App::InitTextures() {
 
 struct Vertex {
 	math::Vector3 pos;
-	math::Vector3 color;
+	// math::Vector3 color;
 	math::Vector2 uv;
 };
 
 std::vector<Vertex> vertices = {
-	{ { 0.5f,  0.5f, 0.0f},   {1.0f, 0.0f, 0.0f},   {1.0f, 0.0f} },   // top right
-    { { 0.5f, -0.5f, 0.0f},   {0.0f, 1.0f, 0.0f},   {1.0f, 1.0f} },   // bottom right
-    { {-0.5f, -0.5f, 0.0f},   {0.0f, 0.0f, 1.0f},   {0.0f, 1.0f} },   // bottom left
-    { {-0.5f,  0.5f, 0.0f},   {1.0f, 1.0f, 0.0f},   {0.0f, 0.0f} }    // top left
+	{ { -0.5f, -0.5f, -0.5f},  {0.0f, 0.0f} },
+	{ { 0.5f, -0.5f, -0.5f},  {1.0f, 0.0f} },
+	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
+	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
+	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f} },
+	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 0.0f} },
+	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
+	{ { 0.5f, -0.5f,  0.5f},  {1.0f, 0.0f} },
+	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 1.0f} },
+	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 1.0f} },
+	{ {-0.5f,  0.5f,  0.5f},  {0.0f, 1.0f} },
+	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
+	{ {-0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
+	{ {-0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
+	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
+	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
+	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
+	{ {-0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
+	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
+	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
+	{ { 0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
+	{ { 0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
+	{ { 0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
+	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
+	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
+	{ { 0.5f, -0.5f, -0.5f},  {1.0f, 1.0f} },
+	{ { 0.5f, -0.5f,  0.5f},  {1.0f, 0.0f} },
+	{ { 0.5f, -0.5f,  0.5f},  {1.0f, 0.0f} },
+	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
+	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
+	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f} },
+	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
+	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
+	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
+	{ {-0.5f,  0.5f,  0.5f},  {0.0f, 0.0f} },
+	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f} }
 };
 
 std::vector<uint32_t> indices = {
 	0, 1, 3,
-    1, 2, 3
+	1, 2, 3
 };
 
 void App::InitMesh() {
@@ -106,6 +141,13 @@ void App::InitMesh() {
 	vertex_array.setElementBuffer(index_buffer.getHandle());
 }
 
+void App::InitRenderer() {
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_GREATER);
+	glClearDepth(0.0);
+}
+
 void App::Run()
 {
 	while (!window.shouldClose())
@@ -113,6 +155,7 @@ void App::Run()
 		double start = glfwGetTime();
 
 		ProcessInput();
+		UpdateWorld();
 		Render();
 
 		window.swapBuffers();
@@ -140,10 +183,22 @@ void App::ProcessInput()
 	}
 }
 
+void App::UpdateWorld()
+{
+	auto [w, h] = window.getFramebufferSize();
+	float aspect = float(w) / h;
+	model = math::Rotate(GetTimeSeconds() * 0.1f, {0.0f, 0.0f, 1.0f});
+	view = math::LookAt({2.0f, 1.0f, 2.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f});
+	projection = math::Perspective(60_deg, aspect, 0.1f, 1000.0f);
+	projection.m.At(1,1) *= -1;
+	shader_program.setUniformMatrixPtr<4, float>("model", (float*)&model);
+	shader_program.setUniformMatrixPtr<4, float>("view", (float*)&view);
+	shader_program.setUniformMatrixPtr<4, float>("projection", (float*)&projection);
+}
+
 void App::Render()
 {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	shader_program.use();
 	vertex_array.bind();
@@ -151,5 +206,6 @@ void App::Render()
 	lambda_texture.bind(1);
 
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	// glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 }

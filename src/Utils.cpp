@@ -18,3 +18,11 @@ std::string LoadTextFile(const fs::path& path) {
 	f.read(&str[0], file_size);
 	return str;
 }
+
+std::chrono::high_resolution_clock::time_point program_start = std::chrono::high_resolution_clock::now();
+
+float GetTimeSeconds() {
+	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+	auto duration = now - program_start;
+	return float(std::chrono::duration_cast<std::chrono::microseconds>(duration).count()) / 1000000;
+}

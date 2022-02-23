@@ -5,3 +5,4 @@
 namespace fs = ghc::filesystem;
 
 std::string LoadTextFile(const fs::path& path);
+float GetTimeSeconds();

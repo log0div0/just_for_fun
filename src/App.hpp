@@ -8,6 +8,8 @@ namespace fs = ghc::filesystem;
 #include <glfwpp/glfwpp.h>
 #include <mogl/mogl.hpp>
 
+#include <math/Transform.hpp>
+
 struct App {
 	App(glfw::Window window_, fs::path assets_dir_);
 	~App();
@@ -19,8 +21,10 @@ private:
 	void InitShaders();
 	void InitTextures();
 	void InitMesh();
+	void InitRenderer();
 
 	void ProcessInput();
+	void UpdateWorld();
 	void Render();
 
 	glfw::Window window;
@@ -32,4 +36,6 @@ private:
 	mogl::ArrayBuffer vertex_buffer;
 	mogl::ElementArrayBuffer index_buffer;
 	mogl::VertexArray vertex_array;
+
+	math::Transform model, view, projection;
 };
