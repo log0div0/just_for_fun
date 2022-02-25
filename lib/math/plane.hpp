@@ -2,6 +2,7 @@
 #pragma once
 
 #include "line.hpp"
+#include <optional>
 
 namespace math {
 

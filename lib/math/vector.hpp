@@ -126,6 +126,14 @@ struct Vector {
 		return c;
 	}
 
+	Vector& operator+=(const Vector& b) {
+		Vector& a = *this;
+		for (size_t i = 0; i < N; ++i) {
+			a[i] += b[i];
+		}
+		return a;
+	}
+
 	Vector operator-(const Vector& b) const {
 		const Vector& a = *this;
 		Vector c;

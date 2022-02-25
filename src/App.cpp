@@ -15,6 +15,8 @@ App::App(glfw::Window window_, fs::path assets_dir_): window(std::move(window_))
 	InitTextures();
 	InitMesh();
 	InitRenderer();
+	InitInput();
+	InitWorld();
 }
 
 App::~App()
@@ -148,14 +150,26 @@ void App::InitRenderer() {
 	glClearDepth(0.0);
 }
 
+void App::InitInput() {
+
+}
+
+void App::InitWorld() {
+	camera.pos = {2.0f, 0.0f, 0.0f};
+}
+
 void App::Run()
 {
+	float delta_time = 0.0f;
 	while (!window.shouldClose())
 	{
 		double start = glfwGetTime();
 
-		ProcessInput();
-		UpdateWorld();
+		if (delta_time) {
+			ProcessInput(delta_time);
+			UpdateWorld(delta_time);
+		}
+
 		Render();
 
 		window.swapBuffers();
@@ -165,10 +179,11 @@ void App::Run()
 			double finish = glfwGetTime();
 
 			double frame_time = finish - start;
-			const int target_fps = 30;
+			const int target_fps = 60;
 			double target_frame_time = 1.0 / target_fps;
 
 			if (frame_time > target_frame_time) {
+				delta_time = finish - start;
 				break;
 			}
 			glfw::waitEvents(target_frame_time - frame_time);
@@ -176,20 +191,38 @@ void App::Run()
 	}
 }
 
-void App::ProcessInput()
+void App::ProcessInput(float delta_time)
 {
 	if (window.getKey(glfw::KeyCode::Escape)) {
 		window.setShouldClose(true);
 	}
+	if (window.getKey(glfw::KeyCode::W)) {
+		camera.MoveForward(delta_time);
+	}
+	if (window.getKey(glfw::KeyCode::S)) {
+		camera.MoveBack(delta_time);
+	}
+	if (window.getKey(glfw::KeyCode::D)) {
+		camera.MoveRight(delta_time);
+	}
+	if (window.getKey(glfw::KeyCode::A)) {
+		camera.MoveLeft(delta_time);
+	}
+	if (window.getKey(glfw::KeyCode::E)) {
+		camera.MoveUp(delta_time);
+	}
+	if (window.getKey(glfw::KeyCode::Q)) {
+		camera.MoveDown(delta_time);
+	}
 }
 
-void App::UpdateWorld()
+void App::UpdateWorld(float delta_time)
 {
 	auto [w, h] = window.getFramebufferSize();
 	float aspect = float(w) / h;
 	model = math::Rotate(GetTimeSeconds() * 0.1f, {0.0f, 0.0f, 1.0f});
-	view = math::LookAt({2.0f, 1.0f, 2.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f});
-	projection = math::Perspective(60_deg, aspect, 0.1f, 1000.0f);
+	view = camera.GetViewTransform();
+	projection = camera.GetProjectionTransform(aspect);
 	projection.m.At(1,1) *= -1;
 	shader_program.setUniformMatrixPtr<4, float>("model", (float*)&model);
 	shader_program.setUniformMatrixPtr<4, float>("view", (float*)&view);

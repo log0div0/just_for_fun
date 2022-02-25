@@ -10,6 +10,8 @@ namespace fs = ghc::filesystem;
 
 #include <math/Transform.hpp>
 
+#include "Camera.hpp"
+
 struct App {
 	App(glfw::Window window_, fs::path assets_dir_);
 	~App();
@@ -22,9 +24,11 @@ private:
 	void InitTextures();
 	void InitMesh();
 	void InitRenderer();
+	void InitInput();
+	void InitWorld();
 
-	void ProcessInput();
-	void UpdateWorld();
+	void ProcessInput(float delta_time);
+	void UpdateWorld(float delta_time);
 	void Render();
 
 	glfw::Window window;
@@ -36,6 +40,9 @@ private:
 	mogl::ArrayBuffer vertex_buffer;
 	mogl::ElementArrayBuffer index_buffer;
 	mogl::VertexArray vertex_array;
+
+
+	Camera camera;
 
 	math::Transform model, view, projection;
 };
