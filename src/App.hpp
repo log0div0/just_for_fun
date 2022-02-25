@@ -41,8 +41,10 @@ private:
 	mogl::ElementArrayBuffer index_buffer;
 	mogl::VertexArray vertex_array;
 
-
 	Camera camera;
+
+	using CursorPos = math::Vector<double, 2>;
+	CursorPos last_cursor_pos;
 
 	math::Transform model, view, projection;
 };

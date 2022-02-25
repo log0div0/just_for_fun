@@ -17,6 +17,9 @@ struct Camera {
 	void MoveDown(float delta_time);
 	void Move(float delta_time, const math::Vector3& dir);
 
+	void OnCursorMove(float dx, float dy);
+	void OnScroll(float diff);
+
 	math::Vector3 GetRightDirection() const;
 	math::Vector3 GetForwardDirection() const;
 	math::Transform GetViewTransform() const;

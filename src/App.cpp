@@ -24,8 +24,8 @@ App::~App()
 }
 
 void App::InitWindow() {
-	int w = 640;
-	int h = 480;
+	int w = 1200;
+	int h = 900;
 
 	window.setSize(w, h);
 
@@ -151,7 +151,18 @@ void App::InitRenderer() {
 }
 
 void App::InitInput() {
-
+	last_cursor_pos = std::make_from_tuple<CursorPos>(window.getCursorPos());
+	window.cursorPosEvent.setCallback([&](glfw::Window& window, double x, double y) {
+		CursorPos pos{x, y};
+		if (window.getMouseButton(glfw::MouseButton::Right)) {
+			CursorPos diff = last_cursor_pos - pos;
+			camera.OnCursorMove(diff.X(), diff.Y());
+		}
+		last_cursor_pos = pos;
+	});
+	window.scrollEvent.setCallback([&](glfw::Window& window, double x, double y) {
+		camera.OnScroll(y);
+	});
 }
 
 void App::InitWorld() {
