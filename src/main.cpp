@@ -3,6 +3,8 @@
 #include <clipp.h>
 #include "App.hpp"
 
+fs::path g_assets_dir;
+
 int do_main(int argc, char** argv) {
 	using namespace clipp;
 
@@ -45,7 +47,9 @@ int do_main(int argc, char** argv) {
 		throw std::runtime_error("Failed to initialize GLAD");
 	}
 
-	App app(std::move(window), assets_dir);
+	g_assets_dir = assets_dir;
+
+	App app(std::move(window));
 	app.Run();
 
 	return 0;

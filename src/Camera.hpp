@@ -8,6 +8,7 @@ struct Camera {
 	math::Vector3 pos;
 	math::Quaternion rot = math::Quaternion::Identity;
 	float speed = 1.0f;
+	float aspect = 0.0f;
 
 	void MoveForward(float delta_time);
 	void MoveBack(float delta_time);
@@ -23,5 +24,5 @@ struct Camera {
 	math::Vector3 GetRightDirection() const;
 	math::Vector3 GetForwardDirection() const;
 	math::Transform GetViewTransform() const;
-	math::Transform GetProjectionTransform(float aspect) const;
+	math::Transform GetProjectionTransform() const;
 };

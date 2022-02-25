@@ -61,6 +61,8 @@ math::Transform Camera::GetViewTransform() const {
 	return math::LookAt(pos, pos + GetForwardDirection(), {0.0f, 0.0f, 1.0f});
 }
 
-math::Transform Camera::GetProjectionTransform(float aspect) const {
-	return math::Perspective(60_deg, aspect, 0.1f, 1000.0f);
+math::Transform Camera::GetProjectionTransform() const {
+	math::Transform t = math::Perspective(60_deg, aspect, 0.1f, 1000.0f);
+	t.m.At(1,1) *= -1;
+	return t;
 }
