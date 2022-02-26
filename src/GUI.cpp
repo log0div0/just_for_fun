@@ -18,9 +18,21 @@ GUI::~GUI() {
 }
 
 void GUI::Update(float delta_time) {
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
 
+	{
+		ImGui::Begin("Hello, world!");
+
+		ImGui::Checkbox("Limit frame rate", &limit_framerate);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
 }
 
 void GUI::Render() {
-
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

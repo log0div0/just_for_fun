@@ -18,4 +18,6 @@ struct GUI {
 
 	void Update(float delta_time);
 	void Render();
+
+	bool limit_framerate = true;
 };

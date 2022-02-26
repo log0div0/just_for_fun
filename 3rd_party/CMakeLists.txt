@@ -23,3 +23,13 @@ target_include_directories(imgui PUBLIC
 )
 
 target_link_libraries(imgui glfw)
+
+add_executable(imgui_demo
+	imgui-1.87/imgui_demo.cpp
+	imgui-1.87/examples/example_glfw_opengl3/main.cpp
+)
+
+target_link_libraries(imgui_demo imgui)
+if (WIN32)
+	target_link_libraries(imgui_demo opengl32)
+endif()

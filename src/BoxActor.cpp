@@ -118,7 +118,7 @@ void BoxActor::Update(float delta_time) {
 	transformation = math::Rotate(GetTimeSeconds() * 0.1f, {0.0f, 0.0f, 1.0f});
 }
 
-void BoxActor::Render(const Camera& camera) {
+void BoxActor::Render(const Camera& camera, const PointLight& light) {
 	math::Transform view = camera.GetViewTransform();
 	math::Transform projection = camera.GetProjectionTransform();
 

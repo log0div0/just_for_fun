@@ -3,9 +3,11 @@
 #include "Utils.hpp"
 #include <math/vector.hpp>
 #include <iostream>
+#include <thread>
 #include <scope_guard.hpp>
 
 using namespace math::literals;
+using namespace std::chrono_literals;
 
 App::App(glfw::Window& window_): window(window_), camera(window), gui(window)
 {
@@ -43,39 +45,40 @@ void App::InitWorld() {
 	camera.pos = {2.0f, 0.0f, 0.0f};
 }
 
+using Seconds = std::chrono::duration<float>;
+auto Now() {
+	return std::chrono::high_resolution_clock::now();
+}
+
 void App::Run()
 {
-	float delta_time = 0.0f;
+	Seconds delta_time(0.0f);
 	while (!window.shouldClose())
 	{
 		if (window.getKey(glfw::KeyCode::Escape)) {
 			window.setShouldClose(true);
 		}
 
-		double start = glfwGetTime();
+		auto start = Now();
 
-		if (delta_time) {
-			Update(delta_time);
-		}
-
+		Update(delta_time.count());
 		Render();
 
 		window.swapBuffers();
 		glfw::pollEvents();
 
-		while (true) {
-			double finish = glfwGetTime();
-
-			double frame_time = finish - start;
+		if (gui.limit_framerate) {
+			auto finish = Now();
+			auto frame_time = finish - start;
 			const int target_fps = 60;
-			double target_frame_time = 1.0 / target_fps;
-
-			if (frame_time > target_frame_time) {
-				delta_time = finish - start;
-				break;
+			auto target_frame_time = Seconds(1.0f) / target_fps;
+			if (frame_time < target_frame_time) {
+				auto sleep_time = std::chrono::duration_cast<std::chrono::milliseconds>(target_frame_time - frame_time);
+				std::this_thread::sleep_for(sleep_time);
 			}
-			glfw::waitEvents(target_frame_time - frame_time);
 		}
+		auto now = Now();
+		delta_time = std::chrono::duration_cast<Seconds>(now - start);
 	}
 }
 
@@ -83,6 +86,7 @@ void App::Update(float delta_time)
 {
 	camera.Update(delta_time);
 	box.Update(delta_time);
+	light.Update(delta_time);
 	gui.Update(delta_time);
 }
 
@@ -90,6 +94,7 @@ void App::Render()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	box.Render(camera);
+	light.Render(camera);
+	box.Render(camera, light);
 	gui.Render();
 }

@@ -10,6 +10,7 @@ namespace fs = ghc::filesystem;
 #include <math/Transform.hpp>
 
 #include "Camera.hpp"
+#include "PointLight.hpp"
 
 struct BoxActor {
 	BoxActor();
@@ -19,7 +20,7 @@ struct BoxActor {
 	void InitMesh();
 
 	void Update(float delta_time);
-	void Render(const Camera& camera);
+	void Render(const Camera& camera, const PointLight& light);
 
 	mogl::ShaderProgram shader_program;
 	mogl::Texture wood_texture = GL_TEXTURE_2D;

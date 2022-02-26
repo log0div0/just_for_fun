@@ -11,6 +11,7 @@ namespace fs = ghc::filesystem;
 
 #include "GUI.hpp"
 #include "BoxActor.hpp"
+#include "PointLight.hpp"
 #include "Camera.hpp"
 
 struct App {
@@ -30,6 +31,7 @@ private:
 	glfw::Window& window;
 
 	Camera camera;
+	PointLight light;
 	BoxActor box;
 	GUI gui;
 };

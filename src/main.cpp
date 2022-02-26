@@ -42,6 +42,8 @@ int do_main(int argc, char** argv) {
 	glfw::Window window {640, 480, "Hello World"};
 	glfw::makeContextCurrent(window);
 
+	glfw::swapInterval(0);
+
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		throw std::runtime_error("Failed to initialize GLAD");
@@ -49,8 +51,16 @@ int do_main(int argc, char** argv) {
 
 	g_assets_dir = assets_dir;
 
+#ifdef WIN32
+	timeBeginPeriod(1);
+#endif
+
 	App app(window);
 	app.Run();
+
+#ifdef WIN32
+	timeEndPeriod(1);
+#endif
 
 	return 0;
 }
