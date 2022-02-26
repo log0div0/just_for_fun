@@ -44,74 +44,10 @@ void BoxActor::InitTextures() {
 	}
 }
 
-std::vector<Vertex> vertices = {
-	{ { -0.5f, -0.5f, -0.5f},  {0.0f, 0.0f} },
-	{ { 0.5f, -0.5f, -0.5f},  {1.0f, 0.0f} },
-	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
-	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
-	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f} },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 0.0f} },
-	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
-	{ { 0.5f, -0.5f,  0.5f},  {1.0f, 0.0f} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 1.0f} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 1.0f} },
-	{ {-0.5f,  0.5f,  0.5f},  {0.0f, 1.0f} },
-	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
-	{ {-0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
-	{ {-0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
-	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
-	{ {-0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
-	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
-	{ { 0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
-	{ { 0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
-	{ { 0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
-	{ { 0.5f, -0.5f, -0.5f},  {1.0f, 1.0f} },
-	{ { 0.5f, -0.5f,  0.5f},  {1.0f, 0.0f} },
-	{ { 0.5f, -0.5f,  0.5f},  {1.0f, 0.0f} },
-	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f} },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f} },
-	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f} },
-	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f} },
-	{ {-0.5f,  0.5f,  0.5f},  {0.0f, 0.0f} },
-	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f} }
-};
-
-std::vector<uint32_t> indices = {
-	0, 1, 3,
-	1, 2, 3
-};
-
 void BoxActor::InitMesh() {
-
-	GLuint pos = shader_program.getAttribLocation("aPos");
-	// GLuint color = shader_program.getAttribLocation("aColor");
-	GLuint uv = shader_program.getAttribLocation("aUV");
-	GLuint binding_index = 1; // any vacant value
-
-	vertex_buffer.setData(vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-	vertex_array.setVertexBuffer(binding_index, vertex_buffer.getHandle(), 0, sizeof(Vertex));
-
-	vertex_array.setAttribBinding(pos, binding_index);
-	vertex_array.setAttribFormat(pos, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
-	vertex_array.enableAttrib(pos);
-
-	// vertex_array.setAttribBinding(color, binding_index);
-	// vertex_array.setAttribFormat(color, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, color));
-	// vertex_array.enableAttrib(color);
-
-	vertex_array.setAttribBinding(uv, binding_index);
-	vertex_array.setAttribFormat(uv, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
-	vertex_array.enableAttrib(uv);
-
-	index_buffer.setData(indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
-	vertex_array.setElementBuffer(index_buffer.getHandle());
+	mesh.BindPos(shader_program.getAttribLocation("aPos"));
+	// mesh.BindColor(shader_program.getAttribLocation("aColor"));
+	mesh.BindUV(shader_program.getAttribLocation("aUV"));
 }
 
 void BoxActor::Update(float delta_time) {
@@ -127,11 +63,8 @@ void BoxActor::Render(const Camera& camera, const PointLight& light) {
 	shader_program.setUniformMatrixPtr<4, float>("projection", (float*)&projection);
 
 	shader_program.use();
-	vertex_array.bind();
 	wood_texture.bind(3);
 	lambda_texture.bind(1);
 
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	// glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	mesh.Draw();
 }

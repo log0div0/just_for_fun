@@ -1,10 +1,7 @@
 
 #pragma once
 
-#include <glad/glad.h>
-#include <mogl/mogl.hpp>
-
-#include <glfwpp/glfwpp.h>
+#include "Utils.hpp"
 
 struct GUI {
 	GUI(glfw::Window& window);

@@ -1,16 +1,11 @@
 
 #pragma once
 
-#include <ghc/filesystem.hpp>
-namespace fs = ghc::filesystem;
-
-#include <glad/glad.h>
-#include <mogl/mogl.hpp>
-
 #include <math/Transform.hpp>
 
 #include "Camera.hpp"
 #include "PointLight.hpp"
+#include "BoxMesh.hpp"
 
 struct BoxActor {
 	BoxActor();
@@ -25,9 +20,7 @@ struct BoxActor {
 	mogl::ShaderProgram shader_program;
 	mogl::Texture wood_texture = GL_TEXTURE_2D;
 	mogl::Texture lambda_texture = GL_TEXTURE_2D;
-	mogl::ArrayBuffer vertex_buffer;
-	mogl::ElementArrayBuffer index_buffer;
-	mogl::VertexArray vertex_array;
+	BoxMesh mesh;
 
 	math::Transform transformation;
 };

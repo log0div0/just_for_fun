@@ -1,14 +1,11 @@
 
 #pragma once
 
-#include <glad/glad.h>
-#include <mogl/mogl.hpp>
-
-#include <glfwpp/glfwpp.h>
-
 #include <math/Vector.hpp>
 #include <math/Transform.hpp>
 #include <math/Quaternion.hpp>
+
+#include "Utils.hpp"
 
 struct Camera {
 	math::Vector3 pos = math::Vector3::Zero;
