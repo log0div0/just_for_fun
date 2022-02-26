@@ -3,28 +3,19 @@
 
 using namespace math::literals;
 
-void Camera::MoveForward(float delta_time) {
-	Move(delta_time, GetForwardDirection());
-}
-
-void Camera::MoveBack(float delta_time) {
-	Move(delta_time, -GetForwardDirection());
-}
-
-void Camera::MoveRight(float delta_time) {
-	Move(delta_time, GetRightDirection());
-}
-
-void Camera::MoveLeft(float delta_time) {
-	Move(delta_time, -GetRightDirection());
-}
-
-void Camera::MoveUp(float delta_time) {
-	Move(delta_time, {0.0f, 0.0f, 1.0f});
-}
-
-void Camera::MoveDown(float delta_time) {
-	Move(delta_time, {0.0f, 0.0f, -1.0f});
+Camera::Camera(glfw::Window& window_): window(window_) {
+	last_cursor_pos = std::make_from_tuple<CursorPos>(window.getCursorPos());
+	window.cursorPosEvent.setCallback([&](glfw::Window& window, double x, double y) {
+		CursorPos pos{x, y};
+		if (window.getMouseButton(glfw::MouseButton::Right)) {
+			CursorPos diff = last_cursor_pos - pos;
+			OnCursorMove(diff.X(), diff.Y());
+		}
+		last_cursor_pos = pos;
+	});
+	window.scrollEvent.setCallback([&](glfw::Window& window, double x, double y) {
+		OnScroll(y);
+	});
 }
 
 void Camera::Move(float delta_time, const math::Vector3& dir) {
@@ -65,4 +56,25 @@ math::Transform Camera::GetProjectionTransform() const {
 	math::Transform t = math::Perspective(60_deg, aspect, 0.1f, 1000.0f);
 	t.m.At(1,1) *= -1;
 	return t;
+}
+
+void Camera::Update(float delta_time) {
+	if (window.getKey(glfw::KeyCode::W)) {
+		Move(delta_time, GetForwardDirection());
+	}
+	if (window.getKey(glfw::KeyCode::S)) {
+		Move(delta_time, -GetForwardDirection());
+	}
+	if (window.getKey(glfw::KeyCode::D)) {
+		Move(delta_time, GetRightDirection());
+	}
+	if (window.getKey(glfw::KeyCode::A)) {
+		Move(delta_time, -GetRightDirection());
+	}
+	if (window.getKey(glfw::KeyCode::E)) {
+		Move(delta_time, {0.0f, 0.0f, 1.0f});
+	}
+	if (window.getKey(glfw::KeyCode::Q)) {
+		Move(delta_time, {0.0f, 0.0f, -1.0f});
+	}
 }

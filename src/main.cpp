@@ -49,7 +49,7 @@ int do_main(int argc, char** argv) {
 
 	g_assets_dir = assets_dir;
 
-	App app(std::move(window));
+	App app(window);
 	app.Run();
 
 	return 0;

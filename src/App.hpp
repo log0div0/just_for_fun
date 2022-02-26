@@ -9,11 +9,12 @@ namespace fs = ghc::filesystem;
 
 #include <glfwpp/glfwpp.h>
 
+#include "GUI.hpp"
 #include "BoxActor.hpp"
 #include "Camera.hpp"
 
 struct App {
-	App(glfw::Window window_);
+	App(glfw::Window& window_);
 	~App();
 
 	void Run();
@@ -21,21 +22,14 @@ struct App {
 private:
 	void InitWindow();
 	void InitRenderer();
-	void InitInput();
 	void InitWorld();
-	void InitGUI();
-	void DeinitGUI();
 
-	void ProcessInput(float delta_time);
-	void UpdateWorld(float delta_time);
-	void UpdateGUI(float delta_time);
+	void Update(float delta_time);
 	void Render();
 
-	glfw::Window window;
+	glfw::Window& window;
 
 	Camera camera;
 	BoxActor box;
-
-	using CursorPos = math::Vector<double, 2>;
-	CursorPos last_cursor_pos;
+	GUI gui;
 };
