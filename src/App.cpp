@@ -5,6 +5,10 @@
 #include <iostream>
 #include <scope_guard.hpp>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 using namespace math::literals;
 
 App::App(glfw::Window window_): window(std::move(window_))
@@ -13,10 +17,24 @@ App::App(glfw::Window window_): window(std::move(window_))
 	InitRenderer();
 	InitInput();
 	InitWorld();
+	InitGUI();
 }
 
 App::~App()
 {
+	DeinitGUI();
+}
+
+void App::InitGUI() {
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 460 core");
+}
+
+void App::DeinitGUI() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 }
 
 void App::InitWindow() {

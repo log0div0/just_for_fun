@@ -23,9 +23,12 @@ private:
 	void InitRenderer();
 	void InitInput();
 	void InitWorld();
+	void InitGUI();
+	void DeinitGUI();
 
 	void ProcessInput(float delta_time);
 	void UpdateWorld(float delta_time);
+	void UpdateGUI(float delta_time);
 	void Render();
 
 	glfw::Window window;
