@@ -31,8 +31,6 @@ using namespace literals;
 
 template <typename T, size_t N>
 struct Vector {
-	static const Vector Zero;
-
 	Vector(): data{} {}
 
 	Vector(T t) {
@@ -234,9 +232,6 @@ std::ostream& operator<<(std::ostream& stream, const Vector<T, N>& v) {
 	}
 	return stream << ")";
 }
-
-template <typename T, size_t N>
-const Vector<T, N> Vector<T, N>::Zero = T(0);
 
 using Vector2 = Vector<float, 2>;
 using Vector3 = Vector<float, 3>;

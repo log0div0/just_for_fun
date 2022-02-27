@@ -10,10 +10,6 @@
 struct BoxActor {
 	BoxActor();
 
-	void InitShaders();
-	void InitTextures();
-	void InitMesh();
-
 	void Update(float delta_time);
 	void Render(const Camera& camera, const PointLight& light);
 
@@ -21,6 +17,4 @@ struct BoxActor {
 	mogl::Texture2D wood_texture;
 	mogl::Texture2D lambda_texture;
 	BoxMesh mesh;
-
-	math::Transform transformation;
 };

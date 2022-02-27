@@ -13,9 +13,12 @@ namespace math {
 // q = xi + yj + zk + w
 struct Quaternion {
 	Vector3 v = {0.0f, 0.0f, 0.0f};
-	float s = 0.0f;
+	float s = 1.0f;
 
-	static const Quaternion Identity;
+	float X() const { return v.X(); }
+	float Y() const { return v.Y(); }
+	float Z() const { return v.Z(); }
+	float W() const { return s; }
 
 	Quaternion() = default;
 	Quaternion(const Vector3& v_, float s_): v(v_), s(s_) {}
@@ -85,8 +88,6 @@ struct Quaternion {
 	// 1) useful only for rotations
 	// 2) rotation of vectors is more expensive that multiplying a vector by a matrix
 };
-
-inline const Quaternion Quaternion::Identity(0.0f, 0.0f, 0.0f, 1.0f);
 
 inline std::ostream& operator<<(std::ostream& stream, const Quaternion& q) {
 	return stream << "Quaternion [" << q.v << " | " << q.s << "]";

@@ -8,8 +8,8 @@
 #include "Utils.hpp"
 
 struct Camera {
-	math::Vector3 pos = math::Vector3::Zero;
-	math::Quaternion rot = math::Quaternion::Identity;
+	math::Vector3 pos;
+	math::Quaternion rot;
 	float speed = 1.0f;
 	float aspect = 1.0f;
 

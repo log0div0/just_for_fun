@@ -9,6 +9,8 @@ namespace fs = ghc::filesystem;
 
 #include <glfwpp/glfwpp.h>
 
+extern fs::path g_assets_dir;
+
 std::string LoadTextFile(const fs::path& path);
 float GetTimeSeconds();
 mogl::ShaderProgram LoadShaders(const fs::path& vertex, const fs::path& fragment);

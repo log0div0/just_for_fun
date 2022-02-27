@@ -3,6 +3,7 @@
 
 #include "matrix.hpp"
 #include "plane.hpp"
+#include "quaternion.hpp"
 
 namespace math {
 
@@ -22,50 +23,59 @@ namespace math {
 // H⁻¹ = | M⁻¹ -M⁻¹t |
 //       | 0    1    |
 //       └           ┘
-struct Transform {
-	Transform(): Transform(Matrix4::MakeIdentity()) {}
-	Transform(const Matrix4& m_): m(m_) {}
-	Transform(const Matrix3& transformation): Transform() {
-		SetTransofmationMatrix(transformation);
+struct Transform: Matrix4 {
+	static Matrix4 ToMatrix(const Vector3& translation) {
+		return {
+			1.0f, 0.0f, 0.0f, translation.X(),
+			0.0f, 1.0f, 0.0f, translation.Y(),
+			0.0f, 0.0f, 1.0f, translation.Z(),
+			0.0f, 0.0f, 0.0f, 1.0f,
+		};
 	}
-	Transform(const Vector3& translation): Transform() {
-		SetTranslationVector(translation);
+	static Matrix4 ToMatrix(const Quaternion& rotation) {
+		float x2 = rotation.X() * rotation.X();
+		float y2 = rotation.Y() * rotation.Y();
+		float z2 = rotation.Z() * rotation.Z();
+		float xy = rotation.X() * rotation.Y();
+		float xz = rotation.X() * rotation.Z();
+		float yz = rotation.Y() * rotation.Z();
+		float wx = rotation.W() * rotation.X();
+		float wy = rotation.W() * rotation.Y();
+		float wz = rotation.W() * rotation.Z();
+		return {
+			1.f-2*(y2+z2), 2*(xy-wz),     2*(xz+wy),     0.0f,
+			2*(xy+wz),     1.f-2*(x2+z2), 2*(yz-wx),     0.0f,
+			2*(xz-wy),     2*(yz+wx),     1.f-2*(x2+y2), 0.0f,
+			0.0f,          0.0f,          0.0f,          1.0f,
+		};
+	}
+	static Matrix4 ToMatrix(const Vector3& translation, const Quaternion& rotation, const Vector3& scale) {
+		float x2 = rotation.X() * rotation.X();
+		float y2 = rotation.Y() * rotation.Y();
+		float z2 = rotation.Z() * rotation.Z();
+		float xy = rotation.X() * rotation.Y();
+		float xz = rotation.X() * rotation.Z();
+		float yz = rotation.Y() * rotation.Z();
+		float wx = rotation.W() * rotation.X();
+		float wy = rotation.W() * rotation.Y();
+		float wz = rotation.W() * rotation.Z();
+		return {
+			(1.f-2*(y2+z2))*scale.X(), 2*(xy-wz),                 2*(xz+wy),                 translation.X(),
+			2*(xy+wz),                 (1.f-2*(x2+z2))*scale.Y(), 2*(yz-wx),                 translation.Y(),
+			2*(xz-wy),                 2*(yz+wx),                 (1.f-2*(x2+y2))*scale.Z(), translation.Z(),
+			0.0f,                      0.0f,                      0.0f,                      1.0f,
+		};
 	}
 
-	void SetTransofmationMatrix(const Matrix3& transformation) {
-		for (size_t j = 0; j < 3; ++j) {
-			for (size_t i = 0; i < 3; ++i) {
-				m.At(i, j) = transformation.At(i, j);
-			}
-		}
-	}
-
-	void SetTranslationVector(const Vector3& translation) {
-		for (size_t i = 0; i < 3; ++i) {
-			m.At(i, 3) = translation[i];
-		}
-	}
-
-	Matrix3 GetTransofmationMatrix() const {
-		Matrix3 transformation;
-		for (size_t j = 0; j < 3; ++j) {
-			for (size_t i = 0; i < 3; ++i) {
-				transformation.At(i, j) = m.At(i, j);
-			}
-		}
-		return transformation;
-	}
-
-	Vector3 GetTranslationVector() const {
-		Vector3 translation;
-		for (size_t i = 0; i < 3; ++i) {
-			translation[i] = m.At(i, 3);
-		}
-		return translation;
-	}
+	Transform(): Matrix4{Matrix4::Identity()} {}
+	Transform(const Matrix4& m): Matrix4(m) {}
+	Transform(const Vector3& translation): Matrix4{ToMatrix(translation)} {}
+	Transform(const Quaternion& rotation): Matrix4{ToMatrix(rotation)} {}
+	Transform(const Vector3& translation, const Quaternion& rotation, const Vector3& scale = {1.0f}):
+		Matrix4{ToMatrix(translation, rotation, scale)} {}
 
 	Point operator()(const Point& p) const {
-		return m*(const Vector4&)p;
+		return (const Matrix4&)(*this)*(const Vector4&)p;
 	}
 
 	// A plane f consists of a normal n and a distance d
@@ -82,30 +92,16 @@ struct Transform {
 	// the conclusion
 	// fᴮ = fᴬDet(H)H⁻¹ = fᴬAdj(H)
 	Plane operator()(const Plane& f) const {
-		return (const Vector4&)f*m.Adjugate();
+		return (const Vector4&)f*Adjugate();
 	}
 
 	Transform operator*(const Transform& other) const {
-		return Transform(m*other.m);
+		return Transform((const Matrix4&)(*this)*(const Matrix4&)other);
 	}
-
-	Matrix4 m;
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Transform& t) {
-	return stream << "Transform " << t.m;
-}
-
-inline Transform Rotate(float angle, const Vector3& axis) {
-	Vector3 right = Vector3(1.0f, 0.0f, 0.0f).Rotate(angle, axis);
-	Vector3 up = Vector3(0.0f, 1.0f, 0.0f).Rotate(angle, axis);
-	Vector3 fwd = Vector3(0.0f, 0.0f, 1.0f).Rotate(angle, axis);
-	return Matrix4 {
-		right.X(), up.X(), fwd.X(), 0.0f,
-		right.Y(), up.Y(), fwd.Y(), 0.0f,
-		right.Z(), up.Z(), fwd.Z(), 0.0f,
-		     0.0f,   0.0f,    0.0f, 1.0f,
-	};
+	return stream << "Transform " << (const Matrix4&)t;
 }
 
 // see docs/LookAt.ipynb for delails
@@ -211,5 +207,5 @@ inline Transform Ortho(float w, float h, float d) {
 #include "nearly.hpp"
 
 inline bool operator==(const math::Transform& a, const Nearly<math::Transform>& nearly) {
-	return (a.m == Nearly(nearly.t.m, nearly.epsilon));
+	return ((const math::Matrix4&)a == Nearly((const math::Matrix4&)nearly.t, nearly.epsilon));
 }

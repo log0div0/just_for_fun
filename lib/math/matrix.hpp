@@ -8,126 +8,13 @@
 namespace math {
 
 template <typename T, size_t N, size_t M>
-struct Matrix;
-
-template <typename T, size_t N, size_t P, size_t M>
-Matrix<T, N, M> operator*(const Matrix<T, N, P>& a, const Matrix<T, P, M>& b);
-
-template <typename T, size_t N, size_t M>
-Vector<T, N> operator*(const Matrix<T, N, M>& a, const Vector<T, M>& b);
-
-template <typename T, size_t N, size_t M>
-Vector<T, N> operator*(const Vector<T, M>& a, const Matrix<T, N, M>& b);
-
-//
-// outer product of two vectors has the form
-//
-//        	| a0 |                      | a0b0 a0b1 .... a0bN |
-//        	| a1 |                      | a1b0 a1b1 .... a1bN |
-// a⊗b  = 	| .. | | b0 b1 .. .. bN | = | .... .... .... .... |
-//        	| .. |                      | .... .... .... .... |
-//        	| aN |                      | aNb0 aNb0 .... aNbN |
-//
-// it's very useful because the scalar tripple product [a,b,c] = a*b•c =
-//   ┌                                 ┐
-//   | a0 * (b0c0 + b1c1 + ... + bNcN) |
-//   | a1 * (b0c0 + b1c1 * ... + bNcN) |
-// = | ............................... | =
-//   | aN * (b0c0 + b1c1 + ... + bNcN) |
-//   └                                 ┘
-//   ┌                                ┐
-//   | a0b0c0 + a0b1c1 + ... + a0bNcN |
-//   | a1b0c0 + a1b1c1 + ... + a1bNcN |
-// = | .............................. | =
-//   | aNb0c0 + aNb1c1 + ... + aNbNcN |
-//   └                                ┘
-//   ┌                    ┐   ┌    ┐    ┌                    ┐   ┌    ┐
-//   | a0c0 a0c1 ... a0cN |   | b0 |    | a0b0 a0b1 ... a0bN |   | c0 |
-//   | a1c0 a1c1 ... a1cN |   | b1 |    | a1b0 a1b1 ... a1bN |   | c1 |
-// = | .................. | * | .. | OR | .................. | * | .. | =
-//   | aNc0 aNc1 ... aNcN |   | bN |    | aNb0 aNb1 ... aNbN |   | cN |
-//   └                    ┘   └    ┘    └                    ┘   └    ┘
-// = a⊗b*c OR a⊗c*b
-//
-template <typename T, size_t N, size_t M>
-Matrix<T, N, M> OuterProduct(const Vector<T, N>& a, const Vector<T, M>& b);
-
-template <typename T, size_t N, size_t M>
-Matrix<T, N, M> operator*(T val, const Matrix<T, N, M>& m);
-
-template <typename T, size_t N, size_t M>
-Matrix<T, N, M> operator/(T val, const Matrix<T, N, M>& m);
-
-template <typename T, size_t N, size_t M>
 struct Matrix {
-	static Matrix MakeIdentity() requires (N == M) {
+	static Matrix Identity() requires (N == M) {
 		Matrix m;
 		for (size_t i = 0; i < N; ++i) {
 			m.At(i, i) = 1;
 		}
 		return m;
-	}
-
-	//
-	// proj(a,b) = b*a•b / b•b =
-	// = b⊗b*a / b•b =
-	// = (b⊗b / b•b) * a
-	//
-	static Matrix MakeProjectionOnto(const Vector<T, N>& v) requires (N == M) {
-		return OuterProduct(v, v) / v.Dot(v);
-	}
-
-	//
-	// rej(a,b) = a - proj(a,b) = a - Mₚᵣₒⱼ*a = (1 - Mₚᵣₒⱼ)*a
-	//
-	static Matrix MakeRejectionFrom(const Vector<T, N>& v) requires (N == M) {
-		return MakeIdentity() - MakeProjectionOnto(v);
-	}
-
-	//
-	// ┌             ┐   ┌   ┐   ┌           ┐   ┌         ┐
-	// |  0  -z   y  |   | X |   | -zY + yZ  |   | yZ - zY |
-	// |  z   0  -x  | * | Y | = |  zX - xZ  | = | zX - xZ |
-	// | -y   x   0  |   | Z |   | -yX + xY  |   | xY - yX |
-	// └             ┘   └   ┘   └           ┘   └         ┘
-	//
-	static Matrix MakeCross(const Vector<T, 3>& v) requires (N == 3 && M == 3) {
-		auto[x, y, z] = v.data;
-		return {
-			.0f, -z, y,
-			z, .0f, -x,
-			-y, x, .0f
-		};
-	}
-
-	static Matrix MakeRotation(float angle, const Vector<T, 3>& axis) requires (N == 3 && M == 3) {
-		return
-			MakeProjectionOnto(axis) +
-			MakeRejectionFrom(axis) * std::cos(angle) +
-			MakeCross(axis) * std::sin(angle);
-	}
-
-	static Matrix MakeReflection(const Vector<T, N>& v) requires (N == M) {
-		// in fact it's rejection plus projection in the opposite direction
-		return MakeRejectionFrom(v) - MakeProjectionOnto(v);
-	}
-
-	static Matrix MakeInvolution(const Vector<T, N>& v) requires (N == M) {
-		// projection plus rejection in the opposite direction
-		return MakeProjectionOnto(v) - MakeRejectionFrom(v);
-	}
-
-	static Matrix MakeScale(const Vector<T, 3>& factors) requires (N == 3 && M == 3) {
-		auto[x, y, z] = factors.data;
-		return {
-			x, .0f, .0f,
-			.0f, y, .0f,
-			.0f, .0f, z
-		};
-	}
-
-	static Matrix MakeScale(float factor, const Vector<T, N>& axis) requires (N == M) {
-		return factor * MakeProjectionOnto(axis) + MakeRejectionFrom(axis);
 	}
 
 	Matrix(): data{} {}
@@ -415,6 +302,3 @@ bool operator==(const math::Matrix<T, N, M>& a, const Nearly<math::Matrix<T, N, 
 	}
 	return true;
 }
-
-// M*Mᵀ == E => Mᵀ == M⁻¹
-#define REQUIRE_ORTHOGONAL(M) REQUIRE(M.Transpose() == Nearly(M.Inverse()))

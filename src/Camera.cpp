@@ -54,7 +54,7 @@ math::Transform Camera::GetViewTransform() const {
 
 math::Transform Camera::GetProjectionTransform() const {
 	math::Transform t = math::Perspective(60_deg, aspect, 0.1f, 1000.0f);
-	t.m.At(1,1) *= -1;
+	t.At(1,1) *= -1;
 	return t;
 }
 
