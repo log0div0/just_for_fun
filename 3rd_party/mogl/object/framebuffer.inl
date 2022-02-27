@@ -32,7 +32,8 @@ namespace mogl
         glNamedFramebufferRenderbuffer(_handle, attachment, GL_RENDERBUFFER, renderbuffer.getHandle());
     }
 
-    inline void FrameBuffer::setTexture(GLenum attachment, Texture& texture, GLint level)
+    template <GLenum target>
+    inline void FrameBuffer::setTexture(GLenum attachment, Texture<target>& texture, GLint level)
     {
         glNamedFramebufferTexture(_handle, attachment, texture.getHandle(), level);
     }

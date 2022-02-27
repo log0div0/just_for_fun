@@ -27,20 +27,17 @@ namespace mogl
     {
     public:
         Handle(GLenum identifier = GL_NONE);
-        virtual ~Handle() = default;
 
         Handle(const Handle& other) = delete;
         Handle& operator=(const Handle& other) = delete;
 
         Handle(Handle&& other) noexcept;
+        Handle& operator=(Handle&& other) noexcept;
 
     public:
         T           getHandle() const;
         std::string getLabel() const;
         void        setLabel(const std::string& name);
-
-    public:
-        virtual bool    isValid() const = 0;
 
     protected:
         T   _handle;

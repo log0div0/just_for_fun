@@ -18,8 +18,8 @@ struct BoxActor {
 	void Render(const Camera& camera, const PointLight& light);
 
 	mogl::ShaderProgram shader_program;
-	mogl::Texture wood_texture = GL_TEXTURE_2D;
-	mogl::Texture lambda_texture = GL_TEXTURE_2D;
+	mogl::Texture2D wood_texture;
+	mogl::Texture2D lambda_texture;
 	BoxMesh mesh;
 
 	math::Transform transformation;

@@ -30,7 +30,7 @@ namespace mogl
         void    validate();
         void    get(GLenum property, GLint* value); // Direct call to glGetProgramPipelineiv()
         GLint   get(GLenum property);
-        bool    isValid() const override final;
+        bool    isValid() const;
         // TODO add glGetProgramPipelineInfoLog() call
     };
 }

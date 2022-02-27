@@ -10,154 +10,158 @@
 
 namespace mogl
 {
-    inline Texture::Texture(GLenum target)
-    :   Handle(GL_TEXTURE),
-        _target(target)
+    template <GLenum target>
+    Texture<target>::Texture()
+    :   Handle(GL_TEXTURE)
     {
-        glCreateTextures(_target, 1, &_handle);
+        glCreateTextures(target, 1, &_handle);
     }
 
-    inline Texture::~Texture()
+    template <GLenum target>
+    Texture<target>::~Texture()
     {
         if (_handle)
             glDeleteTextures(1, &_handle);
     }
 
-    inline void Texture::bind(GLuint unit)
+    template <GLenum target>
+    void Texture<target>::bind(GLuint unit)
     {
         glBindTextureUnit(unit, _handle);
         MOGL_ASSERT_GLSTATE();
     }
 
-    inline void Texture::setBuffer(GLenum internalformat, GLuint buffer)
+    template <GLenum target>
+    void Texture<target>::setBuffer(GLenum internalformat, GLuint buffer)
     {
         glTextureBuffer(_handle, internalformat, buffer);
     }
 
-    inline void Texture::setBufferRange(GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
+    template <GLenum target>
+    void Texture<target>::setBufferRange(GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
     {
         glTextureBufferRange(_handle, internalformat, buffer, offset, size);
     }
 
-    inline void Texture::setStorage1D(GLsizei levels, GLenum internalformat, GLsizei width)
+    template <GLenum target>
+    void Texture<target>::setStorage(GLsizei levels, GLenum internalformat, GLsizei width) requires (Storage1D<target>)
     {
         glTextureStorage1D(_handle, levels, internalformat, width);
     }
 
-    inline void Texture::setStorage2D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+    template <GLenum target>
+    void Texture<target>::setStorage(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height) requires (Storage2D<target>)
     {
         glTextureStorage2D(_handle, levels, internalformat, width, height);
         MOGL_ASSERT_GLSTATE();
     }
 
-    inline void Texture::setStorage3D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+    template <GLenum target>
+    void Texture<target>::setStorage(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth) requires (Storage3D<target>)
     {
         glTextureStorage3D(_handle, levels, internalformat, width, height, depth);
     }
 
-    inline void Texture::setStorage2DMultisample(GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+    template <GLenum target>
+    void Texture<target>::setStorageMultisample(GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations) requires (Storage2DMultisample<target>)
     {
         glTextureStorage2DMultisample(_handle, samples, internalformat, width, height, fixedsamplelocations);
     }
 
-    inline void Texture::setStorage3DMultisample(GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
+    template <GLenum target>
+    void Texture<target>::setStorageMultisample(GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations) requires (Storage3DMultisample<target>)
     {
         glTextureStorage3DMultisample(_handle, samples, internalformat, width, height, depth, fixedsamplelocations);
     }
 
-    inline void Texture::setSubImage1D(GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void* pixels)
+    template <GLenum target>
+    void Texture<target>::setSubImage(GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void* pixels) requires (SubImage1D<target>)
     {
         glTextureSubImage1D(_handle, level, xoffset, width, format, type, pixels);
     }
 
-    inline void Texture::setSubImage2D(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels)
+    template <GLenum target>
+    void Texture<target>::setSubImage(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) requires (SubImage2D<target>)
     {
         glTextureSubImage2D(_handle, level, xoffset, yoffset, width, height, format, type, pixels);
         MOGL_ASSERT_GLSTATE();
     }
 
-    inline void Texture::setSubImage3D(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* pixels)
+    template <GLenum target>
+    void Texture<target>::setSubImage(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void* pixels) requires (SubImage3D<target>)
     {
         glTextureSubImage3D(_handle, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
     }
 
-    inline void Texture::setCompressedSubImage1D(GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void* data)
+    template <GLenum target>
+    void Texture<target>::setCompressedSubImage(GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void* data) requires (SubImage1D<target>)
     {
         glCompressedTextureSubImage1D(_handle, level, xoffset, width, format, imageSize, data);
     }
 
-    inline void Texture::setCompressedSubImage2D(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void* data)
+    template <GLenum target>
+    void Texture<target>::setCompressedSubImage(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void* data) requires (SubImage2D<target>)
     {
         glCompressedTextureSubImage2D(_handle, level, xoffset, yoffset, width, height, format, imageSize, data);
     }
 
-    inline void Texture::setCompressedSubImage3D(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void* data)
+    template <GLenum target>
+    void Texture<target>::setCompressedSubImage(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void* data) requires (SubImage3D<target>)
     {
         glCompressedTextureSubImage3D(_handle, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
     }
 
-    inline void Texture::copySubImage1D(GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
+    template <GLenum target>
+    void Texture<target>::copySubImage(GLint level, GLint xoffset, GLint x, GLint y, GLsizei width) requires (SubImage1D<target>)
     {
         glCopyTextureSubImage1D(_handle, level, xoffset, x, y, width);
     }
 
-    inline void Texture::copySubImage2D(GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+    template <GLenum target>
+    void Texture<target>::copySubImage(GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) requires (SubImage2D<target>)
     {
         glCopyTextureSubImage2D(_handle, level, xoffset, yoffset, x, y, width, height);
     }
 
-    inline void Texture::copySubImage3D(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+    template <GLenum target>
+    void Texture<target>::copySubImage(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height) requires (SubImage3D<target>)
     {
         glCopyTextureSubImage3D(_handle, level, xoffset, yoffset, zoffset, x, y, width, height);
     }
 
-    inline void Texture::generateMipmap()
+    template <GLenum target>
+    void Texture<target>::generateMipmap()
     {
         glGenerateTextureMipmap(_handle);
         MOGL_ASSERT_GLSTATE();
     }
 
-    inline void Texture::getImage(GLint level, GLenum format, GLenum type, GLsizei bufSize, void* pixels)
+    template <GLenum target>
+    void Texture<target>::getImage(GLint level, GLenum format, GLenum type, GLsizei bufSize, void* pixels)
     {
         glGetTextureImage(_handle, level, format, type, bufSize, pixels);
     }
 
-    inline void Texture::getCompressedImage(GLint level, GLsizei bufSize, void* pixels)
+    template <GLenum target>
+    void Texture<target>::getCompressedImage(GLint level, GLsizei bufSize, void* pixels)
     {
         glGetCompressedTextureImage(_handle, level, bufSize, pixels);
-    }
-
-    inline GLenum Texture::getTarget() const
-    {
-        return _target;
     }
 
     /*
      * Templated accessors definitions
      */
 
-    template <>
-    inline void Texture::get<GLint>(GLenum property, GLint* value)
-    {
-        glGetTextureParameteriv(_handle, property, value);
-    }
-
-    template <>
-    inline void Texture::get<GLfloat>(GLenum property, GLfloat* value)
-    {
-        glGetTextureParameterfv(_handle, property, value);
-    }
-
-    template <>
-    inline GLint Texture::get<GLint>(GLenum property)
+    template <GLenum target>
+    GLint Texture<target>::getInt(GLenum property)
     {
         GLint value;
         glGetTextureParameteriv(_handle, property, &value);
         return value;
     }
 
-    template <>
-    inline GLfloat Texture::get<GLfloat>(GLenum property)
+    template <GLenum target>
+    GLfloat Texture<target>::getFloat(GLenum property)
     {
         GLfloat value;
         glGetTextureParameterfv(_handle, property, &value);
@@ -168,28 +172,16 @@ namespace mogl
      * Level specific accessors definitions
      */
 
-    template <>
-    inline void Texture::get<GLint>(GLint level, GLenum property, GLint* value)
-    {
-        glGetTextureLevelParameteriv(_handle, level, property, value);
-    }
-
-    template <>
-    inline void Texture::get<GLfloat>(GLint level, GLenum property, GLfloat* value)
-    {
-        glGetTextureLevelParameterfv(_handle, level, property, value);
-    }
-
-    template <>
-    inline GLint Texture::get<GLint>(GLint level, GLenum property)
+    template <GLenum target>
+    GLint Texture<target>::getInt(GLint level, GLenum property)
     {
         GLint value;
         glGetTextureLevelParameteriv(_handle, level, property, &value);
         return value;
     }
 
-    template <>
-    inline GLfloat Texture::get<GLfloat>(GLint level, GLenum property)
+    template <GLenum target>
+    GLfloat Texture<target>::getFloat(GLint level, GLenum property)
     {
         GLfloat value;
         glGetTextureLevelParameterfv(_handle, level, property, &value);
@@ -200,49 +192,32 @@ namespace mogl
      * Templated mutators definitions
      */
 
-    template <>
-    inline void Texture::set<GLint>(GLenum property, GLint value)
+    template <GLenum target>
+    void Texture<target>::setInt(GLenum property, GLint value)
     {
         glTextureParameteri(_handle, property, value);
     }
 
-    template <>
-    inline void Texture::set<GLenum>(GLenum property, GLenum value)
-    {
-        glTextureParameteri(_handle, property, static_cast<GLint>(value));
-    }
-
-    template <>
-    inline void Texture::set<GLfloat>(GLenum property, GLfloat value)
+    template <GLenum target>
+    void Texture<target>::setFloat(GLenum property, GLfloat value)
     {
         glTextureParameterf(_handle, property, value);
     }
 
-    template <>
-    inline void Texture::set<GLint*>(GLenum property, GLint* value)
+    template <GLenum target>
+    void Texture<target>::setInt(GLenum property, const GLint* value)
     {
         glTextureParameteriv(_handle, property, value);
     }
 
-    template <>
-    inline void Texture::set<GLfloat*>(GLenum property, GLfloat* value)
+    template <GLenum target>
+    void Texture<target>::setFloat(GLenum property, const GLfloat* value)
     {
         glTextureParameterfv(_handle, property, value);
     }
 
-    template <>
-    inline void Texture::set<const GLint*>(GLenum property, const GLint* value)
-    {
-        glTextureParameteriv(_handle, property, value);
-    }
-
-    template <>
-    inline void Texture::set<const GLfloat*>(GLenum property, const GLfloat* value)
-    {
-        glTextureParameterfv(_handle, property, value);
-    }
-
-    inline bool Texture::isValid() const
+    template <GLenum target>
+    bool Texture<target>::isValid() const
     {
         return glIsTexture(_handle) == GL_TRUE;
     }

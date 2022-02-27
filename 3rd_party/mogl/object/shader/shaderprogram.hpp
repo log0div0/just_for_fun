@@ -24,6 +24,9 @@ namespace mogl
         ShaderProgram();
         ~ShaderProgram();
 
+        ShaderProgram(ShaderProgram&& other) = default;
+        ShaderProgram& operator=(ShaderProgram&& other) = default;
+
     public:
         void                attach(const Shader& object);
         void                detach(const Shader& object);
@@ -71,7 +74,7 @@ namespace mogl
         void    get(GLenum property, GLint* value) const; // Direct call to glGetProgramiv()
         GLint   get(GLenum property) const;
         void    set(GLenum property, GLint value);
-        bool    isValid() const override final;
+        bool    isValid() const;
 
     private:
         void    retrieveLocations();

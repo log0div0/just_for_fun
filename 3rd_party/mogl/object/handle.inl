@@ -9,6 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <vector>
+#include <cassert>
 
 #include <mogl/function/states.hpp>
 
@@ -26,6 +27,15 @@ namespace mogl
         _identifier(other._identifier)
     {
         other._handle = 0;
+    }
+
+    template <class T>
+    inline Handle<T>& Handle<T>::operator=(Handle&& other) noexcept
+    {
+        assert(_identifier == other._identifier);
+
+        std::swap(_handle, other._handle);
+        return *this;
     }
 
     template <class T>
