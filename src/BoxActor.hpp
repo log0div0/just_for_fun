@@ -17,4 +17,5 @@ struct BoxActor {
 	mogl::Texture2D wood_texture;
 	mogl::Texture2D lambda_texture;
 	BoxMesh mesh;
+	math::Vector3 color = {1.0f, 0.5f, 0.31f};
 };

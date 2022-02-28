@@ -3,7 +3,6 @@
 
 PointLight::PointLight() {
 	shader_program = LoadShaders(g_assets_dir/"shaders"/"point_light.vert", g_assets_dir/"shaders"/"point_light.frag");
-	mesh.BindPos(shader_program.getAttribLocation("aPos"));
 }
 
 void PointLight::Update(float delta_time) {
@@ -21,7 +20,7 @@ void PointLight::Render(const Camera& camera) {
 	shader_program.setUniformMatrixPtr<4, float>("model", (float*)&model);
 	shader_program.setUniformMatrixPtr<4, float>("view", (float*)&view);
 	shader_program.setUniformMatrixPtr<4, float>("projection", (float*)&projection);
-	shader_program.setUniformPtr<3, float>("aLightColor", (float*)&color);
+	shader_program.setUniformPtr<3, float>("LightColor", (float*)&color);
 
 	shader_program.use();
 
