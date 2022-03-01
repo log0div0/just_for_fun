@@ -10,6 +10,7 @@ struct BoxMesh {
 
 	void BindPos(GLuint location);
 	void BindUV(GLuint location);
+	void BindNormal(GLuint location);
 
 	void Draw();
 

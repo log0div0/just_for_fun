@@ -65,7 +65,7 @@ struct Matrix {
 		return result;
 	}
 
-	Matrix<T, N-1, M-1> Submatrix(size_t remove_row, size_t remove_col) const {
+	Matrix<T, N-1, M-1> Remove(size_t remove_row, size_t remove_col) const {
 		Matrix<T, N-1, M-1> result;
 		size_t sub_row = 0;
 		for (size_t i = 0; i < N; ++i) {
@@ -103,7 +103,7 @@ struct Matrix {
 		} else {
 			T det = 0;
 			for (size_t col = 0; col < M; ++col) {
-				T x = At(0, col) * Submatrix(0, col).Determinant();
+				T x = At(0, col) * Remove(0, col).Determinant();
 				if (col % 2) {
 					x *= -1;
 				}
@@ -140,7 +140,7 @@ struct Matrix {
 		Matrix<T, N, M> result;
 		for (size_t i = 0; i < N; ++i) {
 			for (size_t j = 0; j < M; ++j) {
-				result.At(i, j) = Submatrix(i, j).Determinant();
+				result.At(i, j) = Remove(i, j).Determinant();
 				if ((i+j) % 2) {
 					result.At(i, j) *= -1;
 				}

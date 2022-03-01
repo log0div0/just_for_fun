@@ -17,13 +17,15 @@ GUI::~GUI() {
 	ImGui::DestroyContext();
 }
 
-void GUI::Update(float delta_time) {
+void GUI::Update(float delta_time, PointLight& light) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
 	{
 		ImGui::Begin("Hello, world!");
+
+		ImGui::ColorEdit3("Light color", (float*)&light.color);
 
 		ImGui::Checkbox("Limit frame rate", &limit_framerate);
 

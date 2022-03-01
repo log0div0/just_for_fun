@@ -222,42 +222,27 @@ namespace mogl
      * GLfloat uniform specialization
      */
 
-#ifdef _DEBUG
-#define RETURN_IF_UNIFORM_NOT_EXISTS(NAME) \
-    auto it = _uniforms.find(name); \
-    if (it == _uniforms.end()) { \
-        std::cout << "WARNING: Shader uniform \'" << name << "\' does not exist" << std::endl; \
-        return; \
-    }
-#else
-#define RETURN_IF_UNIFORM_NOT_EXISTS(NAME)
-#endif
-
     template <>
     inline void ShaderProgram::setUniform<GLfloat>(const std::string& name, GLfloat v1)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform1f(_handle, getUniformLocation(name), v1);
     }
 
     template <>
     inline void ShaderProgram::setUniform<GLfloat>(const std::string& name, GLfloat v1, GLfloat v2)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform2f(_handle, getUniformLocation(name), v1, v2);
     }
 
     template <>
     inline void ShaderProgram::setUniform<GLfloat>(const std::string& name, GLfloat v1, GLfloat v2, GLfloat v3)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform3f(_handle, getUniformLocation(name), v1, v2, v3);
     }
 
     template <>
     inline void ShaderProgram::setUniform<GLfloat>(const std::string& name, GLfloat v1, GLfloat v2, GLfloat v3, GLfloat v4)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform4f(_handle, getUniformLocation(name), v1, v2, v3, v4);
     }
 
@@ -268,28 +253,24 @@ namespace mogl
     template <>
     inline void ShaderProgram::setUniform<GLint>(const std::string& name, GLint v1)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform1i(_handle, getUniformLocation(name), v1);
     }
 
     template <>
     inline void ShaderProgram::setUniform<GLint>(const std::string& name, GLint v1, GLint v2)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform2i(_handle, getUniformLocation(name), v1, v2);
     }
 
     template <>
     inline void ShaderProgram::setUniform<GLint>(const std::string& name, GLint v1, GLint v2, GLint v3)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform3i(_handle, getUniformLocation(name), v1, v2, v3);
     }
 
     template <>
     inline void ShaderProgram::setUniform<GLint>(const std::string& name, GLint v1, GLint v2, GLint v3, GLint v4)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform4i(_handle, getUniformLocation(name), v1, v2, v3, v4);
     }
 
@@ -300,28 +281,24 @@ namespace mogl
     template <>
     inline void ShaderProgram::setUniform<GLuint>(const std::string& name, GLuint v1)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform1ui(_handle, getUniformLocation(name), v1);
     }
 
     template <>
     inline void ShaderProgram::setUniform<GLuint>(const std::string& name, GLuint v1, GLuint v2)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform2ui(_handle, getUniformLocation(name), v1, v2);
     }
 
     template <>
     inline void ShaderProgram::setUniform<GLuint>(const std::string& name, GLuint v1, GLuint v2, GLuint v3)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform3ui(_handle, getUniformLocation(name), v1, v2, v3);
     }
 
     template <>
     inline void ShaderProgram::setUniform<GLuint>(const std::string& name, GLuint v1, GLuint v2, GLuint v3, GLuint v4)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform4ui(_handle, getUniformLocation(name), v1, v2, v3, v4);
     }
 
@@ -332,28 +309,24 @@ namespace mogl
     template <>
     inline void ShaderProgram::setUniformPtr<1, GLfloat>(const std::string& name, const GLfloat* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform1fv(_handle, getUniformLocation(name), count, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformPtr<2, GLfloat>(const std::string& name, const GLfloat* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform2fv(_handle, getUniformLocation(name), count, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformPtr<3, GLfloat>(const std::string& name, const GLfloat* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform3fv(_handle, getUniformLocation(name), count, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformPtr<4, GLfloat>(const std::string& name, const GLfloat* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform4fv(_handle, getUniformLocation(name), count, ptr);
     }
 
@@ -364,28 +337,24 @@ namespace mogl
     template <>
     inline void ShaderProgram::setUniformPtr<1, GLint>(const std::string& name, const GLint* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform1iv(_handle, getUniformLocation(name), count, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformPtr<2, GLint>(const std::string& name, const GLint* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform2iv(_handle, getUniformLocation(name), count, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformPtr<3, GLint>(const std::string& name, const GLint* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform3iv(_handle, getUniformLocation(name), count, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformPtr<4, GLint>(const std::string& name, const GLint* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform4iv(_handle, getUniformLocation(name), count, ptr);
     }
 
@@ -396,28 +365,24 @@ namespace mogl
     template <>
     inline void ShaderProgram::setUniformPtr<1, GLuint>(const std::string& name, const GLuint* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform1uiv(_handle, getUniformLocation(name), count, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformPtr<2, GLuint>(const std::string& name, const GLuint* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform2uiv(_handle, getUniformLocation(name), count, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformPtr<3, GLuint>(const std::string& name, const GLuint* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform3uiv(_handle, getUniformLocation(name), count, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformPtr<4, GLuint>(const std::string& name, const GLuint* ptr, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniform4uiv(_handle, getUniformLocation(name), count, ptr);
     }
 
@@ -428,63 +393,54 @@ namespace mogl
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<2, 2, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix2fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<3, 3, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix3fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<4, 4, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix4fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<2, 3, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix2x3fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<3, 2, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix3x2fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<2, 4, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix2x4fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<4, 2, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix4x2fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<3, 4, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix3x4fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<4, 3, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix4x3fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
@@ -495,21 +451,18 @@ namespace mogl
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<2, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix2fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<3, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix3fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 
     template <>
     inline void ShaderProgram::setUniformMatrixPtr<4, GLfloat>(const std::string& name, const GLfloat* ptr, GLboolean transpose, GLsizei count)
     {
-        RETURN_IF_UNIFORM_NOT_EXISTS(name);
         glProgramUniformMatrix4fv(_handle, getUniformLocation(name), count, transpose, ptr);
     }
 

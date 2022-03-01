@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Utils.hpp"
+#include "PointLight.hpp"
 
 struct GUI {
 	GUI(glfw::Window& window);
@@ -13,7 +14,7 @@ struct GUI {
 	GUI& operator=(const GUI& other) = delete;
 	GUI& operator=(GUI&& other) = delete;
 
-	void Update(float delta_time);
+	void Update(float delta_time, PointLight& light);
 	void Render();
 
 	bool limit_framerate = true;

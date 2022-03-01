@@ -87,7 +87,7 @@ void App::Update(float delta_time)
 	camera.Update(delta_time);
 	box.Update(delta_time);
 	light.Update(delta_time);
-	gui.Update(delta_time);
+	gui.Update(delta_time, light);
 }
 
 void App::Render()
