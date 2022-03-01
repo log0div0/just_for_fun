@@ -5,8 +5,8 @@
 
 BoxActor::BoxActor() {
 	shader_program = LoadShaders(g_assets_dir/"shaders"/"box_actor.vert", g_assets_dir/"shaders"/"box_actor.frag");
-	// shader_program.setUniform("Wood", 3);
-	// shader_program.setUniform("Lambda", 1);
+	shader_program.setUniform("Wood", 3);
+	shader_program.setUniform("Lambda", 1);
 
 	wood_texture = LoadTexture(g_assets_dir/"textures"/"Wood_Crate_001_basecolor.jpg");
 	lambda_texture = LoadTexture(g_assets_dir/"textures"/"Half-Life_lambda_logo.png");
@@ -28,6 +28,7 @@ void BoxActor::Render(const Camera& camera, const PointLight& light) {
 	shader_program.setUniformPtr<3, float>("ObjectColor", (float*)&color);
 	shader_program.setUniformPtr<3, float>("LightPos", (float*)&light.pos);
 	shader_program.setUniformPtr<3, float>("LightColor", (float*)&light.color);
+	shader_program.setUniformPtr<3, float>("CameraPos", (float*)&camera.pos);
 
 	shader_program.use();
 	wood_texture.bind(3);
