@@ -11,38 +11,23 @@ using namespace std::chrono_literals;
 
 App::App(glfw::Window& window_): window(window_), camera(window), gui(window)
 {
-	InitWindow();
-	InitRenderer();
-	InitWorld();
-}
-
-App::~App()
-{
-}
-
-void App::InitWindow() {
 	int w = 1200;
 	int h = 900;
 
 	window.setSize(w, h);
 
 	window.framebufferSizeEvent.setCallback([&](glfw::Window& window, int w, int h) {
-		glViewport(0, 0, w, h);
+		rhi::SetViewportSize(w, h);
 		camera.aspect = float(w) / h;
 	});
-	glViewport(0, 0, w, h);
+	rhi::SetViewportSize(w, h);
 	camera.aspect = float(w) / h;
-}
 
-void App::InitRenderer() {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_GREATER);
-	glClearDepth(0.0);
-}
-
-void App::InitWorld() {
 	camera.pos = {2.0f, 0.0f, 0.0f};
+}
+
+App::~App()
+{
 }
 
 using Seconds = std::chrono::duration<float>;
@@ -92,7 +77,7 @@ void App::Update(float delta_time)
 
 void App::Render()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	rhi::ClearViewport();
 
 	light.Render(camera);
 	box.Render(camera, light);

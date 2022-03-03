@@ -44,10 +44,12 @@ int do_main(int argc, char** argv) {
 
 	glfw::swapInterval(0);
 
+#ifdef OPENGL
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		throw std::runtime_error("Failed to initialize GLAD");
 	}
+#endif
 
 	g_assets_dir = assets_dir;
 

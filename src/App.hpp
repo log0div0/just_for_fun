@@ -13,10 +13,6 @@ struct App {
 	void Run();
 
 private:
-	void InitWindow();
-	void InitRenderer();
-	void InitWorld();
-
 	void Update(float delta_time);
 	void Render();
 

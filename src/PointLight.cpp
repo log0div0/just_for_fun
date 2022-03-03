@@ -2,7 +2,7 @@
 #include "PointLight.hpp"
 
 PointLight::PointLight() {
-	shader_program = LoadShaders(g_assets_dir/"shaders"/"point_light.vert", g_assets_dir/"shaders"/"point_light.frag");
+	shader_program = rhi::ShaderProgram(g_assets_dir/"shaders"/"point_light.vert", g_assets_dir/"shaders"/"point_light.frag");
 }
 
 void PointLight::Update(float delta_time) {
@@ -18,10 +18,10 @@ void PointLight::Render(const Camera& camera) {
 	math::Transform model = { pos, {}, {0.2f} };
 	math::Transform MVP = projection * view * model;
 
-	shader_program.setUniformMatrixPtr<4, float>("MVP", (float*)&MVP);
-	shader_program.setUniformPtr<3, float>("LightColor", (float*)&color);
+	shader_program.SetUniform("MVP", MVP);
+	shader_program.SetUniform("LightColor", color);
 
-	shader_program.use();
+	shader_program.Use();
 
 	mesh.Draw();
 }
