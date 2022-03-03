@@ -11,19 +11,20 @@ namespace glfw
     class Event
     {
     private:
-        std::function<void(Args...)> _handler;
+        using Handler = std::function<void(Args...)>;
+        std::vector<Handler> _handlers;
 
     public:
         template<typename CallbackT>
-        void setCallback(CallbackT&& callback_)
+        void subscribe(CallbackT&& callback_)
         {
-            _handler = std::forward<CallbackT>(callback_);
+            _handlers.emplace_back(std::forward<CallbackT>(callback_));
         }
         void operator()(Args... args_)
         {
-            if(_handler)
+            for (auto& handler: _handlers)
             {
-                _handler(args_...);
+                handler(args_...);
             }
         }
     };

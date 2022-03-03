@@ -9,18 +9,12 @@
 using namespace math::literals;
 using namespace std::chrono_literals;
 
-App::App(glfw::Window& window_): window(window_), camera(window), gui(window)
+App::App(glfw::Window& window_): window(window_), rhi_context(window), camera(window), gui(window)
 {
-	int w = 1200;
-	int h = 900;
-
-	window.setSize(w, h);
-
-	window.framebufferSizeEvent.setCallback([&](glfw::Window& window, int w, int h) {
-		rhi::SetViewportSize(w, h);
+	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
 		camera.aspect = float(w) / h;
 	});
-	rhi::SetViewportSize(w, h);
+	auto [w, h] = window.getFramebufferSize();
 	camera.aspect = float(w) / h;
 
 	camera.pos = {2.0f, 0.0f, 0.0f};
@@ -40,6 +34,8 @@ void App::Run()
 	Seconds delta_time(0.0f);
 	while (!window.shouldClose())
 	{
+		glfw::pollEvents();
+
 		if (window.getKey(glfw::KeyCode::Escape)) {
 			window.setShouldClose(true);
 		}
@@ -47,10 +43,10 @@ void App::Run()
 		auto start = Now();
 
 		Update(delta_time.count());
-		Render();
 
-		window.swapBuffers();
-		glfw::pollEvents();
+		rhi_context.FrameBegin();
+		Render();
+		rhi_context.FrameEnd();
 
 		if (gui.limit_framerate) {
 			auto finish = Now();
@@ -77,8 +73,6 @@ void App::Update(float delta_time)
 
 void App::Render()
 {
-	rhi::ClearViewport();
-
 	light.Render(camera);
 	box.Render(camera, light);
 	gui.Render();

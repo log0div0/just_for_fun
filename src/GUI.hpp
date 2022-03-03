@@ -18,4 +18,10 @@ struct GUI {
 	void Render();
 
 	bool limit_framerate = true;
+
+private:
+	void ImplInit(glfw::Window& window);
+	void ImplShutdown();
+	void ImplNewFrame();
+	void ImplRender();
 };

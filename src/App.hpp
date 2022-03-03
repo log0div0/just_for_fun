@@ -18,6 +18,8 @@ private:
 
 	glfw::Window& window;
 
+	rhi::Context rhi_context;
+
 	Camera camera;
 	PointLight light;
 	BoxActor box;

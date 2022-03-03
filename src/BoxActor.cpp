@@ -25,7 +25,7 @@ void BoxActor::Render(const Camera& camera, const PointLight& light) {
 	shader_program.SetUniform("MVP", MVP);
 	shader_program.SetUniform("ModelMatrix", model);
 	shader_program.SetUniform("NormalMatrix", normal);
-	shader_program.SetUniform("ObjectColor", color);
+	// shader_program.SetUniform("ObjectColor", color);
 	shader_program.SetUniform("LightPos", light.pos);
 	shader_program.SetUniform("LightColor", light.color);
 	shader_program.SetUniform("CameraPos", camera.pos);

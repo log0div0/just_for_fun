@@ -5,7 +5,7 @@ using namespace math::literals;
 
 Camera::Camera(glfw::Window& window_): window(window_) {
 	last_cursor_pos = std::make_from_tuple<CursorPos>(window.getCursorPos());
-	window.cursorPosEvent.setCallback([&](glfw::Window& window, double x, double y) {
+	window.cursorPosEvent.subscribe([&](glfw::Window& window, double x, double y) {
 		CursorPos pos{x, y};
 		if (window.getMouseButton(glfw::MouseButton::Right)) {
 			CursorPos diff = last_cursor_pos - pos;
@@ -13,7 +13,7 @@ Camera::Camera(glfw::Window& window_): window(window_) {
 		}
 		last_cursor_pos = pos;
 	});
-	window.scrollEvent.setCallback([&](glfw::Window& window, double x, double y) {
+	window.scrollEvent.subscribe([&](glfw::Window& window, double x, double y) {
 		OnScroll(y);
 	});
 }

@@ -4,22 +4,32 @@
 
 namespace rhi {
 
-void SetViewportSize(int w, int h) {
+Context::Context(glfw::Window& window_): window(window_) {
+	glfw::makeContextCurrent(window);
+	glfw::swapInterval(0);
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		throw std::runtime_error("Failed to initialize GLAD");
+	}
+
+	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
+		glViewport(0, 0, w, h);
+	});
+	auto [w, h] = window.getFramebufferSize();
 	glViewport(0, 0, w, h);
 
-	static bool is_initialized = false;
-	if (!is_initialized) {
-		is_initialized = true;
-
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_GREATER);
-		glClearDepth(0.0);
-	}
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_GREATER);
+	glClearDepth(0.0);
 }
 
-void ClearViewport() {
+void Context::FrameBegin() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Context::FrameEnd() {
+	window.swapBuffers();
 }
 
 ShaderProgram::ShaderProgram(const fs::path& vertex, const fs::path& fragment)
