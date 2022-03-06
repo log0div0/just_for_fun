@@ -2,18 +2,6 @@
 
 namespace rhi {
 
-Context::Context(glfw::Window& window_): window(window_) {
-	throw std::runtime_error("TODO: init");
-}
-
-void Context::FrameBegin() {
-	throw std::runtime_error("TODO: FrameBegin");
-}
-
-void Context::FrameEnd() {
-	throw std::runtime_error("TODO: FrameEnd");
-}
-
 ShaderProgram::ShaderProgram(const fs::path& vertex, const fs::path& fragment) {
 
 }

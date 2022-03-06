@@ -1,20 +1,11 @@
 #pragma once
 
-#include "../../Utils.hpp"
-
 #include <math/Vector.hpp>
 #include <math/Matrix.hpp>
 
+#include "Context.hpp"
+
 namespace rhi {
-
-struct Context {
-	Context(glfw::Window& window_);
-
-	void FrameBegin();
-	void FrameEnd();
-
-	glfw::Window& window;
-};
 
 struct ShaderProgram {
 	ShaderProgram() = default;

@@ -31,21 +31,28 @@ void GUI::ImplRender() {
 #elif DX12
 void GUI::ImplInit(glfw::Window& window) {
 	ImGui_ImplGlfw_InitForOther(window, true);
-	// ImGui_ImplDX12_Init();
+	ImGui_ImplDX12_Init(
+		rhi::context->device,
+		rhi::Context::NUM_FRAMES_IN_FLIGHT,
+        rhi::Context::RTV_FORMAT,
+        rhi::context->srv_desc_heap,
+        rhi::context->srv_desc_heap->GetCPUDescriptorHandleForHeapStart(),
+        rhi::context->srv_desc_heap->GetGPUDescriptorHandleForHeapStart()
+	);
 }
 
 void GUI::ImplShutdown() {
-	// ImGui_ImplDX12_Shutdown();
+	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 }
 
 void GUI::ImplNewFrame() {
-	// ImGui_ImplDX12_NewFrame();
+	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 }
 
 void GUI::ImplRender() {
-	// ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData());
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), rhi::context->current_frame->command_list);
 }
 #endif
 

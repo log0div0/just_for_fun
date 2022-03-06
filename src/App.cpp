@@ -22,6 +22,7 @@ App::App(glfw::Window& window_): window(window_), rhi_context(window), camera(wi
 
 App::~App()
 {
+	rhi_context.WaitIdle();
 }
 
 using Seconds = std::chrono::duration<float>;
@@ -44,9 +45,9 @@ void App::Run()
 
 		Update(delta_time.count());
 
-		rhi_context.FrameBegin();
+		rhi_context.Clear();
 		Render();
-		rhi_context.FrameEnd();
+		rhi_context.Present();
 
 		if (gui.limit_framerate) {
 			auto finish = Now();

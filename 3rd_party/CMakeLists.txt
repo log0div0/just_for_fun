@@ -8,6 +8,12 @@ add_subdirectory(glfw-3.3.6)
 
 add_library(glad glad/glad.c)
 
+if(WIN32)
+	set(EXTRA_BACKENDS
+		imgui-1.87/backends/imgui_impl_dx12.cpp
+	)
+endif()
+
 add_library(imgui
 	imgui-1.87/imgui.cpp
 	imgui-1.87/imgui_draw.cpp
@@ -15,6 +21,7 @@ add_library(imgui
 	imgui-1.87/imgui_widgets.cpp
 	imgui-1.87/backends/imgui_impl_glfw.cpp
 	imgui-1.87/backends/imgui_impl_opengl3.cpp
+	${EXTRA_BACKENDS}
 )
 
 target_include_directories(imgui PUBLIC

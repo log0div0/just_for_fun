@@ -24,12 +24,16 @@ Context::Context(glfw::Window& window_): window(window_) {
 	glClearDepth(0.0);
 }
 
-void Context::FrameBegin() {
+void Context::Clear() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Context::FrameEnd() {
+void Context::Present() {
 	window.swapBuffers();
+}
+
+void Context::WaitIdle() {
+
 }
 
 ShaderProgram::ShaderProgram(const fs::path& vertex, const fs::path& fragment)

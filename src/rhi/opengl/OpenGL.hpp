@@ -14,8 +14,9 @@ namespace rhi {
 struct Context {
 	Context(glfw::Window& window_);
 
-	void FrameBegin();
-	void FrameEnd();
+	void Clear();
+	void Present();
+	void WaitIdle();
 
 	glfw::Window& window;
 };
