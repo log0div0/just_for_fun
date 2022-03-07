@@ -1,9 +1,11 @@
+
 #pragma once
 
 #include <math/Vector.hpp>
 #include <math/Matrix.hpp>
 
-#include "Context.hpp"
+#include <ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
 
 namespace rhi {
 
@@ -17,16 +19,6 @@ struct ShaderProgram {
 	void SetUniform(const std::string& name, const math::Matrix3& value);
 	void SetUniform(const std::string& name, const math::Matrix4& value);
 	void Use();
-};
-
-struct Texture2D {
-	Texture2D() = default;
-	Texture2D(const fs::path& path);
-	void Bind(uint32_t unit);
-};
-
-struct BoxMesh {
-	void Draw();
 };
 
 }

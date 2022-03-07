@@ -15,8 +15,15 @@ struct ComPtr {
 		}
 	}
 
-	ComPtr(const ComPtr& other);
-	ComPtr& operator=(const ComPtr& other);
+	ComPtr(const ComPtr& other): t(other.t) {
+		t->AddRef();
+	}
+
+	ComPtr& operator=(const ComPtr& other) {
+		t = other.t;
+		t->AddRef();
+		return *this;
+	}
 
 	ComPtr(ComPtr&& other): t(other.t) {
 		other.t = nullptr;

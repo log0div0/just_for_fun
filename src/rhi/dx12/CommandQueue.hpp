@@ -5,14 +5,13 @@
 #include <winapi/Event.hpp>
 
 #include <d3d12.h>
-#include <dxgi1_6.h>
 
 namespace rhi {
 
 struct CommandQueue {
 	CommandQueue() = default;
 
-	CommandQueue(winapi::ComPtr<ID3D12Device>& device, D3D12_COMMAND_LIST_TYPE type);
+	CommandQueue(D3D12_COMMAND_LIST_TYPE type);
 	void Execute(winapi::ComPtr<ID3D12GraphicsCommandList>& command_list);
 	uint64_t Signal();
 	void WaitForFenceValue(uint64_t fence_value);

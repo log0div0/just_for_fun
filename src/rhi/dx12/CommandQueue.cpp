@@ -1,18 +1,19 @@
 #include "CommandQueue.hpp"
 #include "Exceptions.hpp"
+#include "Context.hpp"
 
 using namespace winapi;
 
 namespace rhi {
 
-CommandQueue::CommandQueue(winapi::ComPtr<ID3D12Device>& device, D3D12_COMMAND_LIST_TYPE type) {
+CommandQueue::CommandQueue(D3D12_COMMAND_LIST_TYPE type) {
 	D3D12_COMMAND_QUEUE_DESC desc = {
 		.Type = type,
 		.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
 		.NodeMask = 1,
 	};
-	ThrowIfFailed(device->CreateCommandQueue(&desc, IID_PPV_ARGS(&command_queue)));
-	ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
+	ThrowIfFailed(context->device->CreateCommandQueue(&desc, IID_PPV_ARGS(&command_queue)));
+	ThrowIfFailed(context->device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
 }
 
 void CommandQueue::Execute(winapi::ComPtr<ID3D12GraphicsCommandList>& command_list) {

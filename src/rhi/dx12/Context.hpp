@@ -2,6 +2,9 @@
 
 #include "SwapChain.hpp"
 #include "CommandQueue.hpp"
+#include "Frame.hpp"
+
+#include <glfwpp/glfwpp.h>
 
 namespace rhi {
 
@@ -10,23 +13,6 @@ namespace rhi {
 // UAV - unordered access view
 // CBV - constant buffer view
 // DSV - depth stencil view
-
-struct Context;
-
-struct Frame {
-	Frame() = default;
-	Frame(int frame_index_);
-
-	void Begin();
-	void End();
-
-	int frame_index = -1;
-	winapi::ComPtr<ID3D12Resource> render_target_resource;
-	D3D12_CPU_DESCRIPTOR_HANDLE render_target_desc;
-	winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
-	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
-	uint64_t fence_value = 0;
-};
 
 struct Context {
 	Context(glfw::Window& window_);

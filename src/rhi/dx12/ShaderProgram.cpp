@@ -1,4 +1,4 @@
-#include "DX12.hpp"
+#include "ShaderProgram.hpp"
 
 namespace rhi {
 
@@ -33,20 +33,5 @@ void ShaderProgram::SetUniform(const std::string& name, const math::Matrix4& val
 void ShaderProgram::Use() {
 
 }
-
-Texture2D::Texture2D(const fs::path& path) {
-
-}
-
-void Texture2D::Bind(uint32_t unit) {
-
-}
-
-
-void BoxMesh::Draw() {
-
-}
-
-
 
 }
