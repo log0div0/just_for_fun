@@ -1,5 +1,5 @@
 #include "OpenGL.hpp"
-#include "../../Vertex.hpp"
+#include "../Vertex.hpp"
 #include <stb/Image.hpp>
 
 namespace rhi {
@@ -91,59 +91,15 @@ void Texture2D::Bind(uint32_t unit)
 	texture.bind(unit);
 }
 
-std::vector<Vertex> vertices = {
-	{ { -0.5f, -0.5f, -0.5f},  {0.0f, 0.0f}, {  0.0f,  0.0f, -1.0f,} },
-	{ { 0.5f, -0.5f, -0.5f},  {1.0f, 0.0f}, {  0.0f,  0.0f, -1.0f, } },
-	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f}, {  0.0f,  0.0f, -1.0f, } },
-	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f}, {  0.0f,  0.0f, -1.0f, } },
-	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f}, {  0.0f,  0.0f, -1.0f, } },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 0.0f}, {  0.0f,  0.0f, -1.0f, } },
-	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f}, {  0.0f,  0.0f, 1.0f,} },
-	{ { 0.5f, -0.5f,  0.5f},  {1.0f, 0.0f}, {  0.0f,  0.0f, 1.0f,} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 1.0f}, {  0.0f,  0.0f, 1.0f,} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 1.0f}, {  0.0f,  0.0f, 1.0f,} },
-	{ {-0.5f,  0.5f,  0.5f},  {0.0f, 1.0f}, {  0.0f,  0.0f, 1.0f,} },
-	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f}, {  0.0f,  0.0f, 1.0f,} },
-	{ {-0.5f,  0.5f,  0.5f},  {1.0f, 0.0f}, { -1.0f,  0.0f,  0.0f,} },
-	{ {-0.5f,  0.5f, -0.5f},  {1.0f, 1.0f}, { -1.0f,  0.0f,  0.0f,} },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f}, { -1.0f,  0.0f,  0.0f,} },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f}, { -1.0f,  0.0f,  0.0f,} },
-	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f}, { -1.0f,  0.0f,  0.0f,} },
-	{ {-0.5f,  0.5f,  0.5f},  {1.0f, 0.0f}, { -1.0f,  0.0f,  0.0f,} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f}, {  1.0f,  0.0f,  0.0f,} },
-	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f}, {  1.0f,  0.0f,  0.0f,} },
-	{ { 0.5f, -0.5f, -0.5f},  {0.0f, 1.0f}, {  1.0f,  0.0f,  0.0f,} },
-	{ { 0.5f, -0.5f, -0.5f},  {0.0f, 1.0f}, {  1.0f,  0.0f,  0.0f,} },
-	{ { 0.5f, -0.5f,  0.5f},  {0.0f, 0.0f}, {  1.0f,  0.0f,  0.0f,} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f}, {  1.0f,  0.0f,  0.0f,} },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f}, {  0.0f, -1.0f,  0.0f,} },
-	{ { 0.5f, -0.5f, -0.5f},  {1.0f, 1.0f}, {  0.0f, -1.0f,  0.0f,} },
-	{ { 0.5f, -0.5f,  0.5f},  {1.0f, 0.0f}, {  0.0f, -1.0f,  0.0f,} },
-	{ { 0.5f, -0.5f,  0.5f},  {1.0f, 0.0f}, {  0.0f, -1.0f,  0.0f,} },
-	{ {-0.5f, -0.5f,  0.5f},  {0.0f, 0.0f}, {  0.0f, -1.0f,  0.0f,} },
-	{ {-0.5f, -0.5f, -0.5f},  {0.0f, 1.0f}, {  0.0f, -1.0f,  0.0f,} },
-	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f}, {  0.0f,  1.0f,  0.0f,} },
-	{ { 0.5f,  0.5f, -0.5f},  {1.0f, 1.0f}, {  0.0f,  1.0f,  0.0f,} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f}, {  0.0f,  1.0f,  0.0f,} },
-	{ { 0.5f,  0.5f,  0.5f},  {1.0f, 0.0f}, {  0.0f,  1.0f,  0.0f,} },
-	{ {-0.5f,  0.5f,  0.5f},  {0.0f, 0.0f}, {  0.0f,  1.0f,  0.0f,} },
-	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f}, {  0.0f,  1.0f,  0.0f,} },
-};
-
-std::vector<uint32_t> indices = {
-	0, 1, 3,
-	1, 2, 3
-};
-
 BoxMesh::BoxMesh() {
-	vertex_buffer.setData(vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+	vertex_buffer.setData(box_vertices.size() * sizeof(Vertex), box_vertices.data(), GL_STATIC_DRAW);
 	vertex_array.setVertexBuffer(binding_index, vertex_buffer.getHandle(), 0, sizeof(Vertex));
 
 	BindPos(0);
 	BindUV(1);
 	BindNormal(2);
 
-	index_buffer.setData(indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+	index_buffer.setData(box_indices.size() * sizeof(uint32_t), box_indices.data(), GL_STATIC_DRAW);
 	vertex_array.setElementBuffer(index_buffer.getHandle());
 
 }

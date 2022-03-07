@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 list(APPEND SRC_DIRS "*.cpp")
+list(APPEND SRC_DIRS "rhi/*.cpp")
 
 if (NOT DEFINED RHI)
 	set(RHI "OPENGL")

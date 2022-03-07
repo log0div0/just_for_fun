@@ -1,7 +1,6 @@
 
 #include "BoxActor.hpp"
 #include "Utils.hpp"
-#include "Vertex.hpp"
 
 BoxActor::BoxActor() {
 	shader_program = rhi::ShaderProgram(g_assets_dir/"shaders"/"box_actor.vert", g_assets_dir/"shaders"/"box_actor.frag");
