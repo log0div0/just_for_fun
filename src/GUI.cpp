@@ -34,7 +34,7 @@ void GUI::ImplInit(glfw::Window& window) {
 	ImGui_ImplDX12_Init(
 		rhi::context->device,
 		rhi::Context::NUM_FRAMES_IN_FLIGHT,
-        rhi::Context::RTV_FORMAT,
+        rhi::SwapChain::FORMAT,
         rhi::context->srv_desc_heap,
         rhi::context->srv_desc_heap->GetCPUDescriptorHandleForHeapStart(),
         rhi::context->srv_desc_heap->GetGPUDescriptorHandleForHeapStart()

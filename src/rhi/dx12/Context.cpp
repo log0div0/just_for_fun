@@ -1,8 +1,6 @@
 #include "Context.hpp"
 #include "Exceptions.hpp"
 
-#include <glfwpp/native.h>
-
 using namespace winapi;
 
 namespace rhi {
@@ -48,34 +46,7 @@ void Context::InitFence()
 
 void Context::InitSwapchain()
 {
-	ComPtr<IDXGIFactory5> dxgi_factory;
-	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory)));
-	ThrowIfFailed(dxgi_factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &has_tearing_support, sizeof(has_tearing_support)));
-
-	UINT flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT | (has_tearing_support ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0);
-
-	DXGI_SWAP_CHAIN_DESC1 sd =
-	{
-		.Width = 0,
-		.Height = 0,
-		.Format = RTV_FORMAT,
-		.Stereo = FALSE,
-		.SampleDesc = {
-			.Count = 1,
-			.Quality = 0,
-		},
-		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-		.BufferCount = NUM_FRAMES_IN_FLIGHT,
-		.Scaling = DXGI_SCALING_STRETCH,
-		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-		.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED,
-		.Flags = flags,
-	};
-	ComPtr<IDXGISwapChain1> swap_chain1;
-	ThrowIfFailed(dxgi_factory->CreateSwapChainForHwnd(command_queue, glfw::native::getWin32Window(window), &sd, NULL, NULL, &swap_chain1));
-	swap_chain = swap_chain1.QueryInterface<IDXGISwapChain3>();
-	ThrowIfFailed(swap_chain->SetMaximumFrameLatency(NUM_FRAMES_IN_FLIGHT));
-	swap_chain_waitable_object = winapi::Object(swap_chain->GetFrameLatencyWaitableObject());
+	swap_chain = SwapChain(window, command_queue, NUM_FRAMES_IN_FLIGHT);
 }
 
 Frame::Frame(int frame_index_): frame_index(frame_index_)
@@ -84,7 +55,7 @@ Frame::Frame(int frame_index_): frame_index(frame_index_)
 	ThrowIfFailed(context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocator, NULL, IID_PPV_ARGS(&command_list)));
 	ThrowIfFailed(command_list->Close());
 
-	ThrowIfFailed(context->swap_chain->GetBuffer(frame_index, IID_PPV_ARGS(&render_target_resource)));
+	render_target_resource = context->swap_chain.GetBuffer(frame_index);
 	render_target_desc = context->rtv_desc_heap->GetCPUDescriptorHandleForHeapStart();
 	size_t rtv_descriptor_size = context->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	render_target_desc.ptr += rtv_descriptor_size * frame_index;
@@ -130,12 +101,7 @@ void Context::ResizeBackBuffers(int w, int h) {
 	for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++) {
 		frames[i] = {};
 	}
-	UINT flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT | (has_tearing_support ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0);
-    ThrowIfFailed(swap_chain->ResizeBuffers(
-    	0, w, h,
-    	DXGI_FORMAT_UNKNOWN,
-    	flags
-    ));
+	swap_chain.ResizeBuffers(w, h);
 	for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++) {
 		frames[i] = Frame(i);
 	}
@@ -181,8 +147,7 @@ void Frame::Begin() {
 }
 
 void Context::Clear() {
-	swap_chain_waitable_object.Wait(INFINITE);
-	int frame_idx = swap_chain->GetCurrentBackBufferIndex();
+	int frame_idx = swap_chain.AcquireNextBufferIndex();
 	current_frame = &frames[frame_idx];
 	WaitForFenceValue(current_frame->fence_value);
 	current_frame->Begin();
@@ -209,7 +174,7 @@ void Context::Present() {
 
 	command_queue->ExecuteCommandLists(1, (ID3D12CommandList* const *)&current_frame->command_list);
 
-	swap_chain->Present(0, has_tearing_support ? DXGI_PRESENT_ALLOW_TEARING : 0);
+	swap_chain.Present();
 
 	command_queue->Signal(fence, current_frame->fence_value);
 }

@@ -1,12 +1,6 @@
 #pragma once
 
-#include "../../Utils.hpp"
-
-#include <winapi/ComPtr.hpp>
-#include <winapi/Event.hpp>
-
-#include <d3d12.h>
-#include <dxgi1_6.h>
+#include "SwapChain.hpp"
 
 namespace rhi {
 
@@ -50,7 +44,6 @@ struct Context {
 	void WaitIdle();
 
 	enum { NUM_FRAMES_IN_FLIGHT = 3 };
-	static inline const DXGI_FORMAT RTV_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	void InitDevice();
 	winapi::ComPtr<ID3D12Device> device;
@@ -67,9 +60,7 @@ struct Context {
 	uint64_t fence_counter = 0;
 
 	void InitSwapchain();
-	winapi::ComPtr<IDXGISwapChain3> swap_chain;
-	winapi::Object swap_chain_waitable_object;
-	BOOL has_tearing_support = false;
+	SwapChain swap_chain;
 
 	void InitFrames();
 	winapi::ComPtr<ID3D12DescriptorHeap> rtv_desc_heap;
