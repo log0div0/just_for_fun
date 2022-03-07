@@ -8,7 +8,7 @@ using namespace winapi;
 
 namespace rhi {
 
-SwapChain::SwapChain(glfw::Window& window, winapi::ComPtr<ID3D12CommandQueue>& command_queue, uint32_t buffers_count) {
+SwapChain::SwapChain(glfw::Window& window, CommandQueue& command_queue, uint32_t buffers_count) {
 	ComPtr<IDXGIFactory5> dxgi_factory;
 	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory)));
 	ThrowIfFailed(dxgi_factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &has_tearing_support, sizeof(has_tearing_support)));
@@ -33,7 +33,7 @@ SwapChain::SwapChain(glfw::Window& window, winapi::ComPtr<ID3D12CommandQueue>& c
 		.Flags = flags,
 	};
 	ComPtr<IDXGISwapChain1> swap_chain1;
-	ThrowIfFailed(dxgi_factory->CreateSwapChainForHwnd(command_queue, glfw::native::getWin32Window(window), &sd, NULL, NULL, &swap_chain1));
+	ThrowIfFailed(dxgi_factory->CreateSwapChainForHwnd(command_queue.Get(), glfw::native::getWin32Window(window), &sd, NULL, NULL, &swap_chain1));
 	swap_chain = swap_chain1.QueryInterface<IDXGISwapChain3>();
 	ThrowIfFailed(swap_chain->SetMaximumFrameLatency(buffers_count));
 	waitable_object = winapi::Object(swap_chain->GetFrameLatencyWaitableObject());

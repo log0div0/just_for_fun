@@ -31,22 +31,12 @@ void Context::InitShaderResourceViews()
 
 void Context::InitCommandQueue()
 {
-	D3D12_COMMAND_QUEUE_DESC desc = {
-		.Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
-		.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
-		.NodeMask = 1,
-	};
-	ThrowIfFailed(device->CreateCommandQueue(&desc, IID_PPV_ARGS(&command_queue)));
-}
-
-void Context::InitFence()
-{
-	ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
+	direct_queue = CommandQueue(device, D3D12_COMMAND_LIST_TYPE_DIRECT);
 }
 
 void Context::InitSwapchain()
 {
-	swap_chain = SwapChain(window, command_queue, NUM_FRAMES_IN_FLIGHT);
+	swap_chain = SwapChain(window, direct_queue, NUM_FRAMES_IN_FLIGHT);
 }
 
 Frame::Frame(int frame_index_): frame_index(frame_index_)
@@ -84,7 +74,6 @@ Context::Context(glfw::Window& window_): window(window_) {
 	InitDevice();
 	InitShaderResourceViews();
 	InitCommandQueue();
-	InitFence();
 	InitSwapchain();
 	InitFrames();
 	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
@@ -108,24 +97,12 @@ void Context::ResizeBackBuffers(int w, int h) {
 }
 
 void Context::WaitIdle() {
-	for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++) {
-		WaitForFenceValue(frames[i].fence_value);
-	}
-}
-
-void Context::WaitForFenceValue(uint64_t fence_value) {
-	if (fence_value == 0) {
-		return;
-	}
-	if (fence->GetCompletedValue() >= fence_value) {
-		return;
-	}
-	fence->SetEventOnCompletion(fence_value, fence_event.handle);
-	fence_event.Wait(INFINITE);
+	direct_queue.WaitIdle();
 }
 
 void Frame::Begin() {
 	command_allocator->Reset();
+	command_list->Reset(command_allocator, NULL);
 
 	D3D12_RESOURCE_BARRIER barrier = {
 		.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
@@ -137,20 +114,12 @@ void Frame::Begin() {
 			.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET,
 		},
 	};
-	command_list->Reset(command_allocator, NULL);
 	command_list->ResourceBarrier(1, &barrier);
 
 	const float clear_color[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
 	command_list->ClearRenderTargetView(render_target_desc, clear_color, 0, NULL);
 	command_list->OMSetRenderTargets(1, &render_target_desc, FALSE, NULL);
 	command_list->SetDescriptorHeaps(1, &context->srv_desc_heap);
-}
-
-void Context::Clear() {
-	int frame_idx = swap_chain.AcquireNextBufferIndex();
-	current_frame = &frames[frame_idx];
-	WaitForFenceValue(current_frame->fence_value);
-	current_frame->Begin();
 }
 
 void Frame::End() {
@@ -168,15 +137,18 @@ void Frame::End() {
 	command_list->Close();
 }
 
+void Context::Clear() {
+	int frame_idx = swap_chain.AcquireNextBufferIndex();
+	current_frame = &frames[frame_idx];
+	direct_queue.WaitForFenceValue(current_frame->fence_value);
+	current_frame->Begin();
+}
+
 void Context::Present() {
 	current_frame->End();
-	current_frame->fence_value = ++fence_counter;
-
-	command_queue->ExecuteCommandLists(1, (ID3D12CommandList* const *)&current_frame->command_list);
-
+	direct_queue.Execute(current_frame->command_list);
 	swap_chain.Present();
-
-	command_queue->Signal(fence, current_frame->fence_value);
+	current_frame->fence_value = direct_queue.Signal();
 }
 
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SwapChain.hpp"
+#include "CommandQueue.hpp"
 
 namespace rhi {
 
@@ -52,12 +53,7 @@ struct Context {
 	winapi::ComPtr<ID3D12DescriptorHeap> srv_desc_heap;
 
 	void InitCommandQueue();
-	winapi::ComPtr<ID3D12CommandQueue> command_queue;
-
-	void InitFence();
-	winapi::ComPtr<ID3D12Fence> fence;
-	winapi::Event fence_event;
-	uint64_t fence_counter = 0;
+	CommandQueue direct_queue;
 
 	void InitSwapchain();
 	SwapChain swap_chain;
@@ -67,7 +63,6 @@ struct Context {
 	Frame frames[NUM_FRAMES_IN_FLIGHT] = {};
 	Frame* current_frame = nullptr;
 
-	void WaitForFenceValue(uint64_t fence_value);
 	void ResizeBackBuffers(int w, int h);
 };
 
