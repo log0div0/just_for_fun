@@ -48,8 +48,11 @@ void Context::InitFence()
 
 void Context::InitSwapchain()
 {
-	ComPtr<IDXGIFactory4> dxgi_factory;
+	ComPtr<IDXGIFactory5> dxgi_factory;
 	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory)));
+	ThrowIfFailed(dxgi_factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &has_tearing_support, sizeof(has_tearing_support)));
+
+	UINT flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT | (has_tearing_support ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0);
 
 	DXGI_SWAP_CHAIN_DESC1 sd =
 	{
@@ -66,7 +69,7 @@ void Context::InitSwapchain()
 		.Scaling = DXGI_SCALING_STRETCH,
 		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
 		.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED,
-		.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT,
+		.Flags = flags,
 	};
 	ComPtr<IDXGISwapChain1> swap_chain1;
 	ThrowIfFailed(dxgi_factory->CreateSwapChainForHwnd(command_queue, glfw::native::getWin32Window(window), &sd, NULL, NULL, &swap_chain1));
@@ -127,10 +130,11 @@ void Context::ResizeBackBuffers(int w, int h) {
 	for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++) {
 		frames[i] = {};
 	}
+	UINT flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT | (has_tearing_support ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0);
     ThrowIfFailed(swap_chain->ResizeBuffers(
     	0, w, h,
     	DXGI_FORMAT_UNKNOWN,
-    	DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
+    	flags
     ));
 	for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++) {
 		frames[i] = Frame(i);
@@ -205,7 +209,7 @@ void Context::Present() {
 
 	command_queue->ExecuteCommandLists(1, (ID3D12CommandList* const *)&current_frame->command_list);
 
-	swap_chain->Present(0, 0);
+	swap_chain->Present(0, has_tearing_support ? DXGI_PRESENT_ALLOW_TEARING : 0);
 
 	command_queue->Signal(fence, current_frame->fence_value);
 }

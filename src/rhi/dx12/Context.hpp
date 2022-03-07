@@ -69,6 +69,7 @@ struct Context {
 	void InitSwapchain();
 	winapi::ComPtr<IDXGISwapChain3> swap_chain;
 	winapi::Object swap_chain_waitable_object;
+	BOOL has_tearing_support = false;
 
 	void InitFrames();
 	winapi::ComPtr<ID3D12DescriptorHeap> rtv_desc_heap;
