@@ -47,10 +47,12 @@ struct Context {
 	void InitDevice();
 	winapi::ComPtr<ID3D12Device> device;
 
-	void InitShaderResourceViews();
+	void InitHeaps();
 	winapi::ComPtr<ID3D12DescriptorHeap> srv_desc_heap;
+	winapi::ComPtr<ID3D12DescriptorHeap> rtv_desc_heap;
+	winapi::ComPtr<ID3D12DescriptorHeap> dsv_desc_heap;
 
-	void InitCommandQueue();
+	void InitQueues();
 	CommandQueue direct_queue;
 	CommandQueue copy_queue;
 
@@ -58,7 +60,6 @@ struct Context {
 	SwapChain swap_chain;
 
 	void InitFrames();
-	winapi::ComPtr<ID3D12DescriptorHeap> rtv_desc_heap;
 	Frame frames[NUM_FRAMES_IN_FLIGHT] = {};
 	Frame* current_frame = nullptr;
 

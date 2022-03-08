@@ -19,17 +19,36 @@ void Context::InitDevice()
 	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
 }
 
-void Context::InitShaderResourceViews()
+void Context::InitHeaps()
 {
-	D3D12_DESCRIPTOR_HEAP_DESC desc = {
-		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-		.NumDescriptors = 1,
-		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-	};
-	ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&srv_desc_heap)));
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC desc = {
+			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+			.NumDescriptors = 1,
+			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+		};
+		ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&srv_desc_heap)));
+	}
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC desc = {
+			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+			.NumDescriptors = NUM_FRAMES_IN_FLIGHT,
+			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+			.NodeMask = 1,
+		};
+		ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&rtv_desc_heap)));
+	}
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC desc = {
+			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
+			.NumDescriptors = 1,
+			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+		};
+		ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&dsv_desc_heap)));
+	}
 }
 
-void Context::InitCommandQueue()
+void Context::InitQueues()
 {
 	direct_queue = CommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
 	copy_queue = CommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
@@ -42,13 +61,6 @@ void Context::InitSwapchain()
 
 void Context::InitFrames()
 {
-	D3D12_DESCRIPTOR_HEAP_DESC desc = {
-		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-		.NumDescriptors = NUM_FRAMES_IN_FLIGHT,
-		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-		.NodeMask = 1,
-	};
-	ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&rtv_desc_heap)));
 
 	for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++) {
 		frames[i] = Frame(i);
@@ -60,8 +72,8 @@ Context* context = nullptr;
 Context::Context(glfw::Window& window_): window(window_) {
 	context = this;
 	InitDevice();
-	InitShaderResourceViews();
-	InitCommandQueue();
+	InitHeaps();
+	InitQueues();
 	InitSwapchain();
 	InitFrames();
 	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
