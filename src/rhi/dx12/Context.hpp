@@ -8,6 +8,18 @@
 
 namespace rhi {
 
+// PSO - pipeline state object
+
+// IA - input assembly
+// VS - vertex shader
+// HS - hull shader
+// DS - domain shader
+// GS - geometry shader
+// SO - stream output
+// RS - rasterizer stage
+// PS - pixel shader
+// OM - output merger
+
 // RTV - render target view
 // SRV - shader resource view
 // UAV - unordered access view
@@ -40,6 +52,7 @@ struct Context {
 
 	void InitCommandQueue();
 	CommandQueue direct_queue;
+	CommandQueue copy_queue;
 
 	void InitSwapchain();
 	SwapChain swap_chain;

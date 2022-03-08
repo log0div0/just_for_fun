@@ -11,4 +11,4 @@ struct Vertex {
 };
 
 extern std::vector<Vertex> box_vertices;
-extern std::vector<uint32_t> box_indices;
+// extern std::vector<uint32_t> box_indices;

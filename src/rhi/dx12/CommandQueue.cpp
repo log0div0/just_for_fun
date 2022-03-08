@@ -20,6 +20,12 @@ void CommandQueue::Execute(winapi::ComPtr<ID3D12GraphicsCommandList>& command_li
 	command_queue->ExecuteCommandLists(1, (ID3D12CommandList* const *)&command_list);
 }
 
+void CommandQueue::ExecuteSync(winapi::ComPtr<ID3D12GraphicsCommandList>& command_list) {
+	Execute(command_list);
+	Signal();
+	WaitIdle();
+}
+
 void CommandQueue::WaitForFenceValue(uint64_t fence_value) {
 	if (fence_value == 0) {
 		return;

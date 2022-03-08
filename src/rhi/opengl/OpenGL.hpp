@@ -55,7 +55,7 @@ struct BoxMesh {
 	void Draw();
 
 	mogl::ArrayBuffer vertex_buffer;
-	mogl::ElementArrayBuffer index_buffer;
+	// mogl::ElementArrayBuffer index_buffer;
 	mogl::VertexArray vertex_array;
 };
 

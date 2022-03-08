@@ -99,8 +99,8 @@ BoxMesh::BoxMesh() {
 	BindUV(1);
 	BindNormal(2);
 
-	index_buffer.setData(box_indices.size() * sizeof(uint32_t), box_indices.data(), GL_STATIC_DRAW);
-	vertex_array.setElementBuffer(index_buffer.getHandle());
+	// index_buffer.setData(box_indices.size() * sizeof(uint32_t), box_indices.data(), GL_STATIC_DRAW);
+	// vertex_array.setElementBuffer(index_buffer.getHandle());
 
 }
 
@@ -126,8 +126,8 @@ void BoxMesh::Draw() {
 	vertex_array.bind();
 
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	// glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	// glDrawElements(GL_TRIANGLES, box_indices.size(), GL_UNSIGNED_INT, 0);
+	glDrawArrays(GL_TRIANGLES, 0, box_vertices.size());
 }
 
 }

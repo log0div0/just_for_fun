@@ -40,7 +40,7 @@ std::vector<Vertex> box_vertices = {
 	{ {-0.5f,  0.5f, -0.5f},  {0.0f, 1.0f}, {  0.0f,  1.0f,  0.0f,} },
 };
 
-std::vector<uint32_t> box_indices = {
-	0, 1, 3,
-	1, 2, 3
-};
+// std::vector<uint32_t> box_indices = {
+// 	0, 1, 3,
+// 	1, 2, 3
+// };

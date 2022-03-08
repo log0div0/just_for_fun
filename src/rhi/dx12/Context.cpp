@@ -32,6 +32,7 @@ void Context::InitShaderResourceViews()
 void Context::InitCommandQueue()
 {
 	direct_queue = CommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+	copy_queue = CommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 }
 
 void Context::InitSwapchain()
@@ -85,6 +86,7 @@ void Context::ResizeBackBuffers(int w, int h) {
 
 void Context::WaitIdle() {
 	direct_queue.WaitIdle();
+	copy_queue.WaitIdle();
 }
 
 void Context::Clear() {

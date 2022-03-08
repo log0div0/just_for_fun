@@ -13,6 +13,7 @@ struct CommandQueue {
 
 	CommandQueue(D3D12_COMMAND_LIST_TYPE type);
 	void Execute(winapi::ComPtr<ID3D12GraphicsCommandList>& command_list);
+	void ExecuteSync(winapi::ComPtr<ID3D12GraphicsCommandList>& command_list);
 	uint64_t Signal();
 	void WaitForFenceValue(uint64_t fence_value);
 	void WaitIdle();
