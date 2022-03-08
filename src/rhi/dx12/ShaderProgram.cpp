@@ -2,7 +2,7 @@
 
 namespace rhi {
 
-ShaderProgram::ShaderProgram(const fs::path& vertex, const fs::path& fragment) {
+ShaderProgram::ShaderProgram(const std::string& name) {
 
 }
 

@@ -2,7 +2,7 @@
 #include "PointLight.hpp"
 
 PointLight::PointLight() {
-	shader_program = rhi::ShaderProgram(g_assets_dir/"shaders"/"point_light.vert", g_assets_dir/"shaders"/"point_light.frag");
+	shader_program = rhi::ShaderProgram("point_light");
 }
 
 void PointLight::Update(float delta_time) {

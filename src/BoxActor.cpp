@@ -3,7 +3,7 @@
 #include "Utils.hpp"
 
 BoxActor::BoxActor() {
-	shader_program = rhi::ShaderProgram(g_assets_dir/"shaders"/"box_actor.vert", g_assets_dir/"shaders"/"box_actor.frag");
+	shader_program = rhi::ShaderProgram("box_actor");
 	shader_program.SetUniform("Wood", 3);
 	shader_program.SetUniform("Lambda", 1);
 

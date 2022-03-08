@@ -23,7 +23,7 @@ struct Context {
 
 struct ShaderProgram {
 	ShaderProgram() = default;
-	ShaderProgram(const fs::path& vertex, const fs::path& fragment);
+	ShaderProgram(const std::string& name);
 	void SetUniform(const std::string& name, float value);
 	void SetUniform(const std::string& name, int value);
 	void SetUniform(const std::string& name, const math::Vector3& value);

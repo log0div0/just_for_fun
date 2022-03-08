@@ -36,3 +36,27 @@ endif()
 if (WIN32)
 	target_link_libraries(just_for_fun Winmm)
 endif()
+
+if (WIN32)
+	file(GLOB HLSL_SRCS
+		"${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/*.vert"
+		"${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/*.frag")
+
+	foreach(SHADER_SRC ${HLSL_SRCS})
+		get_filename_component(SHADER_FILE_NAME ${SHADER_SRC} NAME)
+		get_filename_component(SHADER_FILE_EXT ${SHADER_SRC} EXT)
+		if (SHADER_FILE_EXT STREQUAL ".vert")
+			set(TARGET_PROFILE "vs_6_0")
+		else()
+			set(TARGET_PROFILE "ps_6_0")
+		endif()
+		set(SHADER_DST "${SHADER_SRC}.bin")
+		add_custom_command(
+			OUTPUT ${SHADER_DST}
+			COMMAND ${CMAKE_SOURCE_DIR}/3rd_party/dxc/bin/x64/dxc.exe -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST}
+			DEPENDS ${SHADER_SRC}
+		)
+		add_custom_target(${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
+		add_dependencies(just_for_fun ${SHADER_FILE_NAME})
+	endforeach()
+endif()
