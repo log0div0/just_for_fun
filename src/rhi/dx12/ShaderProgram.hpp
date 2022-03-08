@@ -7,6 +7,10 @@
 #include <ghc/filesystem.hpp>
 namespace fs = ghc::filesystem;
 
+#include <winapi/ComPtr.hpp>
+
+#include <d3d12.h>
+
 namespace rhi {
 
 struct ShaderProgram {

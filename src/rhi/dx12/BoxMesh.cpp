@@ -4,34 +4,15 @@
 #include "Context.hpp"
 #include "../Vertex.hpp"
 
+#include <d3dx12.h>
+
 using namespace winapi;
 
 namespace rhi {
 
 winapi::ComPtr<ID3D12Resource> CreateBuffer(size_t buffer_size, D3D12_HEAP_TYPE heap_type, D3D12_RESOURCE_STATES resource_state) {
-	D3D12_HEAP_PROPERTIES heap_props = {
-		.Type = heap_type,
-		.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-		.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-		.CreationNodeMask = 1,
-		.VisibleNodeMask = 1,
-	};
-
-	D3D12_RESOURCE_DESC buffer_desc = {
-		.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-		.Alignment = 0,
-		.Width = buffer_size,
-		.Height = 1,
-		.DepthOrArraySize = 1,
-		.MipLevels = 1,
-		.Format = DXGI_FORMAT_UNKNOWN,
-		.SampleDesc = {
-			.Count = 1,
-			.Quality = 0,
-		},
-		.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-		.Flags = D3D12_RESOURCE_FLAG_NONE,
-	};
+	CD3DX12_HEAP_PROPERTIES heap_props(heap_type);
+	CD3DX12_RESOURCE_DESC buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(buffer_size);
 
 	winapi::ComPtr<ID3D12Resource> buffer;
 
@@ -52,21 +33,29 @@ BoxMesh::BoxMesh() {
 	winapi::ComPtr<ID3D12Resource> default_buffer = CreateBuffer(buffer_size, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COPY_DEST);
 	winapi::ComPtr<ID3D12Resource> upload_buffer = CreateBuffer(buffer_size, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
 
-	uint8_t* dst = nullptr;
-	ThrowIfFailed(upload_buffer->Map(0, nullptr, (void**)&dst));
-	memcpy(dst, box_vertices.data(), buffer_size);
-	upload_buffer->Unmap(0, nullptr);
-
 	winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
 	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
 	ThrowIfFailed(context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&command_allocator)));
 	ThrowIfFailed(context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, command_allocator, NULL, IID_PPV_ARGS(&command_list)));
-	command_list->CopyBufferRegion(default_buffer, 0, upload_buffer, 0, buffer_size);
+
+	D3D12_SUBRESOURCE_DATA subresource_data = {
+	    .pData = box_vertices.data(),
+	    .RowPitch = (LONG_PTR)buffer_size,
+	    .SlicePitch = (LONG_PTR)buffer_size,
+	};
+
+    UpdateSubresources(command_list, default_buffer, upload_buffer, 0, 0, 1, &subresource_data);
+
 	command_list->Close();
 
 	context->copy_queue.ExecuteSync(command_list);
 
 	vertex_buffer = std::move(default_buffer);
+	vertex_view = {
+		.BufferLocation = vertex_buffer->GetGPUVirtualAddress(),
+		.SizeInBytes = (UINT)buffer_size,
+		.StrideInBytes = sizeof(Vertex),
+	};
 }
 
 void BoxMesh::Draw() {

@@ -2,6 +2,8 @@
 #include "Exceptions.hpp"
 #include "Context.hpp"
 
+#include <d3dx12.h>
+
 using namespace winapi;
 
 namespace rhi {
@@ -23,16 +25,11 @@ void Frame::Begin() {
 	command_allocator->Reset();
 	command_list->Reset(command_allocator, NULL);
 
-	D3D12_RESOURCE_BARRIER barrier = {
-		.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-		.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-		.Transition = {
-			.pResource   = render_target_resource,
-			.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-			.StateBefore = D3D12_RESOURCE_STATE_PRESENT,
-			.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET,
-		},
-	};
+	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		render_target_resource,
+		D3D12_RESOURCE_STATE_PRESENT,
+		D3D12_RESOURCE_STATE_RENDER_TARGET
+	);
 	command_list->ResourceBarrier(1, &barrier);
 
 	const float clear_color[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
@@ -42,16 +39,11 @@ void Frame::Begin() {
 }
 
 void Frame::End() {
-	D3D12_RESOURCE_BARRIER barrier = {
-		.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-		.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-		.Transition = {
-			.pResource   = render_target_resource,
-			.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-			.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET,
-			.StateAfter  = D3D12_RESOURCE_STATE_PRESENT,
-		},
-	};
+	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		render_target_resource,
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		D3D12_RESOURCE_STATE_PRESENT
+	);
 	command_list->ResourceBarrier(1, &barrier);
 	command_list->Close();
 }
