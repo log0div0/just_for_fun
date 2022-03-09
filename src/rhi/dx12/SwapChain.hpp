@@ -10,7 +10,7 @@ struct SwapChain {
 	static inline const DXGI_FORMAT FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	SwapChain() = default;
-	SwapChain(uint32_t buffers_count);
+	SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count);
 
 	SwapChain(SwapChain&& other) = default;
 	SwapChain& operator=(SwapChain&& other) = default;

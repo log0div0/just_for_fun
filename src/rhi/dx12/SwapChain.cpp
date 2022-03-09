@@ -9,7 +9,7 @@ using namespace winapi;
 
 namespace rhi {
 
-SwapChain::SwapChain(uint32_t buffers_count) {
+SwapChain::SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count) {
 	ComPtr<IDXGIFactory5> dxgi_factory;
 	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory)));
 	ThrowIfFailed(dxgi_factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &has_tearing_support, sizeof(has_tearing_support)));
@@ -18,8 +18,8 @@ SwapChain::SwapChain(uint32_t buffers_count) {
 
 	DXGI_SWAP_CHAIN_DESC1 sd =
 	{
-		.Width = 0,
-		.Height = 0,
+		.Width = w,
+		.Height = h,
 		.Format = FORMAT,
 		.Stereo = FALSE,
 		.SampleDesc = {

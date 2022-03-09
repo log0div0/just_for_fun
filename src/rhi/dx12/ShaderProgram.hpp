@@ -23,6 +23,9 @@ struct ShaderProgram {
 	void SetUniform(const std::string& name, const math::Matrix3& value);
 	void SetUniform(const std::string& name, const math::Matrix4& value);
 	void Use();
+
+	winapi::ComPtr<ID3D12RootSignature> root_signature;
+	winapi::ComPtr<ID3D12PipelineState> pipeline_state;
 };
 
 }

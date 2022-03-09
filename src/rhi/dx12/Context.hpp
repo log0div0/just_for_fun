@@ -2,9 +2,9 @@
 
 #include "SwapChain.hpp"
 #include "CommandQueue.hpp"
-#include "Frame.hpp"
 
 #include <glfwpp/glfwpp.h>
+#include <array>
 
 namespace rhi {
 
@@ -26,6 +26,18 @@ namespace rhi {
 // CBV - constant buffer view
 // DSV - depth stencil view
 
+struct Frame {
+	Frame() = default;
+	Frame(int frame_index);
+
+	void InitRenderTargetBuffer(int frame_index);
+
+	winapi::ComPtr<ID3D12Resource> render_target_buffer;
+	D3D12_CPU_DESCRIPTOR_HANDLE render_target_desc;
+	winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
+	uint64_t fence_value = 0;
+};
+
 struct Context {
 	Context(glfw::Window& window_);
 	~Context();
@@ -45,7 +57,7 @@ struct Context {
 	enum { NUM_FRAMES_IN_FLIGHT = 3 };
 
 	void InitDevice();
-	winapi::ComPtr<ID3D12Device> device;
+	winapi::ComPtr<ID3D12Device2> device;
 
 	void InitHeaps();
 	winapi::ComPtr<ID3D12DescriptorHeap> srv_desc_heap;
@@ -56,14 +68,23 @@ struct Context {
 	CommandQueue direct_queue;
 	CommandQueue copy_queue;
 
-	void InitSwapchain();
+	void InitSwapchain(int w, int h);
 	SwapChain swap_chain;
+    D3D12_VIEWPORT viewport;
+    D3D12_RECT scissor_rect;
+
+	void InitDepthStencilBuffer(int w, int h);
+	winapi::ComPtr<ID3D12Resource> depth_stencil_buffer;
+	D3D12_CPU_DESCRIPTOR_HANDLE depth_stencil_desc;
 
 	void InitFrames();
-	Frame frames[NUM_FRAMES_IN_FLIGHT] = {};
+	std::array<Frame, NUM_FRAMES_IN_FLIGHT> frames = {};
 	Frame* current_frame = nullptr;
 
-	void ResizeBackBuffers(int w, int h);
+	void InitCommandList();
+	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
+
+	void Resize(int w, int h);
 };
 
 extern Context* context;

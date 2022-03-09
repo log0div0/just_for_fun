@@ -52,7 +52,7 @@ void GUI::ImplNewFrame() {
 }
 
 void GUI::ImplRender() {
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), rhi::context->current_frame->command_list);
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), rhi::context->command_list);
 }
 #endif
 

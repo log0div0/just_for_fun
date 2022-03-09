@@ -51,7 +51,7 @@ BoxMesh::BoxMesh() {
 	context->copy_queue.ExecuteSync(command_list);
 
 	vertex_buffer = std::move(default_buffer);
-	vertex_view = {
+	vertex_buffer_view = {
 		.BufferLocation = vertex_buffer->GetGPUVirtualAddress(),
 		.SizeInBytes = (UINT)buffer_size,
 		.StrideInBytes = sizeof(Vertex),
@@ -59,7 +59,11 @@ BoxMesh::BoxMesh() {
 }
 
 void BoxMesh::Draw() {
+	context->command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	context->command_list->IASetVertexBuffers(0, 1, &vertex_buffer_view);
+	// context->command_list->IASetIndexBuffer(&index_buffer_view);
 
+	context->command_list->DrawInstanced(box_vertices.size(), 1, 0, 0);
 }
 
 }
