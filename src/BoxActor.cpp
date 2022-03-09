@@ -3,12 +3,12 @@
 #include "Utils.hpp"
 
 BoxActor::BoxActor() {
-	shader_program = rhi::ShaderProgram("box_actor");
+	shader_program = render::ShaderProgram("box_actor");
 	shader_program.SetUniform("Wood", 3);
 	shader_program.SetUniform("Lambda", 1);
 
-	wood_texture = rhi::Texture2D(g_assets_dir/"textures"/"Wood_Crate_001_basecolor.jpg");
-	lambda_texture = rhi::Texture2D(g_assets_dir/"textures"/"Half-Life_lambda_logo.png");
+	wood_texture = render::Texture2D(g_assets_dir/"textures"/"Wood_Crate_001_basecolor.jpg");
+	lambda_texture = render::Texture2D(g_assets_dir/"textures"/"Half-Life_lambda_logo.png");
 }
 
 void BoxActor::Update(float delta_time) {

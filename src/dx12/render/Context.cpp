@@ -5,7 +5,7 @@
 
 using namespace winapi;
 
-namespace rhi {
+namespace render {
 
 Frame::Frame(int frame_index)
 {

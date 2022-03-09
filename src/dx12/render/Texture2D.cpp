@@ -1,6 +1,6 @@
 #include "Texture2D.hpp"
 
-namespace rhi {
+namespace render {
 
 Texture2D::Texture2D(const fs::path& path) {
 

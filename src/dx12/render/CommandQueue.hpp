@@ -6,7 +6,7 @@
 
 #include <d3d12.h>
 
-namespace rhi {
+namespace render {
 
 struct CommandQueue {
 	CommandQueue() = default;

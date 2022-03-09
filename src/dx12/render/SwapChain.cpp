@@ -7,7 +7,7 @@
 
 using namespace winapi;
 
-namespace rhi {
+namespace render {
 
 SwapChain::SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count) {
 	ComPtr<IDXGIFactory5> dxgi_factory;

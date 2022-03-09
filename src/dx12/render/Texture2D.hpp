@@ -4,7 +4,7 @@
 #include <ghc/filesystem.hpp>
 namespace fs = ghc::filesystem;
 
-namespace rhi {
+namespace render {
 
 struct Texture2D {
 	Texture2D() = default;

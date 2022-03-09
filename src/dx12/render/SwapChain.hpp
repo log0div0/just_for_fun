@@ -4,7 +4,7 @@
 #include "CommandQueue.hpp"
 #include <dxgi1_6.h>
 
-namespace rhi {
+namespace render {
 
 struct SwapChain {
 	static inline const DXGI_FORMAT FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;

@@ -2,13 +2,13 @@
 #include "BoxMesh.hpp"
 #include "Exceptions.hpp"
 #include "Context.hpp"
-#include "../Vertex.hpp"
+#include "render/Vertex.hpp"
 
 #include <d3dx12.h>
 
 using namespace winapi;
 
-namespace rhi {
+namespace render {
 
 winapi::ComPtr<ID3D12Resource> CreateBuffer(size_t buffer_size, D3D12_HEAP_TYPE heap_type, D3D12_RESOURCE_STATES resource_state) {
 	CD3DX12_HEAP_PROPERTIES heap_props(heap_type);

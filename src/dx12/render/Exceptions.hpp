@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <Windows.h>
 
-namespace rhi {
+namespace render {
 
 class COMException : public std::exception
 {

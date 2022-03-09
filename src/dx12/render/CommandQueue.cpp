@@ -4,7 +4,7 @@
 
 using namespace winapi;
 
-namespace rhi {
+namespace render {
 
 CommandQueue::CommandQueue(D3D12_COMMAND_LIST_TYPE type) {
 	D3D12_COMMAND_QUEUE_DESC desc = {

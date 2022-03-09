@@ -1,7 +1,7 @@
 #include "ShaderProgram.hpp"
 #include "Exceptions.hpp"
 #include "Context.hpp"
-#include "../Vertex.hpp"
+#include "render/Vertex.hpp"
 #include "../../Utils.hpp"
 
 #include <d3dcompiler.h>
@@ -9,7 +9,7 @@
 
 using namespace winapi;
 
-namespace rhi {
+namespace render {
 
 ComPtr<ID3DBlob> LoadShader(const std::string& name) {
 	fs::path path = g_assets_dir / "shaders" / "hlsl" / (name + ".bin");

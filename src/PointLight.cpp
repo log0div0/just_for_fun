@@ -2,7 +2,7 @@
 #include "PointLight.hpp"
 
 PointLight::PointLight() {
-	shader_program = rhi::ShaderProgram("point_light");
+	shader_program = render::ShaderProgram("point_light");
 }
 
 void PointLight::Update(float delta_time) {

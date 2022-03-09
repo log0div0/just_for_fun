@@ -5,7 +5,7 @@
 
 #include <d3d12.h>
 
-namespace rhi {
+namespace render {
 
 struct BoxMesh {
 	BoxMesh();

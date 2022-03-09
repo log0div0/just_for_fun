@@ -6,7 +6,7 @@
 #include <glfwpp/glfwpp.h>
 #include <array>
 
-namespace rhi {
+namespace render {
 
 // PSO - pipeline state object
 

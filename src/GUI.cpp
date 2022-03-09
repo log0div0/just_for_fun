@@ -1,5 +1,6 @@
 
 #include "GUI.hpp"
+#include "render/Context.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -32,12 +33,12 @@ void GUI::ImplRender() {
 void GUI::ImplInit(glfw::Window& window) {
 	ImGui_ImplGlfw_InitForOther(window, true);
 	ImGui_ImplDX12_Init(
-		rhi::context->device,
-		rhi::Context::NUM_FRAMES_IN_FLIGHT,
-        rhi::SwapChain::FORMAT,
-        rhi::context->srv_desc_heap,
-        rhi::context->srv_desc_heap->GetCPUDescriptorHandleForHeapStart(),
-        rhi::context->srv_desc_heap->GetGPUDescriptorHandleForHeapStart()
+		render::context->device,
+		render::Context::NUM_FRAMES_IN_FLIGHT,
+        render::SwapChain::FORMAT,
+        render::context->srv_desc_heap,
+        render::context->srv_desc_heap->GetCPUDescriptorHandleForHeapStart(),
+        render::context->srv_desc_heap->GetGPUDescriptorHandleForHeapStart()
 	);
 }
 
@@ -52,7 +53,7 @@ void GUI::ImplNewFrame() {
 }
 
 void GUI::ImplRender() {
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), rhi::context->command_list);
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), render::context->command_list);
 }
 #endif
 

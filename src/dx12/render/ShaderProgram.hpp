@@ -11,7 +11,7 @@ namespace fs = ghc::filesystem;
 
 #include <d3d12.h>
 
-namespace rhi {
+namespace render {
 
 struct ShaderProgram {
 	ShaderProgram() = default;
