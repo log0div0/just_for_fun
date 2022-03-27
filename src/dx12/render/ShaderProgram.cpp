@@ -28,25 +28,11 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 		{ "NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, normal), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
-	D3D12_ROOT_SIGNATURE_FLAGS root_signature_flags =
-		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+	ComPtr<ID3DBlob> root_sig_blob;
+	ThrowIfFailed(D3DGetBlobPart(vertex_shader_blob->GetBufferPointer(), vertex_shader_blob->GetBufferSize(), D3D_BLOB_ROOT_SIGNATURE, 0, &root_sig_blob));
 
-	std::array<CD3DX12_ROOT_PARAMETER1, 1> root_parameters;
-	root_parameters.at(0).InitAsConstants(sizeof(math::Matrix4) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-
-	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_description;
-	root_signature_description.Init_1_1(root_parameters.size(), root_parameters.data(), 0, nullptr, root_signature_flags);
-
-	ComPtr<ID3DBlob> root_signature_blob;
-	ComPtr<ID3DBlob> error_blob;
-	ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&root_signature_description,
-		D3D_ROOT_SIGNATURE_VERSION_1_1, &root_signature_blob, &error_blob));
-	ThrowIfFailed(context->device->CreateRootSignature(0, root_signature_blob->GetBufferPointer(),
-		root_signature_blob->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
+	ThrowIfFailed(context->device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
+		root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
 
 	struct PipelineStateStream
 	{
