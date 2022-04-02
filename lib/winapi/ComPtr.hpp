@@ -72,6 +72,10 @@ struct ComPtr {
 		return t;
 	}
 
+	bool IsNull() const {
+		return t == nullptr;
+	}
+
 	T* t = nullptr;
 };
 

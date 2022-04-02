@@ -122,11 +122,6 @@ void Context::InitFrames()
 	}
 }
 
-void Context::InitCommandList() {
-	ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[0].command_allocator, NULL, IID_PPV_ARGS(&command_list)));
-	ThrowIfFailed(command_list->Close());
-}
-
 Context* context = nullptr;
 
 Context::Context(glfw::Window& window_): window(window_) {
@@ -138,7 +133,6 @@ Context::Context(glfw::Window& window_): window(window_) {
 	InitSwapchain(w, h);
 	InitDepthStencilBuffer(w, h);
 	InitFrames();
-	InitCommandList();
 	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
 		Resize(w, h);
 	});
@@ -177,7 +171,11 @@ void Context::Clear() {
 	direct_queue.WaitForFenceValue(current_frame->fence_value);
 
 	current_frame->command_allocator->Reset();
-	command_list->Reset(current_frame->command_allocator, NULL);
+	if (command_list.IsNull()) {
+		ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, current_frame->command_allocator, NULL, IID_PPV_ARGS(&command_list)));
+	} else {
+		command_list->Reset(current_frame->command_allocator, NULL);
+	}
 
 	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 		current_frame->render_target_buffer,

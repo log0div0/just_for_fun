@@ -81,7 +81,6 @@ struct Context {
 	std::array<Frame, NUM_FRAMES_IN_FLIGHT> frames = {};
 	Frame* current_frame = nullptr;
 
-	void InitCommandList();
 	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
 
 	void Resize(int w, int h);
