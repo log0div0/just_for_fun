@@ -149,6 +149,9 @@ Context::~Context() {
 }
 
 void Context::Resize(int w, int h) {
+	if (!w || !h) {
+		return;
+	}
 	WaitIdle();
 	for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++) {
 		frames[i].render_target_buffer = {};

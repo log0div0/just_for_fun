@@ -25,4 +25,5 @@ private:
 	PointLight light;
 	BoxActor box;
 	GUI gui;
+	int x, y, w, h;
 };

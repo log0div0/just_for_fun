@@ -5,13 +5,36 @@
 
 App::App(glfw::Window& window_): window(window_), render_context(window), camera(window), gui(window)
 {
-	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
+	window.framebufferSizeEvent.subscribe([this](glfw::Window& window, int w, int h) {
 		camera.aspect = float(w) / h;
 	});
 	auto [w, h] = window.getFramebufferSize();
 	camera.aspect = float(w) / h;
 
 	camera.pos = {2.0f, 0.0f, 0.0f};
+
+	window.keyEvent.subscribe([this](glfw::Window& window, glfw::KeyCode key, int scancode, glfw::KeyState action, glfw::ModifierKeyBit mods)
+	{
+		if (action != glfw::KeyState::Press) {
+			return;
+		}
+		switch (key) {
+			case glfw::KeyCode::Escape:
+				window.setShouldClose(true);
+				break;
+			case glfw::KeyCode::F11:
+				if ((GLFWmonitor*)window.getMonitor()) {
+					window.setMonitor({}, x, y, this->w, this->h, glfw::dontCare);
+				} else {
+					std::tie(x,y) = window.getPos();
+					std::tie(this->w,this->h) = window.getSize();
+					auto monitor = glfw::getPrimaryMonitor();
+					const glfw::VideoMode mode = monitor.getVideoMode();
+					window.setMonitor(monitor, 0, 0, mode.width, mode.height, mode.refreshRate);
+				}
+				break;
+		};
+	});
 }
 
 App::~App()
@@ -25,10 +48,6 @@ void App::Run()
 	while (!window.shouldClose())
 	{
 		glfw::pollEvents();
-
-		if (window.getKey(glfw::KeyCode::Escape)) {
-			window.setShouldClose(true);
-		}
 
 		Stopwatch timer;
 
