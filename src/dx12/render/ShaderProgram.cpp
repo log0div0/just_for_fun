@@ -31,8 +31,30 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	ComPtr<ID3DBlob> root_sig_blob;
 	ThrowIfFailed(D3DGetBlobPart(vertex_shader_blob->GetBufferPointer(), vertex_shader_blob->GetBufferSize(), D3D_BLOB_ROOT_SIGNATURE, 0, &root_sig_blob));
 
+	ComPtr<ID3D12VersionedRootSignatureDeserializer> root_sig_deserializer;
+	ThrowIfFailed(D3D12CreateVersionedRootSignatureDeserializer(root_sig_blob->GetBufferPointer(),
+		root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_sig_deserializer)));
+
+	const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* v_root_sig_desc = nullptr;
+	ThrowIfFailed(root_sig_deserializer->GetRootSignatureDescAtVersion(D3D_ROOT_SIGNATURE_VERSION_1_1, &v_root_sig_desc));
+
+	const D3D12_ROOT_SIGNATURE_DESC1* root_sig_desc = &v_root_sig_desc->Desc_1_1;
+
 	ThrowIfFailed(context->device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
 		root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
+
+	for (uint32_t i = 0; i < root_sig_desc->NumParameters; ++i) {
+		const D3D12_ROOT_PARAMETER1& param = root_sig_desc->pParameters[i];
+		switch (param.ParameterType) {
+			case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+				std::cout << "ShaderRegister = " << param.Constants.ShaderRegister << std::endl;
+				std::cout << "RegisterSpace = " << param.Constants.RegisterSpace << std::endl;
+				std::cout << "Num32BitValues = " << param.Constants.Num32BitValues << std::endl;
+				break;
+			default:
+				break;
+		}
+	}
 
 	struct PipelineStateStream
 	{

@@ -200,8 +200,8 @@ void Context::Present() {
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		D3D12_RESOURCE_STATE_PRESENT
 	);
-	context->command_list->ResourceBarrier(1, &barrier);
-	context->command_list->Close();
+	command_list->ResourceBarrier(1, &barrier);
+	command_list->Close();
 
 	direct_queue.Execute(command_list);
 	swap_chain.Present();
