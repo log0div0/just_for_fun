@@ -1,12 +1,13 @@
 #define ROOT_SIG \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
-    "RootConstants(num32BitConstants=48, b7)"
+    "RootConstants(num32BitConstants=48, b0), " \
+    "RootConstants(num32BitConstants=16, b8)"
 
-cbuffer SomeStuff: register(b7)
+cbuffer SomeStuff: register(b0)
 {
-    matrix MVP;
-    matrix ModelMatrix;
-    matrix<float, 3, 3> NormalMatrix;
+    float4x4 MVP;
+    float4x4 ModelMatrix;
+    float3x3 NormalMatrix;
 }
 
 struct Vertex

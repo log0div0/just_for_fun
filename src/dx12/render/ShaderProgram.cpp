@@ -145,11 +145,12 @@ void ShaderProgram::SetUniform(const std::string& name, int value) {
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Vector3& value) {
-
+	ParamInfo param_info = GetParamInfo(name);
+	assert(param_info.Num32BitValuesToSet == (sizeof(value) / 4));
+	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, sizeof(value) / 4, &value, param_info.DestOffsetIn32BitValues);
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Vector4& value) {
-
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Matrix3& value) {
