@@ -157,9 +157,6 @@ void ShaderProgram::SetUniform(const std::string& name, const math::Matrix3& val
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Matrix4& value) {
-	if (name != "MVP") {
-		return;
-	}
 	ParamInfo param_info = GetParamInfo(name);
 	assert(param_info.Num32BitValuesToSet == (sizeof(value) / 4));
 	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, sizeof(value) / 4, &value, param_info.DestOffsetIn32BitValues);

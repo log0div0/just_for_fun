@@ -1,7 +1,7 @@
 #version 460 core
 
 in vec2 UV;
-in vec3 FragPos;
+in vec3 PosWS;
 in vec3 Normal;
 
 out vec4 FragColor;
@@ -15,9 +15,9 @@ uniform vec3 CameraPos;
 
 void main()
 {
-	vec3 ToLight = normalize(LightPos - FragPos);
+	vec3 ToLight = normalize(LightPos - PosWS);
 	vec3 FromLight = -ToLight;
-	vec3 ToCamera = normalize(CameraPos - FragPos);
+	vec3 ToCamera = normalize(CameraPos - PosWS);
 	vec3 ReflectDir = reflect(FromLight, Normal);
 
 	float Ambient = 0.1;
