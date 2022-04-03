@@ -6,6 +6,7 @@
 
 #include <d3dcompiler.h>
 #include <d3dx12.h>
+#include <dxcapi.h>
 
 using namespace winapi;
 
@@ -31,30 +32,8 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	ComPtr<ID3DBlob> root_sig_blob;
 	ThrowIfFailed(D3DGetBlobPart(vertex_shader_blob->GetBufferPointer(), vertex_shader_blob->GetBufferSize(), D3D_BLOB_ROOT_SIGNATURE, 0, &root_sig_blob));
 
-	ComPtr<ID3D12VersionedRootSignatureDeserializer> root_sig_deserializer;
-	ThrowIfFailed(D3D12CreateVersionedRootSignatureDeserializer(root_sig_blob->GetBufferPointer(),
-		root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_sig_deserializer)));
-
-	const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* v_root_sig_desc = nullptr;
-	ThrowIfFailed(root_sig_deserializer->GetRootSignatureDescAtVersion(D3D_ROOT_SIGNATURE_VERSION_1_1, &v_root_sig_desc));
-
-	const D3D12_ROOT_SIGNATURE_DESC1* root_sig_desc = &v_root_sig_desc->Desc_1_1;
-
 	ThrowIfFailed(context->device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
 		root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
-
-	for (uint32_t i = 0; i < root_sig_desc->NumParameters; ++i) {
-		const D3D12_ROOT_PARAMETER1& param = root_sig_desc->pParameters[i];
-		switch (param.ParameterType) {
-			case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
-				std::cout << "ShaderRegister = " << param.Constants.ShaderRegister << std::endl;
-				std::cout << "RegisterSpace = " << param.Constants.RegisterSpace << std::endl;
-				std::cout << "Num32BitValues = " << param.Constants.Num32BitValues << std::endl;
-				break;
-			default:
-				break;
-		}
-	}
 
 	struct PipelineStateStream
 	{
@@ -82,6 +61,79 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	    sizeof(pipeline_state_stream), &pipeline_state_stream
 	};
 	ThrowIfFailed(context->device->CreatePipelineState(&pipeline_state_stream_desc, IID_PPV_ARGS(&pipeline_state)));
+
+	InitParamsInfo(root_sig_blob,
+		vertex_shader_blob, pixel_shader_blob);
+}
+
+void ShaderProgram::InitParamsInfo(ComPtr<ID3DBlob> root_sig_blob, ComPtr<ID3DBlob> vertex_shader_blob, ComPtr<ID3DBlob> pixel_shader_blob)
+{
+	ComPtr<ID3D12VersionedRootSignatureDeserializer> root_sig_deserializer;
+	ThrowIfFailed(D3D12CreateVersionedRootSignatureDeserializer(root_sig_blob->GetBufferPointer(),
+		root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_sig_deserializer)));
+
+	const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* v_root_sig_desc = nullptr;
+	ThrowIfFailed(root_sig_deserializer->GetRootSignatureDescAtVersion(D3D_ROOT_SIGNATURE_VERSION_1_1, &v_root_sig_desc));
+
+	const D3D12_ROOT_SIGNATURE_DESC1* root_sig_desc = &v_root_sig_desc->Desc_1_1;
+
+	for (uint32_t i = 0; i < root_sig_desc->NumParameters; ++i) {
+		const D3D12_ROOT_PARAMETER1& param = root_sig_desc->pParameters[i];
+		switch (param.ParameterType) {
+			case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+				FindContantParam(i, param.Constants, vertex_shader_blob);
+				FindContantParam(i, param.Constants, pixel_shader_blob);
+				break;
+			default:
+				throw std::runtime_error("IMPLEMENT ME!!!!!!!!!!!!");
+				break;
+		}
+	}
+}
+
+void ShaderProgram::FindContantParam(UINT RootIndex, const D3D12_ROOT_CONSTANTS& param, ComPtr<ID3DBlob> shader_blob)
+{
+	ComPtr<IDxcContainerReflection> container_reflection;
+	ThrowIfFailed(DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&container_reflection)));
+	ThrowIfFailed(container_reflection->Load((IDxcBlob*)(ID3DBlob*)shader_blob));
+	UINT32 shader_index = 0;
+	ThrowIfFailed(container_reflection->FindFirstPartKind(DXC_PART_DXIL, &shader_index));
+	ComPtr<ID3D12ShaderReflection> shader_reflection;
+	ThrowIfFailed(container_reflection->GetPartReflection(shader_index, IID_PPV_ARGS(&shader_reflection)));
+	D3D12_SHADER_DESC shader_desc = {};
+	ThrowIfFailed(shader_reflection->GetDesc(&shader_desc));
+	for (int i = 0; i < shader_desc.BoundResources; ++i)
+	{
+		D3D12_SHADER_INPUT_BIND_DESC bind_desc;
+		shader_reflection->GetResourceBindingDesc(i, &bind_desc);
+		if ((bind_desc.BindPoint == param.ShaderRegister) &&
+			(bind_desc.Space == param.RegisterSpace))
+		{
+			for (int i = 0; i < shader_desc.ConstantBuffers; ++i)
+			{
+				ID3D12ShaderReflectionConstantBuffer* constant_buffer = shader_reflection->GetConstantBufferByIndex(i);
+				D3D12_SHADER_BUFFER_DESC buffer_desc = {};
+				constant_buffer->GetDesc(&buffer_desc);
+				if (std::string(buffer_desc.Name) == std::string(bind_desc.Name))
+				{
+					for (int i = 0; i < buffer_desc.Variables; ++i)
+					{
+						ID3D12ShaderReflectionVariable* var = constant_buffer->GetVariableByIndex(i);
+						D3D12_SHADER_VARIABLE_DESC var_desc = {};
+						var->GetDesc(&var_desc);
+						ParamInfo info {
+							.RootParameterIndex = RootIndex,
+							.Num32BitValuesToSet = var_desc.Size / 4,
+							.DestOffsetIn32BitValues = var_desc.StartOffset / 4,
+						};
+						params_map[var_desc.Name] = info;
+					}
+					break;
+				}
+			}
+			break;
+		}
+	}
 }
 
 void ShaderProgram::SetUniform(const std::string& name, float value) {
@@ -105,14 +157,25 @@ void ShaderProgram::SetUniform(const std::string& name, const math::Matrix3& val
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Matrix4& value) {
-	if (name == "MVP") {
-		context->command_list->SetGraphicsRoot32BitConstants(0, sizeof(value) / 4, &value, 0);
+	if (name != "MVP") {
+		return;
 	}
+	ParamInfo param_info = GetParamInfo(name);
+	assert(param_info.Num32BitValuesToSet == (sizeof(value) / 4));
+	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, sizeof(value) / 4, &value, param_info.DestOffsetIn32BitValues);
 }
 
 void ShaderProgram::Use() {
 	context->command_list->SetPipelineState(pipeline_state);
 	context->command_list->SetGraphicsRootSignature(root_signature);
+}
+
+ParamInfo ShaderProgram::GetParamInfo(const std::string& name) const {
+	auto it = params_map.find(name);
+	if (it == params_map.end()) {
+		throw std::runtime_error("Shader doesn't have param " + name);
+	}
+	return it->second;
 }
 
 }

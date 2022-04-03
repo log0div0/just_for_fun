@@ -1,16 +1,11 @@
-#define ROOT_SIG "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT " \
-                            " | DENY_HULL_SHADER_ROOT_ACCESS " \
-                            " | DENY_DOMAIN_SHADER_ROOT_ACCESS " \
-                            " | DENY_GEOMETRY_SHADER_ROOT_ACCESS " \
-                            " | DENY_PIXEL_SHADER_ROOT_ACCESS), " \
+#define ROOT_SIG \
+    "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
     "RootConstants(num32BitConstants=16, b0)"
 
-struct ModelViewProjection
+cbuffer SomeStuff: register(b0)
 {
     matrix MVP;
-};
-
-ConstantBuffer<ModelViewProjection> ModelViewProjectionCB : register(b0);
+}
 
 struct Vertex
 {
@@ -29,7 +24,7 @@ Output main(Vertex IN)
 {
     Output OUT;
 
-    OUT.Position = mul(ModelViewProjectionCB.MVP, float4(IN.Position, 1.0f));
+    OUT.Position = mul(MVP, float4(IN.Position, 1.0f));
     OUT.Color = float4(1.0f, 1.0f, 1.0f, 1.0f);
 
     return OUT;

@@ -20,6 +20,12 @@ elseif(RHI STREQUAL "DX12")
 	add_definitions(-DDX12)
 	add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
 	include_directories(dx12)
+	include_directories(${CMAKE_SOURCE_DIR}/3rd_party/dxc/inc)
+	link_directories(${CMAKE_SOURCE_DIR}/3rd_party/dxc/lib/x64)
+	configure_file(
+		${CMAKE_SOURCE_DIR}/3rd_party/dxc/bin/x64/dxcompiler.dll
+		${CMAKE_BINARY_DIR}/out/sbin/${CMAKE_BUILD_TYPE}/dxcompiler.dll
+		COPYONLY)
 	list(APPEND SRC_DIRS "dx12/**/*.cpp")
 endif()
 
@@ -34,7 +40,7 @@ if (RHI STREQUAL "OPENGL")
 	target_link_libraries(just_for_fun glad)
 elseif(RHI STREQUAL "VULKAN")
 elseif(RHI STREQUAL "DX12")
-	target_link_libraries(just_for_fun D3D12 DXGI)
+	target_link_libraries(just_for_fun D3D12 DXGI dxcompiler)
 endif()
 
 if (WIN32)
