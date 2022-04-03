@@ -25,6 +25,9 @@ struct Context {
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_GREATER);
 		glClearDepth(0.0);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+
 	}
 
 	void Clear() {

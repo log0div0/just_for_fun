@@ -42,15 +42,25 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 		CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
 		CD3DX12_PIPELINE_STATE_STREAM_VS VS;
 		CD3DX12_PIPELINE_STATE_STREAM_PS PS;
+		CD3DX12_PIPELINE_STATE_STREAM_RASTERIZER Rasterizer;
+		CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL DepthStencil;
 		CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
 		CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
 	} pipeline_state_stream;
+
+	CD3DX12_DEPTH_STENCIL_DESC depth_stencil = CD3DX12_DEPTH_STENCIL_DESC(CD3DX12_DEFAULT{});
+	depth_stencil.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+
+	CD3DX12_RASTERIZER_DESC rasterizer = CD3DX12_RASTERIZER_DESC(CD3DX12_DEFAULT{});
+	rasterizer.CullMode = D3D12_CULL_MODE_FRONT;
 
 	pipeline_state_stream.pRootSignature = root_signature;
 	pipeline_state_stream.InputLayout = { input_layout, _countof(input_layout) };
 	pipeline_state_stream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	pipeline_state_stream.VS = CD3DX12_SHADER_BYTECODE(vertex_shader_blob);
 	pipeline_state_stream.PS = CD3DX12_SHADER_BYTECODE(pixel_shader_blob);
+	pipeline_state_stream.Rasterizer = rasterizer;
+	pipeline_state_stream.DepthStencil = depth_stencil;
 	pipeline_state_stream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	pipeline_state_stream.RTVFormats = D3D12_RT_FORMAT_ARRAY {
 		.RTFormats = { SwapChain::FORMAT },
@@ -137,30 +147,31 @@ void ShaderProgram::FindContantParam(UINT RootIndex, const D3D12_ROOT_CONSTANTS&
 }
 
 void ShaderProgram::SetUniform(const std::string& name, float value) {
-
 }
 
 void ShaderProgram::SetUniform(const std::string& name, int value) {
-
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Vector3& value) {
 	ParamInfo param_info = GetParamInfo(name);
-	assert(param_info.Num32BitValuesToSet == (sizeof(value) / 4));
-	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, sizeof(value) / 4, &value, param_info.DestOffsetIn32BitValues);
+	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 3, &value, param_info.DestOffsetIn32BitValues);
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Vector4& value) {
+	ParamInfo param_info = GetParamInfo(name);
+	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 4, &value, param_info.DestOffsetIn32BitValues);
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Matrix3& value) {
-
+	ParamInfo param_info = GetParamInfo(name);
+	for (int i = 0; i < 3; ++i) {
+		context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 3, (float*)&value + (i*3), param_info.DestOffsetIn32BitValues + (i*4));
+	}
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Matrix4& value) {
 	ParamInfo param_info = GetParamInfo(name);
-	assert(param_info.Num32BitValuesToSet == (sizeof(value) / 4));
-	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, sizeof(value) / 4, &value, param_info.DestOffsetIn32BitValues);
+	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 16, &value, param_info.DestOffsetIn32BitValues);
 }
 
 void ShaderProgram::Use() {

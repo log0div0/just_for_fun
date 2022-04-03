@@ -87,7 +87,7 @@ void Context::InitDepthStencilBuffer(int w, int h) {
 			1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 		D3D12_CLEAR_VALUE clear_value = {
 			.Format = DXGI_FORMAT_D32_FLOAT,
-			.DepthStencil = { 1.0f, 0 },
+			.DepthStencil = { 0.0f, 0 },
 		};
 
 		ThrowIfFailed(device->CreateCommittedResource(
@@ -185,7 +185,7 @@ void Context::Clear() {
 	command_list->ResourceBarrier(1, &barrier);
 
 	const float clear_color[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
-	float depth = 1.0f;
+	float depth = 0.0f;
 
 	command_list->ClearRenderTargetView(current_frame->render_target_desc, clear_color, 0, NULL);
 	command_list->ClearDepthStencilView(depth_stencil_desc, D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
