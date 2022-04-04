@@ -25,6 +25,7 @@ struct Output
     float4 Pos       : SV_Position;
 };
 
+[RootSignature(ROOT_SIG)]
 Output main(Vertex IN)
 {
     Output OUT;

@@ -63,7 +63,7 @@ if (WIN32)
 		set(SHADER_DST "${SHADER_SRC}.bin")
 		add_custom_command(
 			OUTPUT ${SHADER_DST}
-			COMMAND ${CMAKE_SOURCE_DIR}/3rd_party/dxc/bin/x64/dxc.exe -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST} -rootsig-define ROOT_SIG
+			COMMAND ${CMAKE_SOURCE_DIR}/3rd_party/dxc/bin/x64/dxc.exe -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST}
 			DEPENDS ${SHADER_SRC}
 		)
 		add_custom_target(${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
