@@ -9,17 +9,15 @@ namespace render {
 
 Frame::Frame(int frame_index)
 {
-	ThrowIfFailed(context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator)));
+	ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator)));
+	rtv_handle = g_context->rtv_desc_heap.alloc().cpu;
 
 	InitRenderTargetBuffer(frame_index);
 }
 
 void Frame::InitRenderTargetBuffer(int frame_index) {
-	render_target_buffer = context->swap_chain.GetBuffer(frame_index);
-	render_target_desc = context->rtv_desc_heap->GetCPUDescriptorHandleForHeapStart();
-	size_t rtv_descriptor_size = context->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	render_target_desc.ptr += rtv_descriptor_size * frame_index;
-	context->device->CreateRenderTargetView(render_target_buffer, NULL, render_target_desc);
+	render_target_buffer = g_context->swap_chain.GetBuffer(frame_index);
+	g_context->device->CreateRenderTargetView(render_target_buffer, NULL, rtv_handle);
 }
 
 void Context::InitDevice()
@@ -38,31 +36,9 @@ void Context::InitDevice()
 
 void Context::InitHeaps()
 {
-	{
-		D3D12_DESCRIPTOR_HEAP_DESC desc = {
-			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-			.NumDescriptors = 1,
-			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-		};
-		ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&srv_desc_heap)));
-	}
-	{
-		D3D12_DESCRIPTOR_HEAP_DESC desc = {
-			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-			.NumDescriptors = NUM_FRAMES_IN_FLIGHT,
-			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-			.NodeMask = 1,
-		};
-		ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&rtv_desc_heap)));
-	}
-	{
-		D3D12_DESCRIPTOR_HEAP_DESC desc = {
-			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
-			.NumDescriptors = 1,
-			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-		};
-		ThrowIfFailed(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&dsv_desc_heap)));
-	}
+	srv_desc_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	rtv_desc_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	dsv_desc_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 }
 
 void Context::InitQueues()
@@ -79,7 +55,7 @@ void Context::InitSwapchain(int w, int h)
 }
 
 void Context::InitDepthStencilBuffer(int w, int h) {
-	depth_stencil_desc = dsv_desc_heap->GetCPUDescriptorHandleForHeapStart();
+	dsv_handle = dsv_desc_heap.alloc().cpu;
 
 	{
 		CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_DEFAULT);
@@ -111,7 +87,7 @@ void Context::InitDepthStencilBuffer(int w, int h) {
 		};
 
 
-		device->CreateDepthStencilView(depth_stencil_buffer, &desc, depth_stencil_desc);
+		device->CreateDepthStencilView(depth_stencil_buffer, &desc, dsv_handle);
 	}
 }
 
@@ -122,10 +98,10 @@ void Context::InitFrames()
 	}
 }
 
-Context* context = nullptr;
+Context* g_context = nullptr;
 
 Context::Context(glfw::Window& window_): window(window_) {
-	context = this;
+	g_context = this;
 	auto [w, h] = window.getFramebufferSize();
 	InitDevice();
 	InitHeaps();
@@ -139,7 +115,7 @@ Context::Context(glfw::Window& window_): window(window_) {
 }
 
 Context::~Context() {
-	context = nullptr;
+	g_context = nullptr;
 }
 
 void Context::Resize(int w, int h) {
@@ -187,10 +163,10 @@ void Context::Clear() {
 	const float clear_color[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
 	float depth = 0.0f;
 
-	command_list->ClearRenderTargetView(current_frame->render_target_desc, clear_color, 0, NULL);
-	command_list->ClearDepthStencilView(depth_stencil_desc, D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
-	command_list->OMSetRenderTargets(1, &current_frame->render_target_desc, FALSE, &depth_stencil_desc);
-	command_list->SetDescriptorHeaps(1, &srv_desc_heap);
+	command_list->ClearRenderTargetView(current_frame->rtv_handle, clear_color, 0, NULL);
+	command_list->ClearDepthStencilView(dsv_handle, D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
+	command_list->OMSetRenderTargets(1, &current_frame->rtv_handle, FALSE, &dsv_handle);
+	command_list->SetDescriptorHeaps(1, &srv_desc_heap.heap);
 	command_list->RSSetViewports(1, &viewport);
 	command_list->RSSetScissorRects(1, &scissor_rect);
 }

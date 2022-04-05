@@ -31,14 +31,15 @@ void GUI::ImplRender() {
 }
 #elif DX12
 void GUI::ImplInit(glfw::Window& window) {
+	auto srv_handle = render::g_context->srv_desc_heap.alloc();
 	ImGui_ImplGlfw_InitForOther(window, true);
 	ImGui_ImplDX12_Init(
-		render::context->device,
+		render::g_context->device,
 		render::Context::NUM_FRAMES_IN_FLIGHT,
         render::SwapChain::FORMAT,
-        render::context->srv_desc_heap,
-        render::context->srv_desc_heap->GetCPUDescriptorHandleForHeapStart(),
-        render::context->srv_desc_heap->GetGPUDescriptorHandleForHeapStart()
+        render::g_context->srv_desc_heap.heap,
+        srv_handle.cpu,
+        srv_handle.gpu
 	);
 }
 
@@ -53,7 +54,7 @@ void GUI::ImplNewFrame() {
 }
 
 void GUI::ImplRender() {
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), render::context->command_list);
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), render::g_context->command_list);
 }
 #endif
 

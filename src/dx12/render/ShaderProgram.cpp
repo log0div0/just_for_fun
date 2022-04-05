@@ -32,7 +32,7 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	ComPtr<ID3DBlob> root_sig_blob;
 	ThrowIfFailed(D3DGetBlobPart(vertex_shader_blob->GetBufferPointer(), vertex_shader_blob->GetBufferSize(), D3D_BLOB_ROOT_SIGNATURE, 0, &root_sig_blob));
 
-	ThrowIfFailed(context->device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
+	ThrowIfFailed(g_context->device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
 		root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
 
 	struct PipelineStateStream
@@ -70,7 +70,7 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	D3D12_PIPELINE_STATE_STREAM_DESC pipeline_state_stream_desc = {
 	    sizeof(pipeline_state_stream), &pipeline_state_stream
 	};
-	ThrowIfFailed(context->device->CreatePipelineState(&pipeline_state_stream_desc, IID_PPV_ARGS(&pipeline_state)));
+	ThrowIfFailed(g_context->device->CreatePipelineState(&pipeline_state_stream_desc, IID_PPV_ARGS(&pipeline_state)));
 
 	InitParamsInfo(root_sig_blob,
 		vertex_shader_blob, pixel_shader_blob);
@@ -154,29 +154,29 @@ void ShaderProgram::SetUniform(const std::string& name, int value) {
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Vector3& value) {
 	ParamInfo param_info = GetParamInfo(name);
-	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 3, &value, param_info.DestOffsetIn32BitValues);
+	g_context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 3, &value, param_info.DestOffsetIn32BitValues);
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Vector4& value) {
 	ParamInfo param_info = GetParamInfo(name);
-	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 4, &value, param_info.DestOffsetIn32BitValues);
+	g_context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 4, &value, param_info.DestOffsetIn32BitValues);
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Matrix3& value) {
 	ParamInfo param_info = GetParamInfo(name);
 	for (int i = 0; i < 3; ++i) {
-		context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 3, (float*)&value + (i*3), param_info.DestOffsetIn32BitValues + (i*4));
+		g_context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 3, (float*)&value + (i*3), param_info.DestOffsetIn32BitValues + (i*4));
 	}
 }
 
 void ShaderProgram::SetUniform(const std::string& name, const math::Matrix4& value) {
 	ParamInfo param_info = GetParamInfo(name);
-	context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 16, &value, param_info.DestOffsetIn32BitValues);
+	g_context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 16, &value, param_info.DestOffsetIn32BitValues);
 }
 
 void ShaderProgram::Use() {
-	context->command_list->SetPipelineState(pipeline_state);
-	context->command_list->SetGraphicsRootSignature(root_signature);
+	g_context->command_list->SetPipelineState(pipeline_state);
+	g_context->command_list->SetGraphicsRootSignature(root_signature);
 }
 
 ParamInfo ShaderProgram::GetParamInfo(const std::string& name) const {

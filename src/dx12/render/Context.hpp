@@ -2,6 +2,7 @@
 
 #include "SwapChain.hpp"
 #include "CommandQueue.hpp"
+#include "DescriptorHeap.hpp"
 
 #include <glfwpp/glfwpp.h>
 #include <array>
@@ -33,7 +34,7 @@ struct Frame {
 	void InitRenderTargetBuffer(int frame_index);
 
 	winapi::ComPtr<ID3D12Resource> render_target_buffer;
-	D3D12_CPU_DESCRIPTOR_HANDLE render_target_desc;
+	D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle;
 	winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
 	uint64_t fence_value = 0;
 };
@@ -60,9 +61,9 @@ struct Context {
 	winapi::ComPtr<ID3D12Device2> device;
 
 	void InitHeaps();
-	winapi::ComPtr<ID3D12DescriptorHeap> srv_desc_heap;
-	winapi::ComPtr<ID3D12DescriptorHeap> rtv_desc_heap;
-	winapi::ComPtr<ID3D12DescriptorHeap> dsv_desc_heap;
+	DescriptorHeap srv_desc_heap;
+	DescriptorHeap rtv_desc_heap;
+	DescriptorHeap dsv_desc_heap;
 
 	void InitQueues();
 	CommandQueue direct_queue;
@@ -75,7 +76,7 @@ struct Context {
 
 	void InitDepthStencilBuffer(int w, int h);
 	winapi::ComPtr<ID3D12Resource> depth_stencil_buffer;
-	D3D12_CPU_DESCRIPTOR_HANDLE depth_stencil_desc;
+	D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle;
 
 	void InitFrames();
 	std::array<Frame, NUM_FRAMES_IN_FLIGHT> frames = {};
@@ -86,6 +87,6 @@ struct Context {
 	void Resize(int w, int h);
 };
 
-extern Context* context;
+extern Context* g_context;
 
 }

@@ -34,7 +34,7 @@ SwapChain::SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count) {
 		.Flags = flags,
 	};
 	ComPtr<IDXGISwapChain1> swap_chain1;
-	ThrowIfFailed(dxgi_factory->CreateSwapChainForHwnd(context->direct_queue.Get(), glfw::native::getWin32Window(context->window), &sd, NULL, NULL, &swap_chain1));
+	ThrowIfFailed(dxgi_factory->CreateSwapChainForHwnd(g_context->direct_queue.Get(), glfw::native::getWin32Window(g_context->window), &sd, NULL, NULL, &swap_chain1));
 	swap_chain = swap_chain1.QueryInterface<IDXGISwapChain3>();
 	ThrowIfFailed(swap_chain->SetMaximumFrameLatency(buffers_count));
 	waitable_object = winapi::Object(swap_chain->GetFrameLatencyWaitableObject());
