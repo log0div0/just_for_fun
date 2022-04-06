@@ -4,8 +4,6 @@
 
 BoxActor::BoxActor() {
 	shader_program = render::ShaderProgram("box_actor");
-	shader_program.SetUniform("Wood", 3);
-	shader_program.SetUniform("Lambda", 1);
 
 	wood_texture = render::Texture2D(g_assets_dir/"textures"/"Wood_Crate_001_basecolor.jpg");
 	lambda_texture = render::Texture2D(g_assets_dir/"textures"/"Half-Life_lambda_logo.png");
@@ -22,16 +20,16 @@ void BoxActor::Render(const Camera& camera, const PointLight& light) {
 	math::Transform MVP = projection * view * model;
 
 	shader_program.Use();
-	shader_program.SetUniform("MVP", MVP);
-	shader_program.SetUniform("ModelMatrix", model);
-	shader_program.SetUniform("NormalMatrix", normal);
-	// shader_program.SetUniform("ObjectColor", color);
-	shader_program.SetUniform("LightPos", light.pos);
-	shader_program.SetUniform("LightColor", light.color);
-	shader_program.SetUniform("CameraPos", camera.pos);
-
-	wood_texture.Bind(3);
-	lambda_texture.Bind(1);
+	shader_program.SetParam("MVP", MVP);
+	shader_program.SetParam("ModelMatrix", model);
+	shader_program.SetParam("NormalMatrix", normal);
+	// shader_program.SetParam("ObjectColor", color);
+	shader_program.SetParam("LightPos", light.pos);
+	shader_program.SetParam("LightColor", light.color);
+	shader_program.SetParam("CameraPos", camera.pos);
+	shader_program.SetParam("Wood", wood_texture);
+	shader_program.SetParam("Lambda", lambda_texture);
+	shader_program.Done();
 
 	mesh.Draw();
 }

@@ -18,12 +18,16 @@ struct ComPtr {
 	explicit ComPtr(T* t_): t(t_) {}
 
 	ComPtr(const ComPtr& other): t(other.t) {
-		t->AddRef();
+		if (t) {
+			t->AddRef();
+		}
 	}
 
 	ComPtr& operator=(const ComPtr& other) {
 		t = other.t;
-		t->AddRef();
+		if (t) {
+			t->AddRef();
+		}
 		return *this;
 	}
 

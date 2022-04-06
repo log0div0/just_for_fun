@@ -72,36 +72,22 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	};
 	ThrowIfFailed(g_context->device->CreatePipelineState(&pipeline_state_stream_desc, IID_PPV_ARGS(&pipeline_state)));
 
-	InitParamsInfo(root_sig_blob,
-		vertex_shader_blob, pixel_shader_blob);
-}
+	{
+		ComPtr<ID3D12VersionedRootSignatureDeserializer> root_sig_deserializer;
+		ThrowIfFailed(D3D12CreateVersionedRootSignatureDeserializer(root_sig_blob->GetBufferPointer(),
+			root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_sig_deserializer)));
 
-void ShaderProgram::InitParamsInfo(ComPtr<ID3DBlob> root_sig_blob, ComPtr<ID3DBlob> vertex_shader_blob, ComPtr<ID3DBlob> pixel_shader_blob)
-{
-	ComPtr<ID3D12VersionedRootSignatureDeserializer> root_sig_deserializer;
-	ThrowIfFailed(D3D12CreateVersionedRootSignatureDeserializer(root_sig_blob->GetBufferPointer(),
-		root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_sig_deserializer)));
+		const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* v_root_sig_desc = nullptr;
+		ThrowIfFailed(root_sig_deserializer->GetRootSignatureDescAtVersion(D3D_ROOT_SIGNATURE_VERSION_1_1, &v_root_sig_desc));
 
-	const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* v_root_sig_desc = nullptr;
-	ThrowIfFailed(root_sig_deserializer->GetRootSignatureDescAtVersion(D3D_ROOT_SIGNATURE_VERSION_1_1, &v_root_sig_desc));
+		const D3D12_ROOT_SIGNATURE_DESC1* root_sig_desc = &v_root_sig_desc->Desc_1_1;
 
-	const D3D12_ROOT_SIGNATURE_DESC1* root_sig_desc = &v_root_sig_desc->Desc_1_1;
-
-	for (uint32_t i = 0; i < root_sig_desc->NumParameters; ++i) {
-		const D3D12_ROOT_PARAMETER1& param = root_sig_desc->pParameters[i];
-		switch (param.ParameterType) {
-			case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
-				FindContantParam(i, param.Constants, vertex_shader_blob);
-				FindContantParam(i, param.Constants, pixel_shader_blob);
-				break;
-			default:
-				throw std::runtime_error("IMPLEMENT ME!!!!!!!!!!!!");
-				break;
-		}
+		InitParamsInfo(root_sig_desc, vertex_shader_blob);
+		InitParamsInfo(root_sig_desc, pixel_shader_blob);
 	}
 }
 
-void ShaderProgram::FindContantParam(UINT RootIndex, const D3D12_ROOT_CONSTANTS& param, ComPtr<ID3DBlob> shader_blob)
+void ShaderProgram::InitParamsInfo(const D3D12_ROOT_SIGNATURE_DESC1* root_sig_desc, ComPtr<ID3DBlob> shader_blob)
 {
 	ComPtr<IDxcContainerReflection> container_reflection;
 	ThrowIfFailed(DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&container_reflection)));
@@ -112,71 +98,171 @@ void ShaderProgram::FindContantParam(UINT RootIndex, const D3D12_ROOT_CONSTANTS&
 	ThrowIfFailed(container_reflection->GetPartReflection(shader_index, IID_PPV_ARGS(&shader_reflection)));
 	D3D12_SHADER_DESC shader_desc = {};
 	ThrowIfFailed(shader_reflection->GetDesc(&shader_desc));
-	for (int i = 0; i < shader_desc.BoundResources; ++i)
-	{
-		D3D12_SHADER_INPUT_BIND_DESC bind_desc;
-		shader_reflection->GetResourceBindingDesc(i, &bind_desc);
-		if ((bind_desc.BindPoint == param.ShaderRegister) &&
-			(bind_desc.Space == param.RegisterSpace))
+
+	auto find_resource_binding = [&](const D3D_SHADER_INPUT_TYPE shader_input_type, const UINT shader_register, const UINT register_space) -> std::optional<D3D12_SHADER_INPUT_BIND_DESC> {
+		for (int i = 0; i < shader_desc.BoundResources; ++i)
 		{
+			D3D12_SHADER_INPUT_BIND_DESC bind_desc;
+			shader_reflection->GetResourceBindingDesc(i, &bind_desc);
+			if ((bind_desc.BindPoint == shader_register) &&
+				(bind_desc.Space == register_space) &&
+				(bind_desc.Type == shader_input_type))
+			{
+				return bind_desc;
+			}
+		}
+		return {}; // resource is in another shader
+	};
+
+	auto find_constant_buffer = [&](const D3D_SHADER_INPUT_TYPE shader_input_type, const UINT shader_register, const UINT register_space) -> std::pair<ID3D12ShaderReflectionConstantBuffer*, D3D12_SHADER_BUFFER_DESC> {
+		std::optional<D3D12_SHADER_INPUT_BIND_DESC> bind_desc = find_resource_binding(shader_input_type, shader_register, register_space);
+		if (bind_desc) {
 			for (int i = 0; i < shader_desc.ConstantBuffers; ++i)
 			{
 				ID3D12ShaderReflectionConstantBuffer* constant_buffer = shader_reflection->GetConstantBufferByIndex(i);
 				D3D12_SHADER_BUFFER_DESC buffer_desc = {};
 				constant_buffer->GetDesc(&buffer_desc);
-				if (std::string(buffer_desc.Name) == std::string(bind_desc.Name))
+				if (std::string(bind_desc->Name) == std::string(buffer_desc.Name))
 				{
-					for (int i = 0; i < buffer_desc.Variables; ++i)
-					{
-						ID3D12ShaderReflectionVariable* var = constant_buffer->GetVariableByIndex(i);
-						D3D12_SHADER_VARIABLE_DESC var_desc = {};
-						var->GetDesc(&var_desc);
-						ParamInfo info {
-							.RootParameterIndex = RootIndex,
-							.Num32BitValuesToSet = var_desc.Size / 4,
-							.DestOffsetIn32BitValues = var_desc.StartOffset / 4,
-						};
-						params_map[var_desc.Name] = info;
-					}
-					break;
+					return {constant_buffer, buffer_desc};
 				}
 			}
-			break;
+		}
+		return {nullptr, {}};
+	};
+
+	for (uint32_t i = 0; i < root_sig_desc->NumParameters; ++i) {
+		const D3D12_ROOT_PARAMETER1& param = root_sig_desc->pParameters[i];
+		ParamInfo info = {};
+		info.type = param.ParameterType;
+		info.root_parameter_index = i;
+		switch (param.ParameterType) {
+			case D3D12_ROOT_PARAMETER_TYPE_CBV:
+				{
+					auto [constant_buffer, buffer_desc] = find_constant_buffer(D3D_SIT_CBUFFER, param.Descriptor.ShaderRegister, param.Descriptor.RegisterSpace);
+
+					if (constant_buffer) {
+						for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; ++i)
+						{
+							// These will remain in upload heap because we use them only once per frame.
+							CD3DX12_HEAP_PROPERTIES heap_props = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+							CD3DX12_RESOURCE_DESC res_desc = CD3DX12_RESOURCE_DESC::Buffer(buffer_desc.Size);
+							g_context->device->CreateCommittedResource(
+								&heap_props,
+								D3D12_HEAP_FLAG_NONE,
+								&res_desc,
+								D3D12_RESOURCE_STATE_GENERIC_READ,
+								nullptr,
+								IID_PPV_ARGS(&info.constant_buffers[i]));
+						}
+					}
+					[[fallthrough]];
+				}
+			case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+				{
+					auto [constant_buffer, buffer_desc] = find_constant_buffer(D3D_SIT_CBUFFER, param.Constants.ShaderRegister, param.Constants.RegisterSpace);
+
+					if (constant_buffer) {
+						for (int i = 0; i < buffer_desc.Variables; ++i)
+						{
+							ID3D12ShaderReflectionVariable* var = constant_buffer->GetVariableByIndex(i);
+							D3D12_SHADER_VARIABLE_DESC var_desc = {};
+							var->GetDesc(&var_desc);
+							info.offset = var_desc.StartOffset;
+							params_map[var_desc.Name] = info;
+						}
+					}
+				}
+				break;
+			case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
+				for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; ++i)
+				{
+					info.descriptor_tables[i] = g_context->srv_desc_heap.alloc_range(NUM_FRAMES_IN_FLIGHT);
+				}
+				for (int i = 0; i < param.DescriptorTable.NumDescriptorRanges; ++i) {
+					info.offset = i;
+					const D3D12_DESCRIPTOR_RANGE1& range = param.DescriptorTable.pDescriptorRanges[i];
+					if (range.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SRV) {
+						std::optional<D3D12_SHADER_INPUT_BIND_DESC> bind_desc = find_resource_binding(D3D_SIT_TEXTURE, range.BaseShaderRegister, range.RegisterSpace);
+						if (bind_desc) {
+							params_map[bind_desc->Name] = info;
+						}
+					} else {
+						throw std::runtime_error("TODOOO");
+					}
+				}
+				break;
+			default:
+				throw std::runtime_error("IMPLEMENT ME!!!!!!!!!!!!");
+				break;
 		}
 	}
-}
-
-void ShaderProgram::SetUniform(const std::string& name, float value) {
-}
-
-void ShaderProgram::SetUniform(const std::string& name, int value) {
-}
-
-void ShaderProgram::SetUniform(const std::string& name, const math::Vector3& value) {
-	ParamInfo param_info = GetParamInfo(name);
-	g_context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 3, &value, param_info.DestOffsetIn32BitValues);
-}
-
-void ShaderProgram::SetUniform(const std::string& name, const math::Vector4& value) {
-	ParamInfo param_info = GetParamInfo(name);
-	g_context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 4, &value, param_info.DestOffsetIn32BitValues);
-}
-
-void ShaderProgram::SetUniform(const std::string& name, const math::Matrix3& value) {
-	ParamInfo param_info = GetParamInfo(name);
-	for (int i = 0; i < 3; ++i) {
-		g_context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 3, (float*)&value + (i*3), param_info.DestOffsetIn32BitValues + (i*4));
-	}
-}
-
-void ShaderProgram::SetUniform(const std::string& name, const math::Matrix4& value) {
-	ParamInfo param_info = GetParamInfo(name);
-	g_context->command_list->SetGraphicsRoot32BitConstants(param_info.RootParameterIndex, 16, &value, param_info.DestOffsetIn32BitValues);
 }
 
 void ShaderProgram::Use() {
 	g_context->command_list->SetPipelineState(pipeline_state);
 	g_context->command_list->SetGraphicsRootSignature(root_signature);
+}
+
+void ShaderProgram::SetParam(const std::string& name, const math::Vector3& value) {
+	SetParam(name, (uint8_t*)&value, 1, sizeof(value), sizeof(value));
+}
+
+void ShaderProgram::SetParam(const std::string& name, const math::Vector4& value) {
+	SetParam(name, (uint8_t*)&value, 1, sizeof(value), sizeof(value));
+}
+
+void ShaderProgram::SetParam(const std::string& name, const math::Matrix3& value) {
+	SetParam(name, (uint8_t*)&value, 3, sizeof(math::Vector3), sizeof(math::Vector4));
+}
+
+void ShaderProgram::SetParam(const std::string& name, const math::Matrix4& value) {
+	SetParam(name, (uint8_t*)&value, 1, sizeof(value), sizeof(value));
+}
+
+void ShaderProgram::SetParam(const std::string& name, const uint8_t* src, int num_rows, int src_stride, int dst_stride) {
+	ParamInfo param_info = GetParamInfo(name);
+	if (param_info.type == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS) {
+		for (int i = 0; i < num_rows; ++i) {
+			g_context->command_list->SetGraphicsRoot32BitConstants(param_info.root_parameter_index, src_stride / 4, src + (i*src_stride), (param_info.offset + i*dst_stride)/4);
+		}
+	} else if (param_info.type == D3D12_ROOT_PARAMETER_TYPE_CBV) {
+		ID3D12Resource* constant_buffer = param_info.constant_buffers.at(g_context->current_frame->index);
+
+		void* p = nullptr;
+		constant_buffer->Map(0, nullptr, &p);
+		uint8_t* dst = static_cast<uint8_t*>(p) + param_info.offset;
+		for (int i = 0; i < num_rows; ++i) {
+			memcpy(dst + i*dst_stride, src + i*src_stride, src_stride);
+		}
+		constant_buffer->Unmap(0, nullptr);
+
+	} else {
+		throw std::runtime_error("Something went wrong");
+	}
+}
+
+void ShaderProgram::SetParam(const std::string& name, Texture2D& value) {
+	ParamInfo param_info = GetParamInfo(name);
+	if (param_info.type == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE) {
+		D3D12_CPU_DESCRIPTOR_HANDLE dst = param_info.descriptor_tables.at(g_context->current_frame->index).cpu;
+		dst.ptr += param_info.offset * g_context->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		g_context->device->CopyDescriptorsSimple(1, dst, value.texture_srv_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	} else {
+		throw std::runtime_error("Something went wrong");
+	}
+}
+
+void ShaderProgram::Done() {
+	for (auto& kv: params_map) {
+		ParamInfo& param_info = kv.second;
+		if (param_info.type == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE) {
+			g_context->command_list->SetGraphicsRootDescriptorTable(param_info.root_parameter_index, param_info.descriptor_tables.at(g_context->current_frame->index).gpu);
+		} else if (param_info.type == D3D12_ROOT_PARAMETER_TYPE_CBV) {
+			ID3D12Resource* constant_buffer = param_info.constant_buffers.at(g_context->current_frame->index);
+			g_context->command_list->SetGraphicsRootConstantBufferView(param_info.root_parameter_index, constant_buffer->GetGPUVirtualAddress());
+		}
+	}
 }
 
 ParamInfo ShaderProgram::GetParamInfo(const std::string& name) const {

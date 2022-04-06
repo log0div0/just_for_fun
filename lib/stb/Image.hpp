@@ -26,6 +26,9 @@ struct Image {
 
 	Image(const char* path, int desired_channels = 0) {
 		data = stbi_load(path, &w, &h, &c, desired_channels);
+		if (desired_channels) {
+			c = desired_channels;
+		}
 		if (!data) {
 			throw std::runtime_error("Cannot load image " + std::string(path) + " because " + stbi_failure_reason());
 		}

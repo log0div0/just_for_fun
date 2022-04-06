@@ -11,13 +11,15 @@ using namespace winapi;
 namespace render {
 
 Texture2D::Texture2D(const fs::path& path) {
-	stb::Image img(path);
+	stb::Image img(path, 4);
 
 	DXGI_FORMAT img_format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
+	int mips_num = 1;
+
 	{
 		CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_DEFAULT);
-		CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(img_format, img.w, img.h);
+		CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(img_format, img.w, img.h, 1, mips_num);
 
 		ThrowIfFailed(g_context->device->CreateCommittedResource(
 			&heap_props,
@@ -59,14 +61,23 @@ Texture2D::Texture2D(const fs::path& path) {
 	UpdateSubresources(command_list, texture_buffer, upload_buffer, 0, 0, 1, &subresource_data);
 
 	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(texture_buffer,
-		D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE|D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	command_list->ResourceBarrier(1, &barrier);
 	command_list->Close();
 
 	g_context->direct_queue.ExecuteSync(command_list);
 
-	texture_srv_handle = g_context->srv_desc_heap.alloc().cpu;
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC desc = {
+			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+			.NumDescriptors = 1,
+			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+		};
+		ThrowIfFailed(g_context->device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap)));
+	}
+
+	texture_srv_handle = heap->GetCPUDescriptorHandleForHeapStart();
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
 	srv_desc.Format = img_format;
@@ -77,8 +88,22 @@ Texture2D::Texture2D(const fs::path& path) {
 	g_context->device->CreateShaderResourceView(texture_buffer, &srv_desc, texture_srv_handle);
 }
 
-void Texture2D::Bind(uint32_t unit) {
+Texture2D::~Texture2D() {
 
+}
+
+Texture2D::Texture2D(Texture2D&& other):
+	texture_buffer(std::move(other.texture_buffer)),
+	heap(std::move(other.heap)),
+	texture_srv_handle(std::move(other.texture_srv_handle))
+{
+}
+
+Texture2D& Texture2D::operator=(Texture2D&& other) {
+	std::swap(texture_buffer, other.texture_buffer);
+	std::swap(heap, other.heap);
+	std::swap(texture_srv_handle, other.texture_srv_handle);
+	return *this;
 }
 
 }

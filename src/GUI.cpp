@@ -35,7 +35,7 @@ void GUI::ImplInit(glfw::Window& window) {
 	ImGui_ImplGlfw_InitForOther(window, true);
 	ImGui_ImplDX12_Init(
 		render::g_context->device,
-		render::Context::NUM_FRAMES_IN_FLIGHT,
+		render::NUM_FRAMES_IN_FLIGHT,
         render::SwapChain::FORMAT,
         render::g_context->srv_desc_heap.heap,
         srv_handle.cpu,

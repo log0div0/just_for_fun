@@ -49,4 +49,38 @@ DescriptorPair DescriptorHeap::alloc() {
 	throw std::runtime_error("Failed to allocate descriptor");
 }
 
+DescriptorPair DescriptorHeap::alloc_range(int num) {
+	size_t initial_cursor = cursor;
+	do
+	{
+		bool is_ok = true;
+		for (int i = 0; i < num; ++i) {
+			if (allocation_map.test(cursor + i)) {
+				is_ok = false;
+				break;
+			}
+		}
+		if (!is_ok) {
+			cursor = (cursor + 1) % heap_size;
+			continue;
+		}
+		for (int i = 0; i < num; ++i) {
+			allocation_map.set(cursor + i);
+		}
+
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle = heap->GetCPUDescriptorHandleForHeapStart();
+		cpu_handle.ptr += increment_size * cursor;
+
+		D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle = {};
+		if (shader_visible) {
+			gpu_handle = heap->GetGPUDescriptorHandleForHeapStart();
+			gpu_handle.ptr += increment_size * cursor;
+		}
+
+		return {cpu_handle, gpu_handle};
+	} while (initial_cursor != cursor);
+
+	throw std::runtime_error("Failed to allocate descriptor");
+}
+
 }

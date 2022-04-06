@@ -1,7 +1,7 @@
 #define ROOT_SIG \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
     "RootConstants(num32BitConstants=16, b0), " \
-    "RootConstants(num32BitConstants=3, b1)"
+    "RootConstants(num32BitConstants=4, b1)"
 
 cbuffer SomeStuff: register(b0)
 {

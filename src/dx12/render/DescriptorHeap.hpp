@@ -22,10 +22,9 @@ struct DescriptorHeap {
 	~DescriptorHeap();
 
 	DescriptorPair alloc();
+	DescriptorPair alloc_range(int num);
 
 	winapi::ComPtr<ID3D12DescriptorHeap> heap;
-
-private:
 	std::bitset<heap_size> allocation_map = {};
 	size_t cursor = 0;
 	size_t increment_size = 0;

@@ -1,7 +1,11 @@
 #define ROOT_SIG \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
-    "RootConstants(num32BitConstants=48, b0), " \
-    "RootConstants(num32BitConstants=16, b8)"
+    "CBV(b0), " \
+    "CBV(b8), " \
+    "DescriptorTable(SRV(t0), " \
+                    "SRV(t1)), " \
+    "StaticSampler(s0), " \
+    "StaticSampler(s1)"
 
 cbuffer SomeStuff: register(b0)
 {

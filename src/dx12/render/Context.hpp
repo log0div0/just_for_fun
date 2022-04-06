@@ -3,6 +3,7 @@
 #include "SwapChain.hpp"
 #include "CommandQueue.hpp"
 #include "DescriptorHeap.hpp"
+#include "Frame.hpp"
 
 #include <glfwpp/glfwpp.h>
 #include <array>
@@ -27,18 +28,6 @@ namespace render {
 // CBV - constant buffer view
 // DSV - depth stencil view
 
-struct Frame {
-	Frame() = default;
-	Frame(int frame_index);
-
-	void InitRenderTargetBuffer(int frame_index);
-
-	winapi::ComPtr<ID3D12Resource> render_target_buffer;
-	D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle;
-	winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
-	uint64_t fence_value = 0;
-};
-
 struct Context {
 	Context(glfw::Window& window_);
 	~Context();
@@ -54,8 +43,6 @@ struct Context {
 	void Clear();
 	void Present();
 	void WaitIdle();
-
-	enum { NUM_FRAMES_IN_FLIGHT = 3 };
 
 	void InitDevice();
 	winapi::ComPtr<ID3D12Device2> device;
