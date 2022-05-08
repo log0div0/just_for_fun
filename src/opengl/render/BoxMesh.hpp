@@ -6,6 +6,8 @@
 #include <glad/glad.h>
 #include <mogl/mogl.hpp>
 
+#include "ShaderProgram.hpp"
+
 namespace render {
 
 struct BoxMesh {
@@ -42,7 +44,9 @@ struct BoxMesh {
 		vertex_array.enableAttrib(location);
 	}
 
-	void Draw() {
+	void Draw(ShaderProgram& shader) {
+		shader.shader_program.use();
+
 		vertex_array.bind();
 
 		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

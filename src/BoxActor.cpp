@@ -19,7 +19,6 @@ void BoxActor::Render(const Camera& camera, const PointLight& light) {
 	math::Matrix3 normal = model.Remove(3, 3).Adjugate();
 	math::Transform MVP = projection * view * model;
 
-	shader_program.Use();
 	shader_program.SetParam("MVP", MVP);
 	shader_program.SetParam("ModelMatrix", model);
 	shader_program.SetParam("NormalMatrix", normal);
@@ -29,7 +28,6 @@ void BoxActor::Render(const Camera& camera, const PointLight& light) {
 	shader_program.SetParam("CameraPos", camera.pos);
 	shader_program.SetParam("Wood", wood_texture);
 	shader_program.SetParam("Lambda", lambda_texture);
-	shader_program.Done();
 
-	mesh.Draw();
+	mesh.Draw(shader_program);
 }

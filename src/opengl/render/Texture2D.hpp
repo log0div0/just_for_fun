@@ -18,11 +18,6 @@ struct Texture2D {
 		texture.generateMipmap();
 	}
 
-	void Bind(uint32_t unit)
-	{
-		texture.bind(unit);
-	}
-
 	mogl::Texture2D texture;
 };
 

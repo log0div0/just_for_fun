@@ -18,10 +18,8 @@ void PointLight::Render(const Camera& camera) {
 	math::Transform model = { pos, {}, {0.2f} };
 	math::Transform MVP = projection * view * model;
 
-	shader_program.Use();
 	shader_program.SetParam("MVP", MVP);
 	shader_program.SetParam("LightColor", color);
-	shader_program.Done();
 
-	mesh.Draw();
+	mesh.Draw(shader_program);
 }
