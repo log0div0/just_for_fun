@@ -1,11 +1,3 @@
-#define ROOT_SIG \
-    "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
-    "CBV(b0), " \
-    "CBV(b8), " \
-    "DescriptorTable(SRV(t0), " \
-                    "SRV(t1)), " \
-    "StaticSampler(s0), " \
-    "StaticSampler(s1)"
 
 cbuffer SomeStuff: register(b0)
 {
@@ -29,7 +21,6 @@ struct Output
     float4 Pos       : SV_Position;
 };
 
-[RootSignature(ROOT_SIG)]
 Output main(Vertex IN)
 {
     Output OUT;

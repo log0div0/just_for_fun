@@ -21,9 +21,8 @@ struct Texture2D {
 	Texture2D(Texture2D&& other);
 	Texture2D& operator=(Texture2D&& other);
 
-	winapi::ComPtr<ID3D12Resource> texture_buffer;
-	winapi::ComPtr<ID3D12DescriptorHeap> heap;
-	D3D12_CPU_DESCRIPTOR_HANDLE texture_srv_handle;
+	winapi::ComPtr<ID3D12Resource> resource;
+	static const DXGI_FORMAT img_format = DXGI_FORMAT_R8G8B8A8_UNORM;
 };
 
 }

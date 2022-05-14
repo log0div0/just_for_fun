@@ -1,5 +1,5 @@
 #include "Context.hpp"
-#include "Exceptions.hpp"
+#include "details/Exceptions.hpp"
 
 #include <d3dx12.h>
 
@@ -21,11 +21,36 @@ void Context::InitDevice()
 	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
 }
 
+void Context::InitRootSignature()
+{
+	D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	CD3DX12_DESCRIPTOR_RANGE1 srv_range(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, SRV_TABLE_SIZE, 0);
+	CD3DX12_DESCRIPTOR_RANGE1 cbv_range(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CBV_TABLE_SIZE, 0);
+	CD3DX12_DESCRIPTOR_RANGE1 sampler_range(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, SAMPLER_TABLE_SIZE, 0);
+
+	CD3DX12_ROOT_PARAMETER1 parameters[NUM_OF_ROOT_SIG_TABLES];
+
+	parameters[SRV_TABLE_INDEX].InitAsDescriptorTable(1, &srv_range);
+	parameters[CBV_TABLE_INDEX].InitAsDescriptorTable(1, &cbv_range);
+	parameters[SAMPLER_TABLE_INDEX].InitAsDescriptorTable(1, &sampler_range);
+
+	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC desc;
+	desc.Init_1_1(NUM_OF_ROOT_SIG_TABLES, parameters, 0, nullptr, flags);
+
+	ComPtr<ID3DBlob> root_sig_blob;
+	ComPtr<ID3DBlob> error_blob;
+	ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &root_sig_blob, &error_blob));
+	ThrowIfFailed(device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
+	    root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
+}
+
 void Context::InitHeaps()
 {
-	srv_desc_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	rtv_desc_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	dsv_desc_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	view_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, VIEW_HEAP_SIZE);
+	sampler_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SAMPLER_HEAP_SIZE);
+	rtv_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, RTV_HEAP_SIZE);
+	dsv_heap = DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, DSV_HEAP_SIZE);
 }
 
 void Context::InitQueues()
@@ -42,7 +67,7 @@ void Context::InitSwapchain(int w, int h)
 }
 
 void Context::InitDepthStencilBuffer(int w, int h) {
-	dsv_handle = dsv_desc_heap.alloc().cpu;
+	dsv_handle = dsv_heap.alloc().cpu;
 
 	{
 		CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_DEFAULT);
@@ -85,17 +110,25 @@ void Context::InitFrames()
 	}
 }
 
+void Context::InitCBs() {
+	for (int i = 0; i < constant_buffers.size(); ++i) {
+		constant_buffers[i] = ConstantBuffer(MAX_CB_SIZE);
+	}
+}
+
 Context* g_context = nullptr;
 
 Context::Context(glfw::Window& window_): window(window_) {
 	g_context = this;
 	auto [w, h] = window.getFramebufferSize();
 	InitDevice();
+	InitRootSignature();
 	InitHeaps();
 	InitQueues();
 	InitSwapchain(w, h);
 	InitDepthStencilBuffer(w, h);
 	InitFrames();
+	InitCBs();
 	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
 		Resize(w, h);
 	});
@@ -133,6 +166,9 @@ void Context::Clear() {
 	current_frame = &frames[frame_idx];
 	direct_queue.WaitForFenceValue(current_frame->fence_value);
 
+	current_frame->constant_buffers_refs.clear();
+	current_frame->descriptor_table_refs.clear();
+
 	current_frame->command_allocator->Reset();
 	if (command_list.IsNull()) {
 		ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, current_frame->command_allocator, NULL, IID_PPV_ARGS(&command_list)));
@@ -150,12 +186,15 @@ void Context::Clear() {
 	const float clear_color[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
 	float depth = 0.0f;
 
+	std::array<ID3D12DescriptorHeap*, 2> heaps = {view_heap.heap, sampler_heap.heap};
+
 	command_list->ClearRenderTargetView(current_frame->rtv_handle, clear_color, 0, NULL);
 	command_list->ClearDepthStencilView(dsv_handle, D3D12_CLEAR_FLAG_DEPTH, depth, 0, 0, nullptr);
 	command_list->OMSetRenderTargets(1, &current_frame->rtv_handle, FALSE, &dsv_handle);
-	command_list->SetDescriptorHeaps(1, &srv_desc_heap.heap);
+	command_list->SetDescriptorHeaps(heaps.size(), heaps.data());
 	command_list->RSSetViewports(1, &viewport);
 	command_list->RSSetScissorRects(1, &scissor_rect);
+	command_list->SetGraphicsRootSignature(root_signature);
 }
 
 void Context::Present() {
@@ -170,6 +209,69 @@ void Context::Present() {
 	direct_queue.Execute(command_list);
 	swap_chain.Present();
 	current_frame->fence_value = direct_queue.Signal();
+}
+
+void Context::CommitCBs() {
+	DescriptorTable cbv_table(&view_heap, CBV_TABLE_SIZE);
+	for (size_t i = 0; i < constant_buffers.size(); ++i) {
+		ConstantBuffer& cb = constant_buffers[i];
+		std::optional<ConstantBufferMemory> memory = cb.CommitToDevice();
+		if (memory.has_value()) {
+			D3D12_CONSTANT_BUFFER_VIEW_DESC cbv {
+				.BufferLocation = memory->GetGPUVirtualAddress(),
+				.SizeInBytes = memory->GetSize(),
+			};
+			device->CreateConstantBufferView(&cbv, cbv_table.GetCPUHandle(i));
+			current_frame->constant_buffers_refs.push_back(std::move(memory.value()));
+		}
+	}
+	command_list->SetGraphicsRootDescriptorTable(CBV_TABLE_INDEX, cbv_table.GetBaseGPUHandle());
+	current_frame->descriptor_table_refs.push_back(std::move(cbv_table));
+}
+
+void Context::CommitResources() {
+	CommitCBs();
+	CommitSRVs();
+}
+
+void Context::CreateSRV(size_t root_parameter_index, Texture2D& texture) {
+	if (srv_table.GetSize() == 0) {
+		srv_table = DescriptorTable(&view_heap, SRV_TABLE_SIZE);
+	}
+	D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {
+		.Format = Texture2D::img_format,
+		.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+		.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+		.Texture2D = {
+			.MostDetailedMip = 0,
+			.MipLevels = 1,
+		}
+	};
+	device->CreateShaderResourceView(texture.resource, &srv_desc, srv_table.GetCPUHandle(root_parameter_index));
+	srv_table_map[root_parameter_index] = true;
+}
+
+void Context::CommitSRVs() {
+	if (srv_table.GetSize() == 0) {
+		return;
+	}
+	for (size_t i = 0; i < SRV_TABLE_SIZE; ++i) {
+		if (srv_table_map[i] == false) {
+			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {
+				.Format = Texture2D::img_format,
+				.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+				.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+				.Texture2D = {
+					.MostDetailedMip = 0,
+					.MipLevels = 1,
+				}
+			};
+			device->CreateShaderResourceView(nullptr, &srv_desc, srv_table.GetCPUHandle(i));
+		}
+	}
+	command_list->SetGraphicsRootDescriptorTable(SRV_TABLE_INDEX, srv_table.GetBaseGPUHandle());
+	current_frame->descriptor_table_refs.push_back(std::move(srv_table));
+	srv_table_map = {};
 }
 
 }

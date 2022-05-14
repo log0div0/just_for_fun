@@ -1,7 +1,7 @@
 
 #include "SwapChain.hpp"
 #include "Exceptions.hpp"
-#include "Context.hpp"
+#include "../Context.hpp"
 
 #include <glfwpp/native.h>
 

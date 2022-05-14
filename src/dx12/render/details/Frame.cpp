@@ -1,5 +1,5 @@
 #include "Frame.hpp"
-#include "Context.hpp"
+#include "../Context.hpp"
 #include "Exceptions.hpp"
 
 #include <d3dx12.h>
@@ -11,7 +11,7 @@ namespace render {
 Frame::Frame(int frame_index): index(frame_index)
 {
 	ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator)));
-	rtv_handle = g_context->rtv_desc_heap.alloc().cpu;
+	rtv_handle = g_context->rtv_heap.alloc().cpu;
 
 	InitRenderTargetBuffer(frame_index);
 }

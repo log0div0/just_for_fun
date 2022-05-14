@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "render/Vertex.hpp"
+#include "../../Vertex.hpp"
 
 #include <glad/glad.h>
 #include <mogl/mogl.hpp>

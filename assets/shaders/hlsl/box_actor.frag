@@ -1,5 +1,5 @@
 
-cbuffer Trololo: register(b8)
+cbuffer Trololo: register(b1)
 {
 	float3 ObjectColor;
 	float3 LightColor;
@@ -10,8 +10,7 @@ cbuffer Trololo: register(b8)
 Texture2D<float4> Wood : register(t0);
 Texture2D<float4> Lambda : register(t1);
 
-SamplerState WoodSampler : register(s0);
-SamplerState LambdaSampler : register(s1);
+SamplerState Sampler : register(s1);
 
 struct PixelShaderInput
 {
@@ -33,6 +32,6 @@ float4 main( PixelShaderInput IN ) : SV_Target
 	float Specular = pow(max(0.0, dot(ToCamera, ReflectDir)), 64) * SpecularStrength;
 
 	float4 SurfaceColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	SurfaceColor = lerp(Lambda.Sample(LambdaSampler, IN.UV), Wood.Sample(WoodSampler, IN.UV), 1 - Lambda.Sample(LambdaSampler, IN.UV).w);
+	SurfaceColor = lerp(Lambda.Sample(Sampler, IN.UV), Wood.Sample(Sampler, IN.UV), 1 - Lambda.Sample(Sampler, IN.UV).w);
     return float4((Ambient + Diffuse + Specular) * LightColor, 1.0f) * SurfaceColor;
 }

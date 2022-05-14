@@ -31,13 +31,13 @@ void GUI::ImplRender() {
 }
 #elif DX12
 void GUI::ImplInit(glfw::Window& window) {
-	auto srv_handle = render::g_context->srv_desc_heap.alloc();
+	auto srv_handle = render::g_context->view_heap.alloc();
 	ImGui_ImplGlfw_InitForOther(window, true);
 	ImGui_ImplDX12_Init(
 		render::g_context->device,
 		render::NUM_FRAMES_IN_FLIGHT,
         render::SwapChain::FORMAT,
-        render::g_context->srv_desc_heap.heap,
+        render::g_context->view_heap.heap,
         srv_handle.cpu,
         srv_handle.gpu
 	);

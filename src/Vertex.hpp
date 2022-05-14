@@ -4,8 +4,6 @@
 #include <math/Vector.hpp>
 #include <vector>
 
-namespace render {
-
 struct Vertex {
 	math::Vector3 pos;
 	math::Vector2 uv;
@@ -14,5 +12,3 @@ struct Vertex {
 
 extern std::vector<Vertex> box_vertices;
 // extern std::vector<uint32_t> box_indices;
-
-}

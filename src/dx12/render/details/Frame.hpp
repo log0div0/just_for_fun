@@ -3,11 +3,10 @@
 
 #include <winapi/ComPtr.hpp>
 
-#include <d3d12.h>
+#include "DescriptorTable.hpp"
+#include "ConstantBuffer.hpp"
 
 namespace render {
-
-enum { NUM_FRAMES_IN_FLIGHT = 3 };
 
 struct Frame {
 	Frame() = default;
@@ -20,6 +19,9 @@ struct Frame {
 	winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
 	uint64_t fence_value = 0;
 	int index = -1;
+
+	std::vector<DescriptorTable> descriptor_table_refs;
+	std::vector<ConstantBufferMemory> constant_buffers_refs;
 };
 
 }

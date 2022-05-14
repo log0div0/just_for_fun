@@ -1,8 +1,9 @@
 
 #include "BoxMesh.hpp"
-#include "Exceptions.hpp"
 #include "Context.hpp"
-#include "render/Vertex.hpp"
+
+#include "details/Exceptions.hpp"
+#include "../../Vertex.hpp"
 
 #include <d3dx12.h>
 
@@ -65,7 +66,10 @@ BoxMesh::BoxMesh() {
 	};
 }
 
-void BoxMesh::Draw() {
+void BoxMesh::Draw(ShaderProgram& shader) {
+	g_context->CommitResources();
+	g_context->command_list->SetPipelineState(shader.pipeline_state);
+
 	g_context->command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	g_context->command_list->IASetVertexBuffers(0, 1, &vertex_buffer_view);
 	// g_context->command_list->IASetIndexBuffer(&index_buffer_view);

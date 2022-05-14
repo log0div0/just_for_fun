@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-list(APPEND SRC_DIRS "*.cpp")
+file(GLOB SRCS "*.cpp")
 include_directories(common)
-list(APPEND SRC_DIRS "common/**/*.cpp")
 
 if (NOT DEFINED RHI)
 	set(RHI "OPENGL")
@@ -11,11 +10,11 @@ string(TOUPPER ${RHI} RHI)
 if (RHI STREQUAL "OPENGL")
 	add_definitions(-DOPENGL)
 	include_directories(opengl)
-	list(APPEND SRC_DIRS "opengl/**/*.cpp")
+	file(GLOB RENDER_SRCS "opengl/**/*.cpp")
 elseif(RHI STREQUAL "VULKAN")
 	add_definitions(-DVULKAN)
 	include_directories(vulkan)
-	list(APPEND SRC_DIRS "vulkan/**/*.cpp")
+	file(GLOB RENDER_SRCS "vulkan/**/*.cpp")
 elseif(RHI STREQUAL "DX12")
 	add_definitions(-DDX12)
 	add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
@@ -26,14 +25,12 @@ elseif(RHI STREQUAL "DX12")
 		${CMAKE_SOURCE_DIR}/3rd_party/dxc/bin/x64/dxcompiler.dll
 		${CMAKE_BINARY_DIR}/out/sbin/${CMAKE_BUILD_TYPE}/dxcompiler.dll
 		COPYONLY)
-	list(APPEND SRC_DIRS "dx12/**/*.cpp")
+	file(GLOB_RECURSE RENDER_SRCS "dx12/**/*.cpp")
 endif()
 
 add_definitions(-DGLFW_INCLUDE_NONE)
 
-file(GLOB SRCS ${SRC_DIRS})
-
-add_executable(just_for_fun ${SRCS})
+add_executable(just_for_fun ${SRCS} ${RENDER_SRCS})
 target_link_libraries(just_for_fun glfw stb imgui)
 
 if (RHI STREQUAL "OPENGL")

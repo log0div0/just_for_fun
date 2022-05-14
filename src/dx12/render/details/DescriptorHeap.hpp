@@ -5,7 +5,7 @@
 
 #include <d3d12.h>
 
-#include <bitset>
+#include <vector>
 
 namespace render {
 
@@ -15,20 +15,19 @@ struct DescriptorPair {
 };
 
 struct DescriptorHeap {
-	static constexpr size_t heap_size = 1024;
-
 	DescriptorHeap() = default;
-	DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type);
+	DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, size_t size);
 	~DescriptorHeap();
 
-	DescriptorPair alloc();
-	DescriptorPair alloc_range(int num);
+	DescriptorPair alloc(int num = 1);
+	void free(DescriptorPair base, int num = 1);
 
 	winapi::ComPtr<ID3D12DescriptorHeap> heap;
-	std::bitset<heap_size> allocation_map = {};
+	std::vector<bool> allocation_map;
 	size_t cursor = 0;
-	size_t increment_size = 0;
+	size_t descriptor_size = 0;
 	bool shader_visible = false;
+	size_t heap_size = 0;
 };
 
 }

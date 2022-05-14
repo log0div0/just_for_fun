@@ -1,9 +1,12 @@
 #pragma once
 
-#include "SwapChain.hpp"
-#include "CommandQueue.hpp"
-#include "DescriptorHeap.hpp"
-#include "Frame.hpp"
+#include "details/SwapChain.hpp"
+#include "details/CommandQueue.hpp"
+#include "details/DescriptorHeap.hpp"
+#include "details/DescriptorTable.hpp"
+#include "details/Frame.hpp"
+#include "details/ConstantBuffer.hpp"
+#include "Texture2D.hpp"
 
 #include <glfwpp/glfwpp.h>
 #include <array>
@@ -28,6 +31,32 @@ namespace render {
 // CBV - constant buffer view
 // DSV - depth stencil view
 
+enum { NUM_FRAMES_IN_FLIGHT = 3 };
+
+enum {
+	SRV_TABLE_INDEX,
+	CBV_TABLE_INDEX,
+	SAMPLER_TABLE_INDEX,
+	NUM_OF_ROOT_SIG_TABLES
+};
+
+enum {
+	SRV_TABLE_SIZE = 22,
+	CBV_TABLE_SIZE = 8,
+	SAMPLER_TABLE_SIZE = 16
+};
+
+enum {
+	MAX_CB_SIZE = 1024
+};
+
+enum {
+	VIEW_HEAP_SIZE = 10000 + 1, // 1 for imgui
+	SAMPLER_HEAP_SIZE = 1000,
+	RTV_HEAP_SIZE = NUM_FRAMES_IN_FLIGHT,
+	DSV_HEAP_SIZE = 1
+};
+
 struct Context {
 	Context(glfw::Window& window_);
 	~Context();
@@ -47,10 +76,14 @@ struct Context {
 	void InitDevice();
 	winapi::ComPtr<ID3D12Device2> device;
 
+	void InitRootSignature();
+	winapi::ComPtr<ID3D12RootSignature> root_signature;
+
 	void InitHeaps();
-	DescriptorHeap srv_desc_heap;
-	DescriptorHeap rtv_desc_heap;
-	DescriptorHeap dsv_desc_heap;
+	DescriptorHeap view_heap;
+	DescriptorHeap sampler_heap;
+	DescriptorHeap rtv_heap;
+	DescriptorHeap dsv_heap;
 
 	void InitQueues();
 	CommandQueue direct_queue;
@@ -69,9 +102,20 @@ struct Context {
 	std::array<Frame, NUM_FRAMES_IN_FLIGHT> frames = {};
 	Frame* current_frame = nullptr;
 
+	void InitCBs();
+	void CommitCBs();
+	std::array<ConstantBuffer, CBV_TABLE_SIZE> constant_buffers = {};
+
 	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
 
 	void Resize(int w, int h);
+	void CommitResources();
+
+	void CreateSRV(size_t root_parameter_index, Texture2D& texture);
+private:
+	void CommitSRVs();
+	DescriptorTable srv_table;
+	std::array<bool, SRV_TABLE_SIZE> srv_table_map = {};
 };
 
 extern Context* g_context;
