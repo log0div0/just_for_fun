@@ -10,7 +10,7 @@ cbuffer Trololo: register(b1)
 Texture2D<float4> Wood : register(t0);
 Texture2D<float4> Lambda : register(t1);
 
-SamplerState Sampler : register(s1);
+SamplerState Sampler : register(s0);
 
 struct PixelShaderInput
 {

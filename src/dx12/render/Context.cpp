@@ -232,6 +232,7 @@ void Context::CommitCBs() {
 void Context::CommitResources() {
 	CommitCBs();
 	CommitSRVs();
+	CommitSamplers();
 }
 
 void Context::CreateSRV(size_t root_parameter_index, Texture2D& texture) {
@@ -272,6 +273,30 @@ void Context::CommitSRVs() {
 	command_list->SetGraphicsRootDescriptorTable(SRV_TABLE_INDEX, srv_table.GetBaseGPUHandle());
 	current_frame->descriptor_table_refs.push_back(std::move(srv_table));
 	srv_table_map = {};
+}
+
+void Context::CommitSamplers() {
+	if (sampler_table.GetSize() != 0) {
+		command_list->SetGraphicsRootDescriptorTable(SAMPLER_TABLE_INDEX, sampler_table.GetBaseGPUHandle());
+		return;
+	}
+	sampler_table = DescriptorTable(&sampler_heap, SAMPLER_TABLE_SIZE);
+	for (size_t i = 0; i < SAMPLER_TABLE_SIZE; ++i) {
+		D3D12_SAMPLER_DESC desc = {
+			.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT,
+			.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+			.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+			.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+			.MipLODBias = 0,
+			.MaxAnisotropy = 16,
+			.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
+			.BorderColor = {0.0f, 0.0f, 0.0f, 0.0f},
+			.MinLOD = 0,
+			.MaxLOD = D3D12_FLOAT32_MAX,
+		};
+		device->CreateSampler(&desc, sampler_table.GetCPUHandle(i));
+	}
+	command_list->SetGraphicsRootDescriptorTable(SAMPLER_TABLE_INDEX, sampler_table.GetBaseGPUHandle());
 }
 
 }

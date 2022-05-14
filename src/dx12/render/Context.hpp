@@ -41,9 +41,9 @@ enum {
 };
 
 enum {
-	SRV_TABLE_SIZE = 22,
+	SRV_TABLE_SIZE = 8,
 	CBV_TABLE_SIZE = 8,
-	SAMPLER_TABLE_SIZE = 16
+	SAMPLER_TABLE_SIZE = 4
 };
 
 enum {
@@ -116,6 +116,9 @@ private:
 	void CommitSRVs();
 	DescriptorTable srv_table;
 	std::array<bool, SRV_TABLE_SIZE> srv_table_map = {};
+
+	void CommitSamplers();
+	DescriptorTable sampler_table;
 };
 
 extern Context* g_context;
