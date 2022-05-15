@@ -38,10 +38,10 @@ void GUI::ImplInit(glfw::Window& window) {
 	ImGui_ImplDX12_Init(
 		render::g_context->device,
 		render::NUM_FRAMES_IN_FLIGHT,
-        render::SwapChain::FORMAT,
-        render::g_context->view_heap.heap,
-        srv_handle.cpu,
-        srv_handle.gpu
+		render::SwapChain::FORMAT,
+		render::g_context->view_heap.heap,
+		srv_handle.cpu,
+		srv_handle.gpu
 	);
 }
 
@@ -59,23 +59,78 @@ void GUI::ImplRender() {
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), render::g_context->command_list);
 }
 #elif VULKAN
+
+static void CheckVkResult(VkResult err)
+{
+	if (err == 0) {
+		return;
+	}
+	throw std::runtime_error(__PRETTY_FUNCTION__);
+}
+
 void GUI::ImplInit(glfw::Window& window) {
-	ImGui_ImplGlfw_InitForOther(window, true);
-	throw std::runtime_error(__FUNCSIG__); // ImGui_ImplVulkan_Init();
+	ImGui_ImplGlfw_InitForVulkan(window, true);
+	ImGui_ImplVulkan_InitInfo init_info = {
+		.Instance = *render::g_context->vk_instance,
+		.PhysicalDevice = *render::g_context->physical_device,
+		.Device = *render::g_context->device,
+		.QueueFamily = render::g_context->queue_family_index,
+		.Queue = *render::g_context->queue,
+		.PipelineCache = VK_NULL_HANDLE,
+		.DescriptorPool = *render::g_context->descriptor_pool,
+		.Subpass = 0,
+		.MinImageCount = render::g_context->image_count,
+		.ImageCount = render::g_context->image_count,
+		.MSAASamples = VK_SAMPLE_COUNT_1_BIT,
+		.Allocator = nullptr,
+		.CheckVkResultFn = CheckVkResult,
+	};
+	ImGui_ImplVulkan_Init(&init_info, *render::g_context->render_pass);
+
+	// Upload Fonts
+	{
+		vk::CommandBufferAllocateInfo command_buffer_info{
+			.sType = vk::StructureType::eCommandBufferAllocateInfo,
+			.commandPool = *render::g_context->command_pool,
+			.level = vk::CommandBufferLevel::ePrimary,
+			.commandBufferCount = 1,
+		};
+		vk::raii::CommandBuffers command_buffers(render::g_context->device, command_buffer_info);
+		vk::raii::CommandBuffer command_buffer = std::move(command_buffers[0]);
+
+		vk::CommandBufferBeginInfo begin_info {
+			.sType = vk::StructureType::eCommandBufferBeginInfo,
+			.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+		};
+		command_buffer.begin(begin_info);
+		ImGui_ImplVulkan_CreateFontsTexture(*command_buffer);
+		command_buffer.end();
+
+		std::vector<vk::CommandBuffer> command_buffers_to_submit = {*command_buffer};
+		vk::SubmitInfo submit_info = {
+			.sType = vk::StructureType::eSubmitInfo,
+			.commandBufferCount = (uint32_t)command_buffers_to_submit.size(),
+			.pCommandBuffers = command_buffers_to_submit.data(),
+		};
+		render::g_context->queue.submit({submit_info}, VK_NULL_HANDLE);
+		render::g_context->queue.waitIdle();
+
+		ImGui_ImplVulkan_DestroyFontUploadObjects();
+	}
 }
 
 void GUI::ImplShutdown() {
-	throw std::runtime_error(__FUNCSIG__); // ImGui_ImplVulkan_Shutdown();
+	ImGui_ImplVulkan_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 }
 
 void GUI::ImplNewFrame() {
-	throw std::runtime_error(__FUNCSIG__); // ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 }
 
 void GUI::ImplRender() {
-	throw std::runtime_error(__FUNCSIG__); // ImGui_ImplVulkan_RenderDrawData();
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *render::g_context->current_image->command_buffer);
 }
 #endif
 

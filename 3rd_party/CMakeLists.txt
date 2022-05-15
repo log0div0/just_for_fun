@@ -30,7 +30,7 @@ target_include_directories(imgui PUBLIC
 	imgui-1.87/backends
 )
 
-target_link_libraries(imgui glfw)
+target_link_libraries(imgui glfw vulkan-1)
 
 add_executable(imgui_demo
 	imgui-1.87/imgui_demo.cpp

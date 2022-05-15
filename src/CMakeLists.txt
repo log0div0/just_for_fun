@@ -16,11 +16,11 @@ string(TOUPPER ${RHI} RHI)
 if (RHI STREQUAL "OPENGL")
 	add_definitions(-DOPENGL)
 	include_directories(opengl)
-	file(GLOB RENDER_SRCS "opengl/**/*.cpp")
+	file(GLOB_RECURSE RENDER_SRCS "opengl/**/*.cpp")
 elseif(RHI STREQUAL "VULKAN")
 	add_definitions(-DVULKAN)
 	include_directories(vulkan)
-	file(GLOB RENDER_SRCS "vulkan/**/*.cpp")
+	file(GLOB_RECURSE RENDER_SRCS "vulkan/**/*.cpp")
 
 	add_definitions(
 		-DVULKAN_HPP_NO_STRUCT_CONSTRUCTORS

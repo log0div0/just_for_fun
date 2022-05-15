@@ -1065,7 +1065,7 @@ namespace glfw
             VkResult result;
             if(allocator)
             {
-                VkAllocationCallbacks allocator_tmp = *allocator;
+                const VkAllocationCallbacks& allocator_tmp = (const VkAllocationCallbacks&)*allocator;
                 result = createSurface(static_cast<VkInstance>(instance), &allocator_tmp, &surface);
             }
             else
