@@ -21,6 +21,7 @@ add_library(imgui
 	imgui-1.87/imgui_widgets.cpp
 	imgui-1.87/backends/imgui_impl_glfw.cpp
 	imgui-1.87/backends/imgui_impl_opengl3.cpp
+	imgui-1.87/backends/imgui_impl_vulkan.cpp
 	${EXTRA_BACKENDS}
 )
 

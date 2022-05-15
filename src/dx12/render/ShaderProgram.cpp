@@ -7,7 +7,7 @@
 
 #include <d3dcompiler.h>
 #include <d3dx12.h>
-#include <dxcapi.h>
+#include <dxc/dxcapi.h>
 
 using namespace winapi;
 

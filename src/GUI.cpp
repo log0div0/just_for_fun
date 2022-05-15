@@ -8,6 +8,8 @@
 #include "imgui_impl_opengl3.h"
 #elif DX12
 #include "imgui_impl_dx12.h"
+#elif VULKAN
+#include "imgui_impl_vulkan.h"
 #endif
 
 #ifdef OPENGL
@@ -55,6 +57,25 @@ void GUI::ImplNewFrame() {
 
 void GUI::ImplRender() {
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), render::g_context->command_list);
+}
+#elif VULKAN
+void GUI::ImplInit(glfw::Window& window) {
+	ImGui_ImplGlfw_InitForOther(window, true);
+	throw std::runtime_error(__FUNCSIG__); // ImGui_ImplVulkan_Init();
+}
+
+void GUI::ImplShutdown() {
+	throw std::runtime_error(__FUNCSIG__); // ImGui_ImplVulkan_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+}
+
+void GUI::ImplNewFrame() {
+	throw std::runtime_error(__FUNCSIG__); // ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+}
+
+void GUI::ImplRender() {
+	throw std::runtime_error(__FUNCSIG__); // ImGui_ImplVulkan_RenderDrawData();
 }
 #endif
 

@@ -52,10 +52,7 @@ void App::Run()
 		Stopwatch timer;
 
 		Update(delta_time);
-
-		render_context.Clear();
 		Render();
-		render_context.Present();
 
 		delta_time = timer.GetFrameTime(gui.limit_framerate);
 	}
@@ -71,7 +68,11 @@ void App::Update(float delta_time)
 
 void App::Render()
 {
+	render_context.Clear();
+
 	light.Render(camera);
 	box.Render(camera, light);
 	gui.Render();
+
+	render_context.Present();
 }

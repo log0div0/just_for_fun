@@ -3,6 +3,12 @@ cmake_minimum_required(VERSION 3.0)
 file(GLOB SRCS "*.cpp")
 include_directories(common)
 
+add_definitions(-DGLFW_INCLUDE_NONE)
+
+if (WIN32)
+	add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
+endif()
+
 if (NOT DEFINED RHI)
 	set(RHI "OPENGL")
 endif()
@@ -15,20 +21,21 @@ elseif(RHI STREQUAL "VULKAN")
 	add_definitions(-DVULKAN)
 	include_directories(vulkan)
 	file(GLOB RENDER_SRCS "vulkan/**/*.cpp")
+
+	add_definitions(
+		-DVULKAN_HPP_NO_STRUCT_CONSTRUCTORS
+	)
 elseif(RHI STREQUAL "DX12")
 	add_definitions(-DDX12)
-	add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
 	include_directories(dx12)
-	include_directories(${CMAKE_SOURCE_DIR}/3rd_party/dxc/inc)
-	link_directories(${CMAKE_SOURCE_DIR}/3rd_party/dxc/lib/x64)
+	file(GLOB_RECURSE RENDER_SRCS "dx12/**/*.cpp")
+
+	# this is for a shader blob reflection
 	configure_file(
-		${CMAKE_SOURCE_DIR}/3rd_party/dxc/bin/x64/dxcompiler.dll
+		$ENV{VK_SDK_PATH}/bin/dxcompiler.dll
 		${CMAKE_BINARY_DIR}/out/sbin/${CMAKE_BUILD_TYPE}/dxcompiler.dll
 		COPYONLY)
-	file(GLOB_RECURSE RENDER_SRCS "dx12/**/*.cpp")
 endif()
-
-add_definitions(-DGLFW_INCLUDE_NONE)
 
 add_executable(just_for_fun ${SRCS} ${RENDER_SRCS})
 target_link_libraries(just_for_fun glfw stb imgui)
@@ -37,11 +44,12 @@ if (RHI STREQUAL "OPENGL")
 	target_link_libraries(just_for_fun glad)
 elseif(RHI STREQUAL "VULKAN")
 elseif(RHI STREQUAL "DX12")
-	target_link_libraries(just_for_fun D3D12 DXGI dxcompiler)
+	target_link_libraries(just_for_fun d3d12 dxgi dxcompiler)
 endif()
 
 if (WIN32)
-	target_link_libraries(just_for_fun Winmm)
+	# for timeBeginPeriod/timeEndPeriod functions
+	target_link_libraries(just_for_fun winmm)
 endif()
 
 if (WIN32)
@@ -60,7 +68,7 @@ if (WIN32)
 		set(SHADER_DST "${SHADER_SRC}.bin")
 		add_custom_command(
 			OUTPUT ${SHADER_DST}
-			COMMAND ${CMAKE_SOURCE_DIR}/3rd_party/dxc/bin/x64/dxc.exe -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST}
+			COMMAND $ENV{VK_SDK_PATH}/bin/dxc.exe -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST}
 			DEPENDS ${SHADER_SRC}
 		)
 		add_custom_target(${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})

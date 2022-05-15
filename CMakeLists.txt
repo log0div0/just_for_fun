@@ -41,6 +41,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/lib)
 include_directories(${CMAKE_SOURCE_DIR}/3rd_party)
 include_directories(${CMAKE_SOURCE_DIR}/lib)
 
+include_directories($ENV{VK_SDK_PATH}/include)
+link_directories($ENV{VK_SDK_PATH}/lib)
+
 add_subdirectory(3rd_party)
 add_subdirectory(lib)
 add_subdirectory(src)
