@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-file(GLOB SRCS "*.cpp")
+file(GLOB SRCS "*.cpp" "*.hpp")
 include_directories(common)
 
 add_definitions(-DGLFW_INCLUDE_NONE)
@@ -16,11 +16,11 @@ string(TOUPPER ${RENDER} RENDER)
 if (RENDER STREQUAL "OPENGL")
 	add_definitions(-DOPENGL)
 	include_directories(opengl)
-	file(GLOB_RECURSE RENDER_SRCS "opengl/**/*.cpp")
+	file(GLOB_RECURSE RENDER_SRCS "opengl/**/*.cpp" "opengl/**/*.hpp")
 elseif(RENDER STREQUAL "VULKAN")
 	add_definitions(-DVULKAN)
 	include_directories(vulkan)
-	file(GLOB_RECURSE RENDER_SRCS "vulkan/**/*.cpp")
+	file(GLOB_RECURSE RENDER_SRCS "vulkan/**/*.cpp" "vulkan/**/*.hpp")
 
 	add_definitions(
 		-DVULKAN_HPP_NO_STRUCT_CONSTRUCTORS
@@ -28,7 +28,7 @@ elseif(RENDER STREQUAL "VULKAN")
 elseif(RENDER STREQUAL "DX12")
 	add_definitions(-DDX12)
 	include_directories(dx12)
-	file(GLOB_RECURSE RENDER_SRCS "dx12/**/*.cpp")
+	file(GLOB_RECURSE RENDER_SRCS "dx12/**/*.cpp" "dx12/**/*.hpp")
 
 	# this is for a shader blob reflection
 	configure_file(
