@@ -5,14 +5,14 @@
 
 #include "Texture2D.hpp"
 
+#include <vulkan/vulkan_raii.hpp>
+
 namespace render {
 
 struct ShaderProgram {
 	ShaderProgram() = default;
 
-	ShaderProgram(const std::string& name)
-	{
-	}
+	ShaderProgram(const std::string& name);
 
 	void SetParam(const std::string& name, float value) {
 	}
@@ -34,6 +34,9 @@ struct ShaderProgram {
 
 	void SetParam(const std::string& name, Texture2D& value) {
 	}
+
+	vk::raii::ShaderModule vertex_shader = nullptr;
+	vk::raii::ShaderModule fragment_shader = nullptr;
 };
 
 }

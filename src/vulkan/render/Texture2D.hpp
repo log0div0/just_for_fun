@@ -2,6 +2,8 @@
 
 #include <stb/Image.hpp>
 
+#include "../../Utils.hpp"
+
 namespace render {
 
 struct Texture2D {

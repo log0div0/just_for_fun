@@ -9,15 +9,15 @@ if (WIN32)
 	add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
 endif()
 
-if (NOT DEFINED RHI)
-	set(RHI "OPENGL")
+if (NOT DEFINED RENDER)
+	set(RENDER "OPENGL")
 endif()
-string(TOUPPER ${RHI} RHI)
-if (RHI STREQUAL "OPENGL")
+string(TOUPPER ${RENDER} RENDER)
+if (RENDER STREQUAL "OPENGL")
 	add_definitions(-DOPENGL)
 	include_directories(opengl)
 	file(GLOB_RECURSE RENDER_SRCS "opengl/**/*.cpp")
-elseif(RHI STREQUAL "VULKAN")
+elseif(RENDER STREQUAL "VULKAN")
 	add_definitions(-DVULKAN)
 	include_directories(vulkan)
 	file(GLOB_RECURSE RENDER_SRCS "vulkan/**/*.cpp")
@@ -25,7 +25,7 @@ elseif(RHI STREQUAL "VULKAN")
 	add_definitions(
 		-DVULKAN_HPP_NO_STRUCT_CONSTRUCTORS
 	)
-elseif(RHI STREQUAL "DX12")
+elseif(RENDER STREQUAL "DX12")
 	add_definitions(-DDX12)
 	include_directories(dx12)
 	file(GLOB_RECURSE RENDER_SRCS "dx12/**/*.cpp")
@@ -40,10 +40,10 @@ endif()
 add_executable(just_for_fun ${SRCS} ${RENDER_SRCS})
 target_link_libraries(just_for_fun glfw stb imgui)
 
-if (RHI STREQUAL "OPENGL")
+if (RENDER STREQUAL "OPENGL")
 	target_link_libraries(just_for_fun glad)
-elseif(RHI STREQUAL "VULKAN")
-elseif(RHI STREQUAL "DX12")
+elseif(RENDER STREQUAL "VULKAN")
+elseif(RENDER STREQUAL "DX12")
 	target_link_libraries(just_for_fun d3d12 dxgi dxcompiler)
 endif()
 
@@ -52,7 +52,7 @@ if (WIN32)
 	target_link_libraries(just_for_fun winmm)
 endif()
 
-if (WIN32)
+if (RENDER STREQUAL "DX12")
 	file(GLOB HLSL_SRCS
 		"${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/*.vert"
 		"${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/*.frag")
@@ -69,6 +69,24 @@ if (WIN32)
 		add_custom_command(
 			OUTPUT ${SHADER_DST}
 			COMMAND $ENV{VK_SDK_PATH}/bin/dxc.exe -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST}
+			DEPENDS ${SHADER_SRC}
+		)
+		add_custom_target(${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
+		add_dependencies(just_for_fun ${SHADER_FILE_NAME})
+	endforeach()
+endif()
+
+if (RENDER STREQUAL "VULKAN")
+	file(GLOB GLSL_SRCS
+		"${CMAKE_SOURCE_DIR}/assets/shaders/glsl/*.vert"
+		"${CMAKE_SOURCE_DIR}/assets/shaders/glsl/*.frag")
+
+	foreach(SHADER_SRC ${GLSL_SRCS})
+		get_filename_component(SHADER_FILE_NAME ${SHADER_SRC} NAME)
+		set(SHADER_DST "${SHADER_SRC}.bin")
+		add_custom_command(
+			OUTPUT ${SHADER_DST}
+			COMMAND $ENV{VK_SDK_PATH}/bin/glslc.exe ${SHADER_SRC} -o ${SHADER_DST}
 			DEPENDS ${SHADER_SRC}
 		)
 		add_custom_target(${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
