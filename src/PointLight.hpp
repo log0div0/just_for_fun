@@ -2,8 +2,8 @@
 #pragma once
 
 #include "Camera.hpp"
-#include "render/ShaderProgram.hpp"
-#include "render/BoxMesh.hpp"
+#include "rhi/ShaderProgram.hpp"
+#include "rhi/BoxMesh.hpp"
 
 struct PointLight {
 	PointLight();
@@ -11,8 +11,8 @@ struct PointLight {
 	void Update(float delta_time);
 	void Render(const Camera& camera);
 
-	render::ShaderProgram shader_program;
-	render::BoxMesh mesh;
+	std::unique_ptr<rhi::ShaderProgram> shader_program;
+	std::unique_ptr<rhi::BoxMesh> mesh;
 
 	math::Vector3 color = {1.0f, 1.0f, 1.0f};
 	math::Vector3 pos;

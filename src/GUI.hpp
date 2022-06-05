@@ -5,7 +5,7 @@
 #include "PointLight.hpp"
 
 struct GUI {
-	GUI(glfw::Window& window);
+	GUI();
 	~GUI();
 
 	GUI(const GUI& other) = delete;
@@ -18,10 +18,4 @@ struct GUI {
 	void Render();
 
 	bool limit_framerate = true;
-
-private:
-	void ImplInit(glfw::Window& window);
-	void ImplShutdown();
-	void ImplNewFrame();
-	void ImplRender();
 };

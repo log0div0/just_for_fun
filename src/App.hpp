@@ -5,7 +5,7 @@
 #include "BoxActor.hpp"
 #include "PointLight.hpp"
 #include "Camera.hpp"
-#include "render/Context.hpp"
+#include "rhi/Context.hpp"
 
 struct App {
 	App(glfw::Window& window_);
@@ -18,8 +18,6 @@ private:
 	void Render();
 
 	glfw::Window& window;
-
-	render::Context render_context;
 
 	Camera camera;
 	PointLight light;

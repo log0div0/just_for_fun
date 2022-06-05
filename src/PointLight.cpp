@@ -2,7 +2,8 @@
 #include "PointLight.hpp"
 
 PointLight::PointLight() {
-	shader_program = render::ShaderProgram("point_light");
+	shader_program.reset(rhi::g_context->CreateShaderProgram("point_light"));
+	mesh.reset(rhi::g_context->CreateBoxMesh());
 }
 
 void PointLight::Update(float delta_time) {
@@ -18,8 +19,8 @@ void PointLight::Render(const Camera& camera) {
 	math::Transform model = { pos, {}, {0.2f} };
 	math::Transform MVP = projection * view * model;
 
-	shader_program.SetParam("MVP", MVP);
-	shader_program.SetParam("LightColor", color);
+	shader_program->SetParam("MVP", MVP);
+	shader_program->SetParam("LightColor", color);
 
-	mesh.Draw(shader_program);
+	mesh->Draw(*shader_program);
 }

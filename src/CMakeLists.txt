@@ -9,26 +9,32 @@ if (WIN32)
 	add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
 endif()
 
-if (NOT DEFINED RENDER)
-	set(RENDER "OPENGL")
+set(ENABLE_OPENGL 1)
+set(ENABLE_VULKAN 1)
+if (WIN32)
+	set(ENABLE_DX12 1)
 endif()
-string(TOUPPER ${RENDER} RENDER)
-if (RENDER STREQUAL "OPENGL")
-	add_definitions(-DOPENGL)
-	include_directories(opengl)
-	file(GLOB_RECURSE RENDER_SRCS "opengl/**/*.cpp" "opengl/**/*.hpp")
-elseif(RENDER STREQUAL "VULKAN")
-	add_definitions(-DVULKAN)
-	include_directories(vulkan)
-	file(GLOB_RECURSE RENDER_SRCS "vulkan/**/*.cpp" "vulkan/**/*.hpp")
+
+if (ENABLE_OPENGL)
+	add_definitions(-DWITH_OPENGL)
+	file(GLOB_RECURSE OPENGL_SRCS "opengl/*.cpp" "opengl/*.hpp")
+	list(APPEND SRCS ${OPENGL_SRCS})
+endif()
+
+if (ENABLE_VULKAN)
+	add_definitions(-DWITH_VULKAN)
+	file(GLOB_RECURSE VULKAN_SRCS "vulkan/*.cpp" "vulkan/*.hpp")
+	list(APPEND SRCS ${VULKAN_SRCS})
 
 	add_definitions(
 		-DVULKAN_HPP_NO_STRUCT_CONSTRUCTORS
 	)
-elseif(RENDER STREQUAL "DX12")
-	add_definitions(-DDX12)
-	include_directories(dx12)
-	file(GLOB_RECURSE RENDER_SRCS "dx12/**/*.cpp" "dx12/**/*.hpp")
+endif()
+
+if (ENABLE_DX12)
+	add_definitions(-DWITH_DX12)
+	file(GLOB_RECURSE DX12_SRCS "dx12/*.cpp" "dx12/*.hpp")
+	list(APPEND SRCS ${DX12_SRCS})
 
 	# this is for a shader blob reflection
 	configure_file(
@@ -37,13 +43,14 @@ elseif(RENDER STREQUAL "DX12")
 		COPYONLY)
 endif()
 
-add_executable(just_for_fun ${SRCS} ${RENDER_SRCS})
+add_executable(just_for_fun ${SRCS})
 target_link_libraries(just_for_fun glfw stb imgui)
 
-if (RENDER STREQUAL "OPENGL")
+if (ENABLE_OPENGL)
 	target_link_libraries(just_for_fun glad)
-elseif(RENDER STREQUAL "VULKAN")
-elseif(RENDER STREQUAL "DX12")
+endif()
+
+if (ENABLE_DX12)
 	target_link_libraries(just_for_fun d3d12 dxgi dxcompiler)
 endif()
 
@@ -52,7 +59,7 @@ if (WIN32)
 	target_link_libraries(just_for_fun winmm)
 endif()
 
-if (RENDER STREQUAL "DX12")
+if (ENABLE_DX12)
 	file(GLOB HLSL_SRCS
 		"${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/*.vert"
 		"${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/*.frag")
@@ -71,12 +78,12 @@ if (RENDER STREQUAL "DX12")
 			COMMAND $ENV{VK_SDK_PATH}/bin/dxc.exe -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST}
 			DEPENDS ${SHADER_SRC}
 		)
-		add_custom_target(${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
-		add_dependencies(just_for_fun ${SHADER_FILE_NAME})
+		add_custom_target(HLSL_${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
+		add_dependencies(just_for_fun HLSL_${SHADER_FILE_NAME})
 	endforeach()
 endif()
 
-if (RENDER STREQUAL "VULKAN")
+if (0)
 	file(GLOB GLSL_SRCS
 		"${CMAKE_SOURCE_DIR}/assets/shaders/glsl/*.vert"
 		"${CMAKE_SOURCE_DIR}/assets/shaders/glsl/*.frag")
@@ -89,7 +96,7 @@ if (RENDER STREQUAL "VULKAN")
 			COMMAND $ENV{VK_SDK_PATH}/bin/glslc.exe ${SHADER_SRC} -o ${SHADER_DST}
 			DEPENDS ${SHADER_SRC}
 		)
-		add_custom_target(${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
-		add_dependencies(just_for_fun ${SHADER_FILE_NAME})
+		add_custom_target(GLSL_${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
+		add_dependencies(just_for_fun GLSL_${SHADER_FILE_NAME})
 	endforeach()
 endif()

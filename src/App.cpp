@@ -3,7 +3,7 @@
 #include "Utils.hpp"
 #include "Stopwatch.hpp"
 
-App::App(glfw::Window& window_): window(window_), render_context(window), camera(window), gui(window)
+App::App(glfw::Window& window_): window(window_), camera(window)
 {
 	window.framebufferSizeEvent.subscribe([this](glfw::Window& window, int w, int h) {
 		camera.aspect = float(w) / h;
@@ -39,7 +39,7 @@ App::App(glfw::Window& window_): window(window_), render_context(window), camera
 
 App::~App()
 {
-	render_context.WaitIdle();
+	rhi::g_context->WaitIdle();
 }
 
 void App::Run()
@@ -68,11 +68,11 @@ void App::Update(float delta_time)
 
 void App::Render()
 {
-	render_context.Clear();
+	rhi::g_context->Clear();
 
 	light.Render(camera);
 	box.Render(camera, light);
 	gui.Render();
 
-	render_context.Present();
+	rhi::g_context->Present();
 }
