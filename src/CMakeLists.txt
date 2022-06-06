@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-file(GLOB SRCS "*.cpp" "*.hpp")
+file(GLOB SRCS "*.cpp" "*.hpp" "rhi/*.cpp" "rhi/*.hpp")
 include_directories(common)
 
 add_definitions(-DGLFW_INCLUDE_NONE)
@@ -83,7 +83,7 @@ if (ENABLE_DX12)
 	endforeach()
 endif()
 
-if (0)
+if (ENABLE_VULKAN)
 	file(GLOB GLSL_SRCS
 		"${CMAKE_SOURCE_DIR}/assets/shaders/glsl/*.vert"
 		"${CMAKE_SOURCE_DIR}/assets/shaders/glsl/*.frag")

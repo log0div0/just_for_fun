@@ -32,6 +32,8 @@ struct Context: rhi::Context {
 	virtual void ImGuiNewFrame() override;
 	virtual void ImGuiRender() override;
 
+	virtual void CommitResources() override {}
+
 	glfw::Window& window;
 
 	vk::raii::Context vk_context;

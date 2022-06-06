@@ -141,12 +141,6 @@ void Context::InitFrames()
 	}
 }
 
-void Context::InitCBs() {
-	for (int i = 0; i < constant_buffers.size(); ++i) {
-		constant_buffers[i] = ConstantBuffer(MAX_CB_SIZE);
-	}
-}
-
 Context* g_context = nullptr;
 
 Context::Context(glfw::Window& window_): window(window_) {
@@ -159,7 +153,6 @@ Context::Context(glfw::Window& window_): window(window_) {
 	InitSwapchain(w, h);
 	InitDepthStencilBuffer(w, h);
 	InitFrames();
-	InitCBs();
 	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
 		Resize(w, h);
 	});
@@ -244,17 +237,16 @@ void Context::Present() {
 
 void Context::CommitCBs() {
 	DescriptorTable cbv_table(&view_heap, CBV_TABLE_SIZE);
-	for (size_t i = 0; i < constant_buffers.size(); ++i) {
-		ConstantBuffer& cb = constant_buffers[i];
-		std::optional<ConstantBufferMemory> memory = cb.CommitToDevice();
-		if (memory.has_value()) {
-			D3D12_CONSTANT_BUFFER_VIEW_DESC cbv {
-				.BufferLocation = memory->GetGPUVirtualAddress(),
-				.SizeInBytes = memory->GetSize(),
-			};
-			device->CreateConstantBufferView(&cbv, cbv_table.GetCPUHandle(i));
-			current_frame->constant_buffers_refs.push_back(std::move(memory.value()));
-		}
+	for (size_t i = 0; i < uniform_buffers.size(); ++i) {
+		rhi::UniformBuffer& ub = uniform_buffers[i];
+		ConstantBuffer cb(ub);
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbv {
+			.BufferLocation = cb.GetGPUVirtualAddress(),
+			.SizeInBytes = cb.GetSize(),
+		};
+		device->CreateConstantBufferView(&cbv, cbv_table.GetCPUHandle(i));
+		current_frame->constant_buffers_refs.push_back(std::move(cb));
+		ub.Reset();
 	}
 	command_list->SetGraphicsRootDescriptorTable(CBV_TABLE_INDEX, cbv_table.GetBaseGPUHandle());
 	current_frame->descriptor_table_refs.push_back(std::move(cbv_table));

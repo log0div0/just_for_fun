@@ -5,7 +5,6 @@
 #include "details/DescriptorHeap.hpp"
 #include "details/DescriptorTable.hpp"
 #include "details/Frame.hpp"
-#include "details/ConstantBuffer.hpp"
 #include "Texture2D.hpp"
 #include "ShaderProgram.hpp"
 #include "BoxMesh.hpp"
@@ -44,12 +43,8 @@ enum {
 
 enum {
 	SRV_TABLE_SIZE = 8,
-	CBV_TABLE_SIZE = 8,
+	CBV_TABLE_SIZE = UNIFORM_BUFFERS_COUNT,
 	SAMPLER_TABLE_SIZE = 4
-};
-
-enum {
-	MAX_CB_SIZE = 1024
 };
 
 enum {
@@ -77,6 +72,8 @@ struct Context: rhi::Context {
 	virtual void ImGuiShutdown() override;
 	virtual void ImGuiNewFrame() override;
 	virtual void ImGuiRender() override;
+
+	virtual void CommitResources() override;
 
 	void InitDevice();
 	winapi::ComPtr<ID3D12Device2> device;
@@ -107,17 +104,14 @@ struct Context: rhi::Context {
 	std::array<Frame, NUM_FRAMES_IN_FLIGHT> frames = {};
 	Frame* current_frame = nullptr;
 
-	void InitCBs();
-	void CommitCBs();
-	std::array<ConstantBuffer, CBV_TABLE_SIZE> constant_buffers = {};
-
 	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
 
 	void Resize(int w, int h);
-	void CommitResources();
 
 	void CreateSRV(size_t root_parameter_index, Texture2D& texture);
 private:
+	void CommitCBs();
+
 	void CommitSRVs();
 	DescriptorTable srv_table;
 	std::array<bool, SRV_TABLE_SIZE> srv_table_map = {};

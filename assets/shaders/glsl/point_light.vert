@@ -2,7 +2,9 @@
 
 layout (location = 0) in vec3 aPos;
 
-uniform mat4 MVP;
+layout (binding = 1) uniform Trololo {
+	mat4 MVP;
+};
 
 void main()
 {

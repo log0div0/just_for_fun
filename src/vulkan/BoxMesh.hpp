@@ -13,7 +13,7 @@ struct BoxMesh: rhi::BoxMesh {
 	BoxMesh() {
 	}
 
-	virtual void Draw(rhi::ShaderProgram& shader) override {
+	virtual void DoDraw(rhi::ShaderProgram& shader_rhi) override {
 	}
 };
 

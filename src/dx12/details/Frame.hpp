@@ -21,7 +21,7 @@ struct Frame {
 	int index = -1;
 
 	std::vector<DescriptorTable> descriptor_table_refs;
-	std::vector<ConstantBufferMemory> constant_buffers_refs;
+	std::vector<ConstantBuffer> constant_buffers_refs;
 };
 
 }

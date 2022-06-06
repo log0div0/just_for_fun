@@ -1,8 +1,10 @@
 #version 460 core
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
-uniform vec3 LightColor;
+layout (binding = 0) uniform Tralala {
+	vec3 LightColor;
+};
 
 void main()
 {

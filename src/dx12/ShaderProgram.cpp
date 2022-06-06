@@ -100,60 +100,20 @@ void ShaderProgram::PopulateBindingsMap(ComPtr<ID3DBlob> shader_blob)
 				D3D12_SHADER_VARIABLE_DESC variable_desc;
 				variable->GetDesc(&variable_desc);
 
-				bindings_map.emplace(variable_desc.Name, ConstantBufferBindingInfo{bind_desc.BindPoint, variable_desc.StartOffset, variable_desc.Size});
+				uniform_bindings.emplace(variable_desc.Name, rhi::UniformBinding{bind_desc.BindPoint, variable_desc.StartOffset});
 			}
 		}
 		else if (bind_desc.Type == D3D_SIT_TEXTURE)
 		{
-			bindings_map.emplace(bind_desc.Name, TextureBindingInfo{bind_desc.BindPoint});
+			texture_bindings.emplace(bind_desc.Name, bind_desc.BindPoint);
 		}
 	}
 }
 
-void ShaderProgram::SetParam(const std::string& name, float value) {
-	SetConstantParam(name, (uint8_t*)&value, 1, sizeof(value), sizeof(value));
-}
-
-void ShaderProgram::SetParam(const std::string& name, int value) {
-	SetConstantParam(name, (uint8_t*)&value, 1, sizeof(value), sizeof(value));
-}
-
-void ShaderProgram::SetParam(const std::string& name, const math::Vector3& value) {
-	SetConstantParam(name, (uint8_t*)&value, 1, sizeof(value), sizeof(value));
-}
-
-void ShaderProgram::SetParam(const std::string& name, const math::Vector4& value) {
-	SetConstantParam(name, (uint8_t*)&value, 1, sizeof(value), sizeof(value));
-}
-
-void ShaderProgram::SetParam(const std::string& name, const math::Matrix3& value) {
-	SetConstantParam(name, (uint8_t*)&value, 3, sizeof(math::Vector3), sizeof(math::Vector4));
-}
-
-void ShaderProgram::SetParam(const std::string& name, const math::Matrix4& value) {
-	SetConstantParam(name, (uint8_t*)&value, 1, sizeof(value), sizeof(value));
-}
-
 void ShaderProgram::SetParam(const std::string& name, rhi::Texture2D& value_rhi) {
 	auto& value = static_cast<Texture2D&>(value_rhi);
-	const BindingInfo& binding = GetBindingInfo(name);
-	auto& texture_binding = std::get<TextureBindingInfo>(binding);
-	g_context->CreateSRV(texture_binding.root_parameter_index, value);
-}
-
-const BindingInfo& ShaderProgram::GetBindingInfo(const std::string& name) const {
-	auto it = bindings_map.find(name);
-	if (it == bindings_map.end()) {
-		throw std::runtime_error("Shader doesn't have param " + name);
-	}
-	return it->second;
-}
-
-void ShaderProgram::SetConstantParam(const std::string& name, const uint8_t* src, int num_rows, int src_stride, int dst_stride) {
-	const BindingInfo& binding = GetBindingInfo(name);
-	auto& cb_binding = std::get<ConstantBufferBindingInfo>(binding);
-	ConstantBuffer& constant_buffer = g_context->constant_buffers.at(cb_binding.root_parameter_index);
-	constant_buffer.Write(cb_binding.offset, src, num_rows, src_stride, dst_stride);
+	int binding = texture_bindings.at(name);
+	g_context->CreateSRV(binding, value);
 }
 
 }

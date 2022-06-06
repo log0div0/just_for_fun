@@ -66,10 +66,9 @@ BoxMesh::BoxMesh() {
 	};
 }
 
-void BoxMesh::Draw(rhi::ShaderProgram& shader_rhi) {
+void BoxMesh::DoDraw(rhi::ShaderProgram& shader_rhi) {
 	auto& shader = static_cast<ShaderProgram&>(shader_rhi);
 
-	g_context->CommitResources();
 	g_context->command_list->SetPipelineState(shader.pipeline_state);
 
 	g_context->command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

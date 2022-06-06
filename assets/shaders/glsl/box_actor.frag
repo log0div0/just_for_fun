@@ -1,17 +1,20 @@
 #version 460 core
 
-in vec2 UV;
-in vec3 PosWS;
-in vec3 Normal;
+layout (location = 0) in vec2 UV;
+layout (location = 1) in vec3 PosWS;
+layout (location = 2) in vec3 Normal;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
-uniform sampler2D Wood;
-uniform sampler2D Lambda;
-uniform vec3 ObjectColor;
-uniform vec3 LightColor;
-uniform vec3 LightPos;
-uniform vec3 CameraPos;
+layout (binding = 0) uniform sampler2D Wood;
+layout (binding = 1) uniform sampler2D Lambda;
+
+layout (binding = 0) uniform Tralala {
+	vec3 ObjectColor;
+	vec3 LightColor;
+	vec3 LightPos;
+	vec3 CameraPos;
+};
 
 void main()
 {

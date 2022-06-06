@@ -1,16 +1,18 @@
 #version 460 core
 
-uniform mat4 MVP;
-uniform mat4 ModelMatrix;
-uniform mat3 NormalMatrix;
+layout (binding = 1) uniform Trololo {
+	mat4 MVP;
+	mat4 ModelMatrix;
+	mat3 NormalMatrix;
+};
 
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aUV;
 layout (location = 2) in vec3 aNormal;
 
-out vec2 UV;
-out vec3 PosWS;
-out vec3 Normal;
+layout (location = 0) out vec2 UV;
+layout (location = 1) out vec3 PosWS;
+layout (location = 2) out vec3 Normal;
 
 void main()
 {

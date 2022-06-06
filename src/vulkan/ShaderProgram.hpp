@@ -14,24 +14,6 @@ namespace vulkan {
 struct ShaderProgram: rhi::ShaderProgram {
 	ShaderProgram(const std::string& name);
 
-	virtual void SetParam(const std::string& name, float value) override {
-	}
-
-	virtual void SetParam(const std::string& name, int value) override {
-	}
-
-	virtual void SetParam(const std::string& name, const math::Vector3& value) override {
-	}
-
-	virtual void SetParam(const std::string& name, const math::Vector4& value) override {
-	}
-
-	virtual void SetParam(const std::string& name, const math::Matrix3& value) override {
-	}
-
-	virtual void SetParam(const std::string& name, const math::Matrix4& value) override {
-	}
-
 	virtual void SetParam(const std::string& name, rhi::Texture2D& value) override {
 	}
 
