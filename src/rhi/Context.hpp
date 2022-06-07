@@ -53,10 +53,12 @@ struct Context {
 	virtual void Present() = 0;
 	virtual void WaitIdle() = 0;
 
+#ifndef _GAMING_XBOX
 	virtual void ImGuiInit() = 0;
 	virtual void ImGuiShutdown() = 0;
 	virtual void ImGuiNewFrame() = 0;
 	virtual void ImGuiRender() = 0;
+#endif
 
 	virtual void CommitResources() = 0;
 

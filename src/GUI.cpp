@@ -2,7 +2,21 @@
 #include "GUI.hpp"
 #include "rhi/Context.hpp"
 
-#ifndef _GAMING_XBOX
+#ifdef _GAMING_XBOX
+
+GUI::GUI() {
+}
+
+GUI::~GUI() {
+}
+
+void GUI::Update(float delta_time, PointLight& light) {
+}
+
+void GUI::Render() {
+}
+
+#else
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"

@@ -1,6 +1,58 @@
 #include "Window.hpp"
 
-#ifndef _GAMING_XBOX
+#ifdef _GAMING_XBOX
+
+Window::Window(const std::string& name)
+{
+
+}
+
+bool Window::IsCameraMovingForward() {
+	return false;
+}
+
+bool Window::IsCameraMovingBack() {
+	return false;
+}
+
+bool Window::IsCameraMovingRight() {
+	return false;
+}
+
+bool Window::IsCameraMovingLeft() {
+	return false;
+}
+
+bool Window::IsCameraMovingUp() {
+	return false;
+}
+
+bool Window::IsCameraMovingDown() {
+	return false;
+}
+
+void Window::OnCameraRotate(std::function<void(float, float)> cb) {
+}
+
+void Window::OnCameraAccelerate(std::function<void(float)> cb) {
+}
+
+void Window::Update(float delta_time) {
+}
+
+bool Window::ShouldClose() {
+	throw std::runtime_error("implement me");
+}
+
+void Window::OnWindowResize(std::function<void(int, int)> cb) {
+}
+
+std::tuple<int, int> Window::GetWindowSize() {
+	throw std::runtime_error("implement me");
+}
+
+
+#else
 
 Window::Window(const std::string& name): x(0), y(0), w(1200), h(900)
 {

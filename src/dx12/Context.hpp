@@ -69,10 +69,12 @@ struct Context: rhi::Context {
 	virtual void Present() override;
 	virtual void WaitIdle() override;
 
+#ifndef _GAMING_XBOX
 	virtual void ImGuiInit() override;
 	virtual void ImGuiShutdown() override;
 	virtual void ImGuiNewFrame() override;
 	virtual void ImGuiRender() override;
+#endif
 
 	virtual void CommitResources() override;
 

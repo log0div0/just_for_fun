@@ -11,7 +11,70 @@ using namespace winapi;
 
 namespace dx12 {
 
-#ifndef _GAMING_XBOX
+#ifdef _GAMING_XBOX
+
+SwapChain::SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count) {
+	CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_DEFAULT);
+
+	D3D12_RESOURCE_DESC buffer_desc = CD3DX12_RESOURCE_DESC::Tex2D(
+	    BACK_BUFFER_FORMAT,
+	    w,
+	    h,
+	    1, // This resource has only one texture.
+	    1  // Use a single mipmap level.
+	);
+	buffer_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	D3D12_CLEAR_VALUE clear_value = {};
+	clear_value.Format = BACK_BUFFER_FORMAT;
+
+	for (UINT n = 0; n < buffers_count; n++)
+	{
+		ComPtr<ID3D12Resource> buffer;
+
+	    ThrowIfFailed(g_context->device->CreateCommittedResource(
+	        &heap_props,
+	        D3D12_HEAP_FLAG_ALLOW_DISPLAY,
+	        &buffer_desc,
+	        D3D12_RESOURCE_STATE_PRESENT,
+	        &clear_value,
+	        IID_GRAPHICS_PPV_ARGS(&buffer)));
+
+	    wchar_t name[25] = {};
+	    swprintf_s(name, L"Back buffer %u", n);
+	    buffer->SetName(name);
+
+	    back_buffers.push_back(std::move(buffer));
+	}
+}
+
+winapi::ComPtr<ID3D12Resource> SwapChain::GetBuffer(uint32_t buffer_index) {
+	return back_buffers.at(buffer_index);
+}
+
+void SwapChain::ResizeBuffers(uint32_t w, uint32_t h) {
+	throw std::runtime_error("Should be never called on Xbox?");
+}
+
+uint32_t SwapChain::AcquireNextBufferIndex() {
+	frame_pipeline_token = D3D12XBOX_FRAME_PIPELINE_TOKEN_NULL;
+	ThrowIfFailed(g_context->device->WaitFrameEventX(D3D12XBOX_FRAME_EVENT_ORIGIN, INFINITE, nullptr, D3D12XBOX_WAIT_FRAME_EVENT_FLAG_NONE, &frame_pipeline_token));
+
+	current_back_buffer = (current_back_buffer + 1) % back_buffers.size();
+	return current_back_buffer;
+}
+
+void SwapChain::Present() {
+	D3D12XBOX_PRESENT_PARAMETERS* params = nullptr;
+	D3D12XBOX_PRESENT_PLANE_PARAMETERS plane_params = {
+		.Token = frame_pipeline_token,
+		.ResourceCount = 1,
+		.ppResources = &back_buffers.at(current_back_buffer),
+	};
+	ThrowIfFailed(g_context->direct_queue.Get()->PresentX(1, &plane_params, params));
+}
+
+#else
 
 SwapChain::SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count) {
 	ComPtr<IDXGIFactory5> dxgi_factory;
@@ -24,7 +87,7 @@ SwapChain::SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count) {
 	{
 		.Width = w,
 		.Height = h,
-		.Format = FORMAT,
+		.Format = BACK_BUFFER_FORMAT,
 		.Stereo = FALSE,
 		.SampleDesc = {
 			.Count = 1,

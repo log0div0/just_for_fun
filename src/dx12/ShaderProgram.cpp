@@ -58,7 +58,7 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	pipeline_state_stream.DepthStencil = depth_stencil;
 	pipeline_state_stream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	pipeline_state_stream.RTVFormats = D3D12_RT_FORMAT_ARRAY {
-		.RTFormats = { SwapChain::FORMAT },
+		.RTFormats = { SwapChain::BACK_BUFFER_FORMAT },
 		.NumRenderTargets = 1,
 	};
 
