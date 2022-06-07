@@ -5,8 +5,8 @@
 BoxActor::BoxActor() {
 	shader_program.reset(rhi::g_context->CreateShaderProgram("box_actor"));
 
-	wood_texture.reset(rhi::g_context->CreateTexture2D(g_assets_dir/"textures"/"Wood_Crate_001_basecolor.jpg"));
-	lambda_texture.reset(rhi::g_context->CreateTexture2D(g_assets_dir/"textures"/"Half-Life_lambda_logo.png"));
+	wood_texture.reset(rhi::g_context->CreateTexture2D(GetAssetsDir()/"textures"/"Wood_Crate_001_basecolor.jpg"));
+	lambda_texture.reset(rhi::g_context->CreateTexture2D(GetAssetsDir()/"textures"/"Half-Life_lambda_logo.png"));
 
 	mesh.reset(rhi::g_context->CreateBoxMesh());
 }

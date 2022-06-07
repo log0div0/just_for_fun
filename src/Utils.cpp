@@ -3,6 +3,18 @@
 #include <iostream>
 #include <scope_guard.hpp>
 
+#ifdef WIN32
+#include <winapi/Functions.hpp>
+#endif
+
+fs::path GetAssetsDir() {
+#ifdef WIN32
+	return fs::path(winapi::get_module_file_name()).parent_path() / "assets";
+#else
+#error "implement me"
+#endif
+}
+
 std::vector<uint8_t> LoadBinaryFile(const fs::path& path) {
 	if (!fs::exists(path)) {
 		throw std::runtime_error("file " + path.string() + " does not exist");

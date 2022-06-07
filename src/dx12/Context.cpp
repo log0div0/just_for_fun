@@ -17,7 +17,7 @@ void Context::ImGuiInit() {
 	ImGui_ImplDX12_Init(
 		device,
 		NUM_FRAMES_IN_FLIGHT,
-		SwapChain::FORMAT,
+		SwapChain::BACK_BUFFER_FORMAT,
 		view_heap.heap,
 		srv_handle.cpu,
 		srv_handle.gpu
@@ -45,9 +45,41 @@ void Context::InitDevice()
 	ThrowIfFailed(D3D12GetDebugInterface(IID_GRAPHICS_PPV_ARGS(&debug)));
 	debug->EnableDebugLayer();
 
+#ifdef _GAMING_XBOX
+	// Create the DX12 API device object.
+	D3D12XBOX_CREATE_DEVICE_PARAMETERS params = {
+		.Version = D3D12_SDK_VERSION,
+#if defined(_DEBUG)
+		.ProcessDebugFlags = D3D12_PROCESS_DEBUG_FLAG_DEBUG_LAYER_ENABLED, // Enable the debug layer.
+#elif defined(PROFILE)
+		.ProcessDebugFlags = D3D12XBOX_PROCESS_DEBUG_FLAG_INSTRUMENTED, // Enable the instrumented driver.
+#endif
+		.GraphicsCommandQueueRingSizeBytes = static_cast<UINT>(D3D12XBOX_DEFAULT_SIZE_BYTES),
+		.GraphicsScratchMemorySizeBytes = static_cast<UINT>(D3D12XBOX_DEFAULT_SIZE_BYTES),
+		.ComputeScratchMemorySizeBytes = static_cast<UINT>(D3D12XBOX_DEFAULT_SIZE_BYTES),
+#ifdef _GAMING_XBOX_SCARLETT
+		.CreateDeviceFlags = D3D12XBOX_CREATE_DEVICE_FLAG_NONE,
+#endif
+	};
+
+	HRESULT hr = D3D12XboxCreateDevice(
+		nullptr,
+		&params,
+		IID_GRAPHICS_PPV_ARGS(&device));
+#ifdef _DEBUG
+	if (hr == D3D12_ERROR_DRIVER_VERSION_MISMATCH)
+	{
+#ifdef _GAMING_XBOX_SCARLETT
+		OutputDebugStringA("ERROR: Running a d3d12_xs.lib (Xbox Series X|S) linked binary on an Xbox One is not supported\n");
+#else
+		OutputDebugStringA("ERROR: Running a d3d12_x.lib (Xbox One) linked binary on a Xbox Series X|S in 'Scarlett' mode is not supported\n");
+#endif
+	}
+#endif
+	ThrowIfFailed(hr);
+#else
 	ThrowIfFailed(D3D12CreateDevice(NULL, D3D_FEATURE_LEVEL_12_0, IID_GRAPHICS_PPV_ARGS(&device)));
 
-#ifndef _GAMING_XBOX
 	ComPtr<ID3D12InfoQueue> info_queue = device.QueryInterface<ID3D12InfoQueue>();
 	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
 	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
@@ -76,7 +108,7 @@ void Context::InitRootSignature()
 	ComPtr<ID3DBlob> error_blob;
 	ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &root_sig_blob, &error_blob));
 	ThrowIfFailed(device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
-	    root_sig_blob->GetBufferSize(), IID_GRAPHICS_PPV_ARGS(&root_signature)));
+		root_sig_blob->GetBufferSize(), IID_GRAPHICS_PPV_ARGS(&root_signature)));
 }
 
 void Context::InitHeaps()

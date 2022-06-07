@@ -22,19 +22,15 @@ namespace rhi {
 Context* g_context = nullptr;
 }
 
-fs::path g_assets_dir;
-
 int do_main(int argc, char** argv) {
 	using namespace clipp;
 
 	std::string rhi_name;
-	std::string assets_dir;
 
 	std::vector<std::string> wrong;
 
 	auto cli = (
 		value("rhi_name", rhi_name) % "'dx12' or 'opengl' or 'vulkan'",
-		value("assets_dir", assets_dir) % "Path to a directory with assets (shaders, models, etc)",
 		any_other(wrong)
 	);
 
@@ -71,8 +67,6 @@ int do_main(int argc, char** argv) {
 #endif
 
 	Window window(rhi_name);
-
-	g_assets_dir = assets_dir;
 
 #ifdef WITH_OPENGL
 	if (rhi_name == RHI_OPENGL) {

@@ -41,6 +41,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/lib)
 include_directories(${CMAKE_SOURCE_DIR}/3rd_party)
 include_directories(${CMAKE_SOURCE_DIR}/lib)
 
+configure_file(${CMAKE_SOURCE_DIR}/MicrosoftGame.config ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/MicrosoftGame.config)
+
 include_directories(
 	$ENV{VK_SDK_PATH}/include
 	$ENV{VK_SDK_PATH}/include/dxc

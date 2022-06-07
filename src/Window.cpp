@@ -41,14 +41,14 @@ void Window::Update(float delta_time) {
 }
 
 bool Window::ShouldClose() {
-	throw std::runtime_error("implement me");
+	return false;
 }
 
 void Window::OnWindowResize(std::function<void(int, int)> cb) {
 }
 
 std::tuple<int, int> Window::GetWindowSize() {
-	throw std::runtime_error("implement me");
+	return { 100, 200 };
 }
 
 

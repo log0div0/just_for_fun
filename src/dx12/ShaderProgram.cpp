@@ -11,7 +11,7 @@ namespace dx12 {
 
 ComPtr<ID3DBlob> LoadShader(const std::string& name)
 {
-	fs::path path = g_assets_dir / "shaders" / "hlsl" / (name + ".bin");
+	fs::path path = GetAssetsDir() / "shaders" / "hlsl" / (name + ".bin");
 	std::vector<uint8_t> data = LoadBinaryFile(path);
 	ComPtr<IDxcUtils> utils;
 	ThrowIfFailed(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)));

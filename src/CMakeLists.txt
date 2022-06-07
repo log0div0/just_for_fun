@@ -45,6 +45,14 @@ endif()
 add_executable(just_for_fun ${SRCS})
 target_link_libraries(just_for_fun stb)
 
+if (WIN32)
+	target_link_libraries(just_for_fun winapi)
+endif()
+
+add_custom_target(asserts_dir_link
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/assets ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/assets)
+add_dependencies(just_for_fun asserts_dir_link)
+
 if (NOT CMAKE_GENERATOR_PLATFORM MATCHES "^Gaming\\.Xbox")
 	target_link_libraries(just_for_fun glfw imgui)
 endif()

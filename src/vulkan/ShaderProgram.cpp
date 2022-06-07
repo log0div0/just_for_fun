@@ -32,8 +32,8 @@ static vk::raii::ShaderModule LoadShaderModule(const std::string& path) {
 
 ShaderProgram::ShaderProgram(const std::string& name)
 {
-	vertex_shader = LoadShaderModule(g_assets_dir / "shaders" / "glsl" / (name + ".vert.bin"));
-	fragment_shader = LoadShaderModule(g_assets_dir / "shaders" / "glsl" / (name + ".frag.bin"));
+	vertex_shader = LoadShaderModule(GetAssetsDir() / "shaders" / "glsl" / (name + ".vert.bin"));
+	fragment_shader = LoadShaderModule(GetAssetsDir() / "shaders" / "glsl" / (name + ".frag.bin"));
 }
 
 }
