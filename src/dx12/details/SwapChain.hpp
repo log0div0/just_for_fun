@@ -2,7 +2,7 @@
 #pragma once
 
 #include "CommandQueue.hpp"
-#include <dxgi1_6.h>
+#include "Platform.hpp"
 
 namespace dx12 {
 
@@ -20,9 +20,11 @@ struct SwapChain {
 	uint32_t AcquireNextBufferIndex();
 	void Present();
 
+#ifndef _GAMING_XBOX
 	winapi::ComPtr<IDXGISwapChain3> swap_chain;
 	winapi::Object waitable_object;
 	BOOL has_tearing_support = false;
+#endif
 };
 
 }

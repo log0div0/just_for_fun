@@ -5,6 +5,7 @@
 #include <math/Transform.hpp>
 #include <math/Quaternion.hpp>
 
+#include "Window.hpp"
 #include "Utils.hpp"
 
 struct Camera {
@@ -13,7 +14,7 @@ struct Camera {
 	float speed = 1.0f;
 	float aspect = 1.0f;
 
-	Camera(glfw::Window& window);
+	Camera(Window& window);
 
 	Camera(const Camera& other) = delete;
 	Camera(Camera&& other) = delete;
@@ -30,11 +31,6 @@ struct Camera {
 
 private:
 	void Move(float delta_time, const math::Vector3& dir);
-	void OnCursorMove(float dx, float dy);
-	void OnScroll(float diff);
 
-	glfw::Window& window;
-
-	using CursorPos = math::Vector<double, 2>;
-	CursorPos last_cursor_pos;
+	Window& window;
 };

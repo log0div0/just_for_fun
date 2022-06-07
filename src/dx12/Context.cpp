@@ -12,7 +12,7 @@ namespace dx12 {
 
 void Context::ImGuiInit() {
 	auto srv_handle = view_heap.alloc();
-	ImGui_ImplGlfw_InitForOther(window, true);
+	ImGui_ImplGlfw_InitForOther(window.GetGLFW(), true);
 	ImGui_ImplDX12_Init(
 		device,
 		NUM_FRAMES_IN_FLIGHT,
@@ -143,9 +143,9 @@ void Context::InitFrames()
 
 Context* g_context = nullptr;
 
-Context::Context(glfw::Window& window_): window(window_) {
+Context::Context(Window& window_): window(window_) {
 	g_context = this;
-	auto [w, h] = window.getFramebufferSize();
+	auto [w, h] = window.GetWindowSize();
 	InitDevice();
 	InitRootSignature();
 	InitHeaps();
@@ -153,7 +153,7 @@ Context::Context(glfw::Window& window_): window(window_) {
 	InitSwapchain(w, h);
 	InitDepthStencilBuffer(w, h);
 	InitFrames();
-	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
+	window.OnWindowResize([&](int w, int h) {
 		Resize(w, h);
 	});
 }

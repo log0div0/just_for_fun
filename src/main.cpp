@@ -54,6 +54,7 @@ int do_main(int argc, char** argv) {
 		return -1;
 	}
 
+#ifndef _GAMING_XBOX
 	auto GLFW = glfw::init();
 
 #ifdef WITH_OPENGL
@@ -67,8 +68,9 @@ int do_main(int argc, char** argv) {
 #ifdef WITH_OPENGL
 	}
 #endif
+#endif
 
-	glfw::Window window {1200, 900, rhi_name.c_str()};
+	Window window(rhi_name);
 
 	g_assets_dir = assets_dir;
 

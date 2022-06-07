@@ -5,12 +5,13 @@
 #include "ShaderProgram.hpp"
 #include "Texture2D.hpp"
 
+#include "../Window.hpp"
 #include "../Utils.hpp"
 
 namespace opengl {
 
 struct Context: rhi::Context {
-	Context(glfw::Window& window_);
+	Context(Window& window_);
 
 	virtual ~Context() override {}
 
@@ -29,7 +30,7 @@ struct Context: rhi::Context {
 
 	virtual void CommitResources() override;
 
-	glfw::Window& window;
+	Window& window;
 
 	std::vector<mogl::UniformBuffer> gl_uniform_buffers;
 };

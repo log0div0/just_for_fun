@@ -9,7 +9,8 @@
 #include "ShaderProgram.hpp"
 #include "BoxMesh.hpp"
 
-#include <glfwpp/glfwpp.h>
+#include "../Window.hpp"
+
 #include <array>
 
 namespace dx12 {
@@ -55,10 +56,10 @@ enum {
 };
 
 struct Context: rhi::Context {
-	Context(glfw::Window& window_);
+	Context(Window& window_);
 	virtual ~Context() override;
 
-	glfw::Window& window;
+	Window& window;
 
 	virtual rhi::Texture2D* CreateTexture2D(const fs::path& path) override { return new Texture2D(path); }
 	virtual rhi::ShaderProgram* CreateShaderProgram(const std::string& name) override { return new ShaderProgram(name); }

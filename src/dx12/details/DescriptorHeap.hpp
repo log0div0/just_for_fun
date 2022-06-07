@@ -1,9 +1,7 @@
 
 #pragma once
 
-#include <winapi/ComPtr.hpp>
-
-#include <d3d12.h>
+#include "Platform.hpp"
 
 #include <vector>
 

@@ -6,17 +6,18 @@
 #include "details/Frame.hpp"
 #include "details/Image.hpp"
 
-#include <glfwpp/glfwpp.h>
 #include <stack>
 
 #include "Texture2D.hpp"
 #include "ShaderProgram.hpp"
 #include "BoxMesh.hpp"
 
+#include "../Window.hpp"
+
 namespace vulkan {
 
 struct Context: rhi::Context {
-	Context(glfw::Window& window_);
+	Context(Window& window_);
 	virtual ~Context() override;
 
 	virtual rhi::Texture2D* CreateTexture2D(const fs::path& path) override { return new Texture2D(path); }
@@ -34,7 +35,7 @@ struct Context: rhi::Context {
 
 	virtual void CommitResources() override {}
 
-	glfw::Window& window;
+	Window& window;
 
 	vk::raii::Context vk_context;
 

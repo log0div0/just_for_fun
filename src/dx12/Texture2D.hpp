@@ -3,9 +3,7 @@
 
 #include "../rhi/Texture2D.hpp"
 
-#include <winapi/ComPtr.hpp>
-
-#include <d3d12.h>
+#include "details/Platform.hpp"
 
 namespace dx12 {
 

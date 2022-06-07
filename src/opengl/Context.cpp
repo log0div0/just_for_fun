@@ -5,18 +5,18 @@
 
 namespace opengl {
 
-Context::Context(glfw::Window& window_): window(window_) {
-	glfw::makeContextCurrent(window);
+Context::Context(Window& window_): window(window_) {
+	glfw::makeContextCurrent(window.GetGLFW());
 	glfw::swapInterval(0);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		throw std::runtime_error("Failed to initialize GLAD");
 	}
 
-	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
+	window.OnWindowResize([&](int w, int h) {
 		glViewport(0, 0, w, h);
 	});
-	auto [w, h] = window.getFramebufferSize();
+	auto [w, h] = window.GetWindowSize();
 	glViewport(0, 0, w, h);
 
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -38,7 +38,7 @@ void Context::Clear() {
 }
 
 void Context::Present() {
-	window.swapBuffers();
+	window.GetGLFW().swapBuffers();
 }
 
 void Context::WaitIdle() {
@@ -46,7 +46,7 @@ void Context::WaitIdle() {
 }
 
 void Context::ImGuiInit() {
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplGlfw_InitForOpenGL(window.GetGLFW(), true);
 	ImGui_ImplOpenGL3_Init("#version 460 core");
 }
 void Context::ImGuiShutdown() {

@@ -17,7 +17,7 @@ static void CheckVkResult(VkResult err)
 }
 
 void Context::ImGuiInit() {
-	ImGui_ImplGlfw_InitForVulkan(window, true);
+	ImGui_ImplGlfw_InitForVulkan(window.GetGLFW(), true);
 	ImGui_ImplVulkan_InitInfo init_info = {
 		.Instance = *vk_instance,
 		.PhysicalDevice = *physical_device,
@@ -101,7 +101,7 @@ void Context::InitVkInstance() {
 }
 
 void Context::InitSurface() {
-	surface = vk::raii::SurfaceKHR(vk_instance, window.createSurface(*vk_instance));
+	surface = vk::raii::SurfaceKHR(vk_instance, window.GetGLFW().createSurface(*vk_instance));
 }
 
 void Context::InitPhysicalDevice() {
@@ -321,9 +321,9 @@ void Context::InitFrames() {
 	image_to_frame_map = std::vector<Frame*>(images.size(), nullptr);
 }
 
-Context::Context(glfw::Window& window_): window(window_) {
+Context::Context(Window& window_): window(window_) {
 	g_context = this;
-	auto [w, h] = window.getFramebufferSize();
+	auto [w, h] = window.GetWindowSize();
 	InitVkInstance();
 	InitSurface();
 	InitPhysicalDevice();
@@ -338,7 +338,7 @@ Context::Context(glfw::Window& window_): window(window_) {
 	InitImages();
 	InitFrames();
 
-	window.framebufferSizeEvent.subscribe([&](glfw::Window& window, int w, int h) {
+	window.OnWindowResize([&](int w, int h) {
 		Resize(w, h);
 	});
 }

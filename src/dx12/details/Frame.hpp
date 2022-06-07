@@ -1,8 +1,7 @@
 
 #pragma once
 
-#include <winapi/ComPtr.hpp>
-
+#include "Platform.hpp"
 #include "DescriptorTable.hpp"
 #include "ConstantBuffer.hpp"
 

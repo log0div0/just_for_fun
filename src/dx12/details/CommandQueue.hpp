@@ -1,10 +1,7 @@
 
 #pragma once
 
-#include <winapi/ComPtr.hpp>
-#include <winapi/Event.hpp>
-
-#include <d3d12.h>
+#include "Platform.hpp"
 
 namespace dx12 {
 
