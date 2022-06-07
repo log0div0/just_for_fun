@@ -1,15 +1,16 @@
 #include "Context.hpp"
 #include "details/Exceptions.hpp"
 
-#include <d3dx12.h>
-
+#ifndef _GAMING_XBOX
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_dx12.h"
+#endif
 
 using namespace winapi;
 
 namespace dx12 {
 
+#ifndef _GAMING_XBOX
 void Context::ImGuiInit() {
 	auto srv_handle = view_heap.alloc();
 	ImGui_ImplGlfw_InitForOther(window.GetGLFW(), true);
@@ -36,20 +37,22 @@ void Context::ImGuiNewFrame() {
 void Context::ImGuiRender() {
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), command_list);
 }
-
+#endif
 
 void Context::InitDevice()
 {
 	ComPtr<ID3D12Debug> debug;
-	ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debug)));
+	ThrowIfFailed(D3D12GetDebugInterface(IID_GRAPHICS_PPV_ARGS(&debug)));
 	debug->EnableDebugLayer();
 
-	ThrowIfFailed(D3D12CreateDevice(NULL, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)));
+	ThrowIfFailed(D3D12CreateDevice(NULL, D3D_FEATURE_LEVEL_12_0, IID_GRAPHICS_PPV_ARGS(&device)));
 
+#ifndef _GAMING_XBOX
 	ComPtr<ID3D12InfoQueue> info_queue = device.QueryInterface<ID3D12InfoQueue>();
 	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
 	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
 	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
+#endif
 }
 
 void Context::InitRootSignature()
@@ -73,7 +76,7 @@ void Context::InitRootSignature()
 	ComPtr<ID3DBlob> error_blob;
 	ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &root_sig_blob, &error_blob));
 	ThrowIfFailed(device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
-	    root_sig_blob->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
+	    root_sig_blob->GetBufferSize(), IID_GRAPHICS_PPV_ARGS(&root_signature)));
 }
 
 void Context::InitHeaps()
@@ -115,7 +118,7 @@ void Context::InitDepthStencilBuffer(int w, int h) {
 			&desc,
 			D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&clear_value,
-			IID_PPV_ARGS(&depth_stencil_buffer)
+			IID_GRAPHICS_PPV_ARGS(&depth_stencil_buffer)
 		));
 	}
 
@@ -195,7 +198,7 @@ void Context::Clear() {
 
 	current_frame->command_allocator->Reset();
 	if (command_list.IsNull()) {
-		ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, current_frame->command_allocator, NULL, IID_PPV_ARGS(&command_list)));
+		ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, current_frame->command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
 	} else {
 		command_list->Reset(current_frame->command_allocator, NULL);
 	}

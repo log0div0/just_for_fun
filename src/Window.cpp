@@ -1,5 +1,7 @@
 #include "Window.hpp"
 
+#ifndef _GAMING_XBOX
+
 Window::Window(const std::string& name): x(0), y(0), w(1200), h(900)
 {
 	window = glfw::Window {w, h, name.c_str()};
@@ -86,3 +88,5 @@ void Window::OnWindowResize(std::function<void(int, int)> cb) {
 std::tuple<int, int> Window::GetWindowSize() {
 	return window.getFramebufferSize();
 }
+
+#endif

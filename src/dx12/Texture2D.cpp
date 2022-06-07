@@ -4,8 +4,6 @@
 
 #include <stb/Image.hpp>
 
-#include <d3dx12.h>
-
 using namespace winapi;
 
 namespace dx12 {
@@ -25,7 +23,7 @@ Texture2D::Texture2D(const fs::path& path) {
 			&desc,
 			D3D12_RESOURCE_STATE_COPY_DEST,
 			nullptr,
-			IID_PPV_ARGS(&resource)));
+			IID_GRAPHICS_PPV_ARGS(&resource)));
 	}
 
 	ComPtr<ID3D12Resource> upload_buffer;
@@ -42,13 +40,13 @@ Texture2D::Texture2D(const fs::path& path) {
 			&desc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(&upload_buffer)));
+			IID_GRAPHICS_PPV_ARGS(&upload_buffer)));
 	}
 
 	winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
 	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
-	ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator)));
-	ThrowIfFailed(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocator, NULL, IID_PPV_ARGS(&command_list)));
+	ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_GRAPHICS_PPV_ARGS(&command_allocator)));
+	ThrowIfFailed(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
 
 	D3D12_SUBRESOURCE_DATA subresource_data = {
 	    .pData = img.data,
@@ -56,7 +54,7 @@ Texture2D::Texture2D(const fs::path& path) {
 	    .SlicePitch = (LONG_PTR)img.data_len(),
 	};
 
-	UpdateSubresources(command_list, resource, upload_buffer, 0, 0, 1, &subresource_data);
+	UpdateSubresources(command_list.Get(), resource, upload_buffer, 0, 0, 1, &subresource_data);
 
 	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resource,
 		D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE|D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

@@ -8,6 +8,8 @@
 
 #include <math/Vector.hpp>
 
+#include <functional>
+
 struct Window {
 	Window(const std::string& name);
 

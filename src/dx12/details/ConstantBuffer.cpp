@@ -3,8 +3,6 @@
 #include <stdexcept>
 #include <cstdlib>
 
-#include <d3dx12.h>
-
 namespace dx12 {
 
 ConstantBuffer::ConstantBuffer(const rhi::UniformBuffer& ub) {
@@ -20,7 +18,7 @@ ConstantBuffer::ConstantBuffer(const rhi::UniformBuffer& ub) {
 		&res_desc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&resource));
+		IID_GRAPHICS_PPV_ARGS(&resource));
 
 	void* p = nullptr;
 	resource->Map(0, nullptr, &p);

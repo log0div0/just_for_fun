@@ -5,8 +5,6 @@
 #include "details/Exceptions.hpp"
 #include "../Vertex.hpp"
 
-#include <d3dx12.h>
-
 using namespace winapi;
 
 namespace dx12 {
@@ -24,7 +22,7 @@ BoxMesh::BoxMesh() {
 		    &buffer_desc,
 		    D3D12_RESOURCE_STATE_COPY_DEST,
 		    nullptr,
-		    IID_PPV_ARGS(&vertex_buffer)));
+		    IID_GRAPHICS_PPV_ARGS(&vertex_buffer)));
 	}
 
 	winapi::ComPtr<ID3D12Resource> upload_buffer;
@@ -39,13 +37,13 @@ BoxMesh::BoxMesh() {
 		    &buffer_desc,
 		    D3D12_RESOURCE_STATE_GENERIC_READ,
 		    nullptr,
-		    IID_PPV_ARGS(&upload_buffer)));
+		    IID_GRAPHICS_PPV_ARGS(&upload_buffer)));
 	}
 
 	winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
 	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
-	ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&command_allocator)));
-	ThrowIfFailed(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, command_allocator, NULL, IID_PPV_ARGS(&command_list)));
+	ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_GRAPHICS_PPV_ARGS(&command_allocator)));
+	ThrowIfFailed(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
 
 	D3D12_SUBRESOURCE_DATA subresource_data = {
 	    .pData = box_vertices.data(),
@@ -53,7 +51,7 @@ BoxMesh::BoxMesh() {
 	    .SlicePitch = (LONG_PTR)buffer_size,
 	};
 
-    UpdateSubresources(command_list, vertex_buffer, upload_buffer, 0, 0, 1, &subresource_data);
+    UpdateSubresources(command_list.Get(), vertex_buffer, upload_buffer, 0, 0, 1, &subresource_data);
 
 	command_list->Close();
 

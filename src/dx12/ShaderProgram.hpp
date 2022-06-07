@@ -9,8 +9,6 @@
 #include "details/DescriptorHeap.hpp"
 #include "details/ConstantBuffer.hpp"
 
-#include <d3dcompiler.h>
-
 namespace dx12 {
 
 struct ShaderProgram: rhi::ShaderProgram {

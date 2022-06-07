@@ -11,9 +11,11 @@ using namespace winapi;
 
 namespace dx12 {
 
+#ifndef _GAMING_XBOX
+
 SwapChain::SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count) {
 	ComPtr<IDXGIFactory5> dxgi_factory;
-	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory)));
+	ThrowIfFailed(CreateDXGIFactory1(IID_GRAPHICS_PPV_ARGS(&dxgi_factory)));
 	// ThrowIfFailed(dxgi_factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &has_tearing_support, sizeof(has_tearing_support)));
 
 	UINT flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT | (has_tearing_support ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0);
@@ -44,7 +46,7 @@ SwapChain::SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count) {
 
 winapi::ComPtr<ID3D12Resource> SwapChain::GetBuffer(uint32_t buffer_index) {
 	winapi::ComPtr<ID3D12Resource> buffer;
-	ThrowIfFailed(swap_chain->GetBuffer(buffer_index, IID_PPV_ARGS(&buffer)));
+	ThrowIfFailed(swap_chain->GetBuffer(buffer_index, IID_GRAPHICS_PPV_ARGS(&buffer)));
 	return buffer;
 }
 
@@ -65,5 +67,7 @@ uint32_t SwapChain::AcquireNextBufferIndex() {
 void SwapChain::Present() {
 	swap_chain->Present(0, has_tearing_support ? DXGI_PRESENT_ALLOW_TEARING : 0);
 }
+
+#endif
 
 }

@@ -1,8 +1,7 @@
 #include "Frame.hpp"
 #include "../Context.hpp"
 #include "Exceptions.hpp"
-
-#include <d3dx12.h>
+#include <cassert>
 
 using namespace winapi;
 
@@ -10,7 +9,7 @@ namespace dx12 {
 
 Frame::Frame(int frame_index): index(frame_index)
 {
-	ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator)));
+	ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_GRAPHICS_PPV_ARGS(&command_allocator)));
 	rtv_handle = g_context->rtv_heap.alloc().cpu;
 
 	InitRenderTargetBuffer(frame_index);

@@ -74,7 +74,7 @@ struct ComPtr {
 		return t;
 	}
 
-	operator const T*() {
+	operator const T*() const {
 		return t;
 	}
 

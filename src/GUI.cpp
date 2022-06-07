@@ -2,6 +2,8 @@
 #include "GUI.hpp"
 #include "rhi/Context.hpp"
 
+#ifndef _GAMING_XBOX
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 
@@ -35,3 +37,5 @@ void GUI::Render() {
 	ImGui::Render();
 	rhi::g_context->ImGuiRender();
 }
+
+#endif

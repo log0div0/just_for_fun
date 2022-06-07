@@ -93,14 +93,14 @@ int do_main(int argc, char** argv) {
 		throw std::runtime_error("Invalid rhi");
 	}
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(_GAMING_XBOX)
 	timeBeginPeriod(1);
 #endif
 
 	App app(window);
 	app.Run();
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(_GAMING_XBOX)
 	timeEndPeriod(1);
 #endif
 

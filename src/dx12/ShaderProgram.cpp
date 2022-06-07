@@ -5,19 +5,19 @@
 #include "../Vertex.hpp"
 #include "../Utils.hpp"
 
-#include <d3dcompiler.h>
-#include <d3dx12.h>
-#include <dxc/dxcapi.h>
-
 using namespace winapi;
 
 namespace dx12 {
 
-ComPtr<ID3DBlob> LoadShader(const std::string& name) {
+ComPtr<ID3DBlob> LoadShader(const std::string& name)
+{
 	fs::path path = g_assets_dir / "shaders" / "hlsl" / (name + ".bin");
-	ComPtr<ID3DBlob> blob;
-	ThrowIfFailed(D3DReadFileToBlob(path.wstring().c_str(), &blob));
-	return blob;
+	std::vector<uint8_t> data = LoadBinaryFile(path);
+	ComPtr<IDxcUtils> utils;
+	ThrowIfFailed(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)));
+	IDxcBlobEncoding* blob = nullptr;
+	ThrowIfFailed(utils->CreateBlob(data.data(), data.size(), 0, &blob));
+	return ComPtr<ID3DBlob>((ID3DBlob*)blob);
 }
 
 ShaderProgram::ShaderProgram(const std::string& name) {
@@ -65,7 +65,7 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	D3D12_PIPELINE_STATE_STREAM_DESC pipeline_state_stream_desc = {
 	    sizeof(pipeline_state_stream), &pipeline_state_stream
 	};
-	ThrowIfFailed(g_context->device->CreatePipelineState(&pipeline_state_stream_desc, IID_PPV_ARGS(&pipeline_state)));
+	ThrowIfFailed(g_context->device->CreatePipelineState(&pipeline_state_stream_desc, IID_GRAPHICS_PPV_ARGS(&pipeline_state)));
 
 	PopulateBindingsMap(vertex_shader_blob);
 	PopulateBindingsMap(pixel_shader_blob);

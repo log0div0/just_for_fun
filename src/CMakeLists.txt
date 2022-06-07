@@ -15,6 +15,11 @@ if (WIN32)
 	set(ENABLE_DX12 1)
 endif()
 
+if (CMAKE_GENERATOR_PLATFORM MATCHES "^Gaming\\.Xbox")
+	set(ENABLE_OPENGL 0)
+	set(ENABLE_VULKAN 0)
+endif()
+
 if (ENABLE_OPENGL)
 	add_definitions(-DWITH_OPENGL)
 	file(GLOB_RECURSE OPENGL_SRCS "opengl/*.cpp" "opengl/*.hpp")
@@ -35,16 +40,14 @@ if (ENABLE_DX12)
 	add_definitions(-DWITH_DX12)
 	file(GLOB_RECURSE DX12_SRCS "dx12/*.cpp" "dx12/*.hpp")
 	list(APPEND SRCS ${DX12_SRCS})
-
-	# this is for a shader blob reflection
-	configure_file(
-		$ENV{VK_SDK_PATH}/bin/dxcompiler.dll
-		${CMAKE_BINARY_DIR}/out/sbin/${CMAKE_BUILD_TYPE}/dxcompiler.dll
-		COPYONLY)
 endif()
 
 add_executable(just_for_fun ${SRCS})
-target_link_libraries(just_for_fun glfw stb imgui)
+target_link_libraries(just_for_fun stb)
+
+if (NOT CMAKE_GENERATOR_PLATFORM MATCHES "^Gaming\\.Xbox")
+	target_link_libraries(just_for_fun glfw imgui)
+endif()
 
 if (ENABLE_OPENGL)
 	target_link_libraries(just_for_fun glad)
