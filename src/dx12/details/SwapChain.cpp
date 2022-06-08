@@ -46,6 +46,37 @@ SwapChain::SwapChain(uint32_t w, uint32_t h, uint32_t buffers_count) {
 
 	    back_buffers.push_back(std::move(buffer));
 	}
+
+	RegisterFrameEvents();
+}
+
+// Set frame interval and register for frame events
+void SwapChain::RegisterFrameEvents()
+{
+    // First, retrieve the underlying DXGI device from the D3D device.
+    ComPtr<IDXGIDevice1> dxgiDevice;
+    ThrowIfFailed(g_context->device->QueryInterface(IID_GRAPHICS_PPV_ARGS(&dxgiDevice)));
+
+    // Identify the physical adapter (GPU or card) this device is running on.
+    ComPtr<IDXGIAdapter> dxgiAdapter;
+    ThrowIfFailed(dxgiDevice->GetAdapter(&dxgiAdapter));
+
+    // Retrieve the outputs for the adapter.
+    ComPtr<IDXGIOutput> dxgiOutput;
+    ThrowIfFailed(dxgiAdapter->EnumOutputs(0, &dxgiOutput));
+
+    // Set frame interval and register for frame events
+    ThrowIfFailed(g_context->device->SetFrameIntervalX(
+        dxgiOutput.Get(),
+        D3D12XBOX_FRAME_INTERVAL_60_HZ,
+        back_buffers.size() - 1u /* Allow n-1 frames of latency */,
+        D3D12XBOX_FRAME_INTERVAL_FLAG_NONE));
+
+    ThrowIfFailed(g_context->device->ScheduleFrameEventX(
+        D3D12XBOX_FRAME_EVENT_ORIGIN,
+        0U,
+        nullptr,
+        D3D12XBOX_SCHEDULE_FRAME_EVENT_FLAG_NONE));
 }
 
 winapi::ComPtr<ID3D12Resource> SwapChain::GetBuffer(uint32_t buffer_index) {

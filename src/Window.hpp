@@ -12,6 +12,7 @@
 
 struct Window {
 	Window(const std::string& name);
+	~Window();
 
 	Window(const Window& other) = delete;
 	Window& operator=(const Window& other) = delete;

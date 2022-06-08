@@ -22,6 +22,7 @@ struct SwapChain {
 	void Present();
 
 #ifdef _GAMING_XBOX
+	void RegisterFrameEvents();
 	std::vector<winapi::ComPtr<ID3D12Resource>> back_buffers;
 	int current_back_buffer = -1;
 	D3D12XBOX_FRAME_PIPELINE_TOKEN frame_pipeline_token = D3D12XBOX_FRAME_PIPELINE_TOKEN_NULL;

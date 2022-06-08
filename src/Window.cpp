@@ -2,9 +2,18 @@
 
 #ifdef _GAMING_XBOX
 
+#include <Windows.h>
+#include <XGameRuntime.h>
+
 Window::Window(const std::string& name)
 {
+	if (FAILED(XGameRuntimeInitialize())) {
+		throw std::runtime_error("XGameRuntimeInitialize failed");
+	}
+}
 
+Window::~Window() {
+	XGameRuntimeUninitialize();
 }
 
 bool Window::IsCameraMovingForward() {
@@ -80,6 +89,10 @@ Window::Window(const std::string& name): x(0), y(0), w(1200), h(900)
 		};
 	});
 	last_cursor_pos = std::make_from_tuple<CursorPos>(window.getCursorPos());
+}
+
+Window::~Window() {
+
 }
 
 bool Window::IsCameraMovingForward() {
