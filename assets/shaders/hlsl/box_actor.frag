@@ -1,4 +1,6 @@
 
+#include "common.hlsli"
+
 cbuffer Trololo: register(b1)
 {
 	float3 ObjectColor;

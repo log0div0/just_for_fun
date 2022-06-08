@@ -1,4 +1,6 @@
 
+#include "common.hlsli"
+
 cbuffer SomeStuff: register(b0)
 {
     matrix MVP;

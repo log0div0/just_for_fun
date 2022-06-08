@@ -11,7 +11,15 @@ namespace dx12 {
 
 ComPtr<ID3DBlob> LoadShader(const std::string& name)
 {
-	fs::path path = GetAssetsDir() / "shaders" / "hlsl" / (name + ".bin");
+	std::string ext;
+#ifdef _GAMING_XBOX_SCARLETT
+	ext = ".scarlett.bin";
+#elif _GAMING_XBOX_XBOXONE
+	ext = ".xboxone.bin";
+#else
+	ext = ".bin";
+#endif
+	fs::path path = GetAssetsDir() / "shaders" / "hlsl" / (name + ext);
 	std::vector<uint8_t> data = LoadBinaryFile(path);
 	ComPtr<IDxcUtils> utils;
 	ThrowIfFailed(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)));

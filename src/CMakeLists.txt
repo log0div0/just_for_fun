@@ -71,21 +71,26 @@ if (ENABLE_DX12)
 	endif()
 	if (CMAKE_GENERATOR_PLATFORM STREQUAL "Gaming.Xbox.Scarlett.x64")
 		target_link_libraries(just_for_fun d3d12_xs dxcompiler_xs)
+		set(DXC_EXE $ENV{GXDKLatest}/bin/Scarlett/dxc.exe)
+		set(SHADER_BINARY_EXT ".scarlett.bin")
 	elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "Gaming.Xbox.XBoxOne.x64")
 		target_link_libraries(just_for_fun d3d12_x dxcompiler_x)
+		set(DXC_EXE $ENV{GXDKLatest}/bin/XboxOne/dxc.exe)
+		set(SHADER_BINARY_EXT ".xboxone.bin")
 	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
 		target_link_libraries(just_for_fun d3d12 dxcompiler dxgi)
+		set(DXC_EXE $ENV{VK_SDK_PATH}/bin/dxc.exe)
+		set(SHADER_BINARY_EXT ".bin")
 	else()
 		message(FATAL_ERROR something is definitely wrong)
 	endif()
-endif()
 
-if (ENABLE_DX12)
 	file(GLOB HLSL_SRCS
 		"${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/*.vert"
 		"${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/*.frag")
 
 	foreach(SHADER_SRC ${HLSL_SRCS})
+
 		get_filename_component(SHADER_FILE_NAME ${SHADER_SRC} NAME)
 		get_filename_component(SHADER_FILE_EXT ${SHADER_SRC} EXT)
 		if (SHADER_FILE_EXT STREQUAL ".vert")
@@ -93,10 +98,10 @@ if (ENABLE_DX12)
 		else()
 			set(TARGET_PROFILE "ps_6_0")
 		endif()
-		set(SHADER_DST "${SHADER_SRC}.bin")
+		set(SHADER_DST "${SHADER_SRC}${SHADER_BINARY_EXT}")
 		add_custom_command(
 			OUTPUT ${SHADER_DST}
-			COMMAND $ENV{VK_SDK_PATH}/bin/dxc.exe -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST}
+			COMMAND ${DXC_EXE} -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST} -rootsig-define ROOT_SIG
 			DEPENDS ${SHADER_SRC}
 		)
 		add_custom_target(HLSL_${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
