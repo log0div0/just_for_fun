@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <clipp.h>
+#include <scope_guard.hpp>
 #include "App.hpp"
 
 #ifdef WITH_OPENGL
@@ -87,16 +88,21 @@ int do_main(int argc, char** argv) {
 		throw std::runtime_error("Invalid rhi");
 	}
 
+	SCOPE_EXIT {
+		delete rhi::g_context;
+	};
+
 #if defined(WIN32) && !defined(_GAMING_XBOX)
 	timeBeginPeriod(1);
+	SCOPE_EXIT {
+		timeEndPeriod(1);
+	};
 #endif
 
-	App app(window);
-	app.Run();
-
-#if defined(WIN32) && !defined(_GAMING_XBOX)
-	timeEndPeriod(1);
-#endif
+	{
+		App app(window);
+		app.Run();
+	}
 
 	return 0;
 }
