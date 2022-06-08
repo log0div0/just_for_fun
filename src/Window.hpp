@@ -35,7 +35,9 @@ struct Window {
 	void OnWindowResize(std::function<void(int, int)> cb);
 	std::tuple<int, int> GetWindowSize();
 
-#ifndef _GAMING_XBOX
+#ifdef _GAMING_XBOX
+	bool should_close = false;
+#else
 	glfw::Window& GetGLFW() {
 		return window;
 	}

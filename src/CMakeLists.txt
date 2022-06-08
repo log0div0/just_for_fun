@@ -55,6 +55,10 @@ add_dependencies(just_for_fun asserts_dir_link)
 
 if (NOT CMAKE_GENERATOR_PLATFORM MATCHES "^Gaming\\.Xbox")
 	target_link_libraries(just_for_fun glfw imgui)
+	if (WIN32)
+		# for timeBeginPeriod/timeEndPeriod functions
+		target_link_libraries(just_for_fun winmm)
+	endif()
 endif()
 
 if (ENABLE_OPENGL)
@@ -62,6 +66,9 @@ if (ENABLE_OPENGL)
 endif()
 
 if (ENABLE_DX12)
+	if (CMAKE_GENERATOR_PLATFORM MATCHES "^Gaming\\.Xbox")
+		target_link_libraries(just_for_fun xgameplatform xgameruntime)
+	endif()
 	if (CMAKE_GENERATOR_PLATFORM STREQUAL "Gaming.Xbox.Scarlett.x64")
 		target_link_libraries(just_for_fun d3d12_xs dxcompiler_xs)
 	elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "Gaming.Xbox.XBoxOne.x64")
@@ -71,11 +78,6 @@ if (ENABLE_DX12)
 	else()
 		message(FATAL_ERROR something is definitely wrong)
 	endif()
-endif()
-
-if (WIN32)
-	# for timeBeginPeriod/timeEndPeriod functions
-	target_link_libraries(just_for_fun winmm)
 endif()
 
 if (ENABLE_DX12)

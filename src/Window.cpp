@@ -47,19 +47,35 @@ void Window::OnCameraAccelerate(std::function<void(float)> cb) {
 }
 
 void Window::Update(float delta_time) {
+	MSG msg = {};
+	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+	{
+		if (WM_QUIT == msg.message) {
+			should_close = true;
+		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
 }
 
 bool Window::ShouldClose() {
-	return false;
+	return should_close;
 }
 
 void Window::OnWindowResize(std::function<void(int, int)> cb) {
 }
 
 std::tuple<int, int> Window::GetWindowSize() {
-	return { 100, 200 };
+	switch (XSystemGetDeviceType())
+	{
+		case XSystemDeviceType::XboxOne:
+		case XSystemDeviceType::XboxOneS:
+		case XSystemDeviceType::XboxScarlettLockhart /* Xbox Series S */:
+			return { 1920, 1080 };
+		default:
+			return { 3840, 2160 };
+	}
 }
-
 
 #else
 

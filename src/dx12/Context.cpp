@@ -49,11 +49,7 @@ void Context::InitDevice()
 	// Create the DX12 API device object.
 	D3D12XBOX_CREATE_DEVICE_PARAMETERS params = {
 		.Version = D3D12_SDK_VERSION,
-#if defined(_DEBUG)
 		.ProcessDebugFlags = D3D12_PROCESS_DEBUG_FLAG_DEBUG_LAYER_ENABLED, // Enable the debug layer.
-#elif defined(PROFILE)
-		.ProcessDebugFlags = D3D12XBOX_PROCESS_DEBUG_FLAG_INSTRUMENTED, // Enable the instrumented driver.
-#endif
 		.GraphicsCommandQueueRingSizeBytes = static_cast<UINT>(D3D12XBOX_DEFAULT_SIZE_BYTES),
 		.GraphicsScratchMemorySizeBytes = static_cast<UINT>(D3D12XBOX_DEFAULT_SIZE_BYTES),
 		.ComputeScratchMemorySizeBytes = static_cast<UINT>(D3D12XBOX_DEFAULT_SIZE_BYTES),
