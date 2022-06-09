@@ -5,12 +5,127 @@
 #include "../Vertex.hpp"
 #include "../Utils.hpp"
 
+#include <winapi/Functions.hpp>
+
 using namespace winapi;
 
 namespace dx12 {
 
-ComPtr<ID3DBlob> LoadShader(const std::string& name)
+#define COMPILE_SHADERS_IN_RUNTIME 0
+
+#if COMPILE_SHADERS_IN_RUNTIME
+
+class DXCIncludeHandler : public IDxcIncludeHandler
 {
+public:
+	DXCIncludeHandler(const fs::path& include_path_) :
+		include_path(include_path_)
+	{
+		ThrowIfFailed(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&dxc_library)));
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override
+	{
+		fs::path file_path = include_path / std::wstring(pFilename);
+		IDxcBlobEncoding* blob = nullptr;
+		UINT32 code_page = CP_UTF8;
+		HRESULT hr = dxc_library->CreateBlobFromFile(file_path.wstring().c_str(), &code_page, &blob);
+		if (SUCCEEDED(hr)) {
+			*ppIncludeSource = blob;
+		}
+		return hr;
+	}
+
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject) override {
+		throw std::runtime_error("What do you want??");
+	}
+
+	ULONG STDMETHODCALLTYPE AddRef(void) override { return 0; }
+	ULONG STDMETHODCALLTYPE Release(void) override { return 0; }
+
+private:
+	fs::path include_path;
+	ComPtr<IDxcLibrary> dxc_library;
+};
+
+#endif
+
+ComPtr<IDxcBlob> LoadShader(const std::string& name)
+{
+#if COMPILE_SHADERS_IN_RUNTIME
+	fs::path path = GetAssetsDir() / "shaders" / "hlsl" / name;
+	std::wstring target_profile;
+	if (path.extension() == ".vert")
+	{
+		target_profile = TEXT("vs_6_0");
+	}
+	else if (path.extension() == ".frag")
+	{
+		target_profile = TEXT("ps_6_0");
+	}
+	else
+	{
+		throw std::runtime_error("Invalid file extension");
+	}
+	std::string src = LoadTextFile(path);
+
+	ComPtr<IDxcCompiler3> compiler;
+	ThrowIfFailed(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler)));
+
+	DXCIncludeHandler include_handler(path.parent_path());
+
+	ComPtr<IDxcResult> result;
+
+	DxcBuffer src_buffer = {
+		src.data(),
+		src.size(),
+		CP_UTF8
+	};
+
+	std::vector<LPCWSTR> args;
+
+	args.push_back(TEXT("-T"));
+	args.push_back(target_profile.c_str());
+	args.push_back(TEXT("-E"));
+	args.push_back(TEXT("main"));
+	args.push_back(TEXT("-Od"));
+	args.push_back(TEXT("-Zi"));
+	args.push_back(TEXT("-Zss"));
+	args.push_back(TEXT("-Qstrip_debug"));
+
+	ThrowIfFailed(compiler->Compile(
+		&src_buffer,
+		args.data(),
+		args.size(),
+		&include_handler,
+		IID_PPV_ARGS(&result)
+	));
+
+	ComPtr<IDxcBlob> Code;
+	result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&Code), nullptr);
+
+	ComPtr<IDxcBlobUtf8> Error;
+	result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&Error), nullptr);
+
+	if (Code->GetBufferSize() == 0) {
+		throw std::runtime_error(Error->GetStringPointer());
+	} else {
+		if (Error->GetStringLength() > 0) {
+			std::cerr << Error->GetStringPointer() << std::endl;
+		}
+	}
+
+	ComPtr<IDxcBlob> pdb;
+	ComPtr<IDxcBlobUtf16> pdb_name;
+	result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(&pdb), &pdb_name);
+
+	fs::path pdb_path = path.parent_path() / "pdb" / std::wstring(pdb_name->GetStringPointer());
+
+	SaveBinaryFile(pdb_path, (uint8_t*)pdb->GetBufferPointer(), pdb->GetBufferSize());
+
+	return Code;
+
+#else
 	std::string ext;
 #ifdef _GAMING_XBOX_SCARLETT
 	ext = ".scarlett.bin";
@@ -25,12 +140,13 @@ ComPtr<ID3DBlob> LoadShader(const std::string& name)
 	ThrowIfFailed(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)));
 	IDxcBlobEncoding* blob = nullptr;
 	ThrowIfFailed(utils->CreateBlob(data.data(), data.size(), 0, &blob));
-	return ComPtr<ID3DBlob>((ID3DBlob*)blob);
+	return ComPtr<IDxcBlob>(blob);
+#endif
 }
 
 ShaderProgram::ShaderProgram(const std::string& name) {
-	ComPtr<ID3DBlob> vertex_shader_blob = LoadShader(name + ".vert");
-	ComPtr<ID3DBlob> pixel_shader_blob = LoadShader(name + ".frag");;
+	ComPtr<IDxcBlob> vertex_shader_blob = LoadShader(name + ".vert");
+	ComPtr<IDxcBlob> pixel_shader_blob = LoadShader(name + ".frag");
 
 	D3D12_INPUT_ELEMENT_DESC input_layout[] = {
 		{ "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -60,8 +176,8 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	pipeline_state_stream.pRootSignature = g_context->root_signature;
 	pipeline_state_stream.InputLayout = { input_layout, _countof(input_layout) };
 	pipeline_state_stream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	pipeline_state_stream.VS = CD3DX12_SHADER_BYTECODE(vertex_shader_blob);
-	pipeline_state_stream.PS = CD3DX12_SHADER_BYTECODE(pixel_shader_blob);
+	pipeline_state_stream.VS = CD3DX12_SHADER_BYTECODE((ID3DBlob*)vertex_shader_blob.Get());
+	pipeline_state_stream.PS = CD3DX12_SHADER_BYTECODE((ID3DBlob*)pixel_shader_blob.Get());
 	pipeline_state_stream.Rasterizer = rasterizer;
 	pipeline_state_stream.DepthStencil = depth_stencil;
 	pipeline_state_stream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
@@ -71,7 +187,7 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	};
 
 	D3D12_PIPELINE_STATE_STREAM_DESC pipeline_state_stream_desc = {
-	    sizeof(pipeline_state_stream), &pipeline_state_stream
+		sizeof(pipeline_state_stream), &pipeline_state_stream
 	};
 	ThrowIfFailed(g_context->device->CreatePipelineState(&pipeline_state_stream_desc, IID_GRAPHICS_PPV_ARGS(&pipeline_state)));
 
@@ -79,11 +195,11 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	PopulateBindingsMap(pixel_shader_blob);
 }
 
-void ShaderProgram::PopulateBindingsMap(ComPtr<ID3DBlob> shader_blob)
+void ShaderProgram::PopulateBindingsMap(ComPtr<IDxcBlob> shader_blob)
 {
 	ComPtr<IDxcContainerReflection> container_reflection;
 	ThrowIfFailed(DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&container_reflection)));
-	ThrowIfFailed(container_reflection->Load((IDxcBlob*)(ID3DBlob*)shader_blob));
+	ThrowIfFailed(container_reflection->Load(shader_blob.Get()));
 	UINT32 shader_index = 0;
 	ThrowIfFailed(container_reflection->FindFirstPartKind(DXC_PART_DXIL, &shader_index));
 	ComPtr<ID3D12ShaderReflection> shader_reflection;

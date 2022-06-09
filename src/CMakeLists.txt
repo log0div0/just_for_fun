@@ -90,7 +90,6 @@ if (ENABLE_DX12)
 		"${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/*.frag")
 
 	foreach(SHADER_SRC ${HLSL_SRCS})
-
 		get_filename_component(SHADER_FILE_NAME ${SHADER_SRC} NAME)
 		get_filename_component(SHADER_FILE_EXT ${SHADER_SRC} EXT)
 		if (SHADER_FILE_EXT STREQUAL ".vert")
@@ -101,7 +100,7 @@ if (ENABLE_DX12)
 		set(SHADER_DST "${SHADER_SRC}${SHADER_BINARY_EXT}")
 		add_custom_command(
 			OUTPUT ${SHADER_DST}
-			COMMAND ${DXC_EXE} -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST} -rootsig-define ROOT_SIG
+			COMMAND ${DXC_EXE} -T ${TARGET_PROFILE} -E main ${SHADER_SRC} -Fo ${SHADER_DST} -rootsig-define ROOT_SIG -Od -Zi -Zss -Qstrip_debug -Fd ${CMAKE_SOURCE_DIR}/assets/shaders/hlsl/pdb/
 			DEPENDS ${SHADER_SRC}
 		)
 		add_custom_target(HLSL_${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})

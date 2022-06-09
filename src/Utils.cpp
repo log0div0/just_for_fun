@@ -47,6 +47,11 @@ std::string LoadTextFile(const fs::path& path) {
 	return str;
 }
 
+void SaveBinaryFile(const fs::path& path, const uint8_t* data, size_t size) {
+	std::ofstream f(path, std::ios::binary);
+	f.write((char*)data, size);
+}
+
 std::chrono::high_resolution_clock::time_point program_start = std::chrono::high_resolution_clock::now();
 
 float GetTimeSeconds() {

@@ -19,7 +19,7 @@ struct ShaderProgram: rhi::ShaderProgram {
 	winapi::ComPtr<ID3D12PipelineState> pipeline_state;
 
 private:
-	void PopulateBindingsMap(winapi::ComPtr<ID3DBlob> shader_blob);
+	void PopulateBindingsMap(winapi::ComPtr<IDxcBlob> shader_blob);
 
 	std::map<std::string, int> texture_bindings;
 };
