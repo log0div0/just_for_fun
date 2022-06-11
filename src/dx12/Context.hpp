@@ -99,9 +99,11 @@ struct Context: rhi::Context {
     D3D12_VIEWPORT viewport;
     D3D12_RECT scissor_rect;
 
+    void InitDepthStencilHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle = {};
+
 	void InitDepthStencilBuffer(int w, int h);
 	winapi::ComPtr<ID3D12Resource> depth_stencil_buffer;
-	D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle;
 
 	void InitFrames();
 	std::array<Frame, NUM_FRAMES_IN_FLIGHT> frames = {};

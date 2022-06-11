@@ -128,9 +128,11 @@ void Context::InitSwapchain(int w, int h)
 	scissor_rect = CD3DX12_RECT(0, 0, w, h);
 }
 
-void Context::InitDepthStencilBuffer(int w, int h) {
+void Context::InitDepthStencilHandle() {
 	dsv_handle = dsv_heap.alloc().cpu;
+}
 
+void Context::InitDepthStencilBuffer(int w, int h) {
 	{
 		CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_DEFAULT);
 		CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, w, h,
@@ -182,6 +184,7 @@ Context::Context(Window& window_): window(window_) {
 	InitHeaps();
 	InitQueues();
 	InitSwapchain(w, h);
+	InitDepthStencilHandle();
 	InitDepthStencilBuffer(w, h);
 	InitFrames();
 	window.OnWindowResize([&](int w, int h) {
