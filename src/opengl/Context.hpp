@@ -12,8 +12,7 @@ namespace opengl {
 
 struct Context: rhi::Context {
 	Context(Window& window_);
-
-	virtual ~Context() override {}
+	virtual ~Context() override;
 
 	virtual rhi::Texture2D* CreateTexture2D(const fs::path& path) override { return new Texture2D(path); }
 	virtual rhi::ShaderProgram* CreateShaderProgram(const std::string& name) override { return new ShaderProgram(name); }
@@ -28,11 +27,13 @@ struct Context: rhi::Context {
 	virtual void ImGuiNewFrame() override;
 	virtual void ImGuiRender() override;
 
-	virtual void CommitResources() override;
+	void CommitAll();
 
 	Window& window;
 
 	std::vector<mogl::UniformBuffer> gl_uniform_buffers;
 };
+
+extern Context* g_context;
 
 }

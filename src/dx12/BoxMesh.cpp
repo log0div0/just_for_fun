@@ -83,8 +83,10 @@ BoxMesh::BoxMesh() {
 	};
 }
 
-void BoxMesh::DoDraw(rhi::ShaderProgram& shader_rhi) {
+void BoxMesh::Draw(rhi::ShaderProgram& shader_rhi) {
 	auto& shader = static_cast<ShaderProgram&>(shader_rhi);
+
+	g_context->CommitAll();
 
 	g_context->command_list->SetPipelineState(shader.pipeline_state);
 

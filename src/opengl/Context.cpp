@@ -5,7 +5,11 @@
 
 namespace opengl {
 
+Context* g_context = nullptr;
+
 Context::Context(Window& window_): window(window_) {
+	g_context = this;
+
 	glfw::makeContextCurrent(window.GetGLFW());
 	glfw::swapInterval(0);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -31,6 +35,10 @@ Context::Context(Window& window_): window(window_) {
 		ub.setStorage(UNIFORM_BUFFER_SIZE, nullptr, GL_DYNAMIC_STORAGE_BIT);
 		gl_uniform_buffers.push_back(std::move(ub));
 	}
+}
+
+Context::~Context() {
+	g_context = nullptr;
 }
 
 void Context::Clear() {
@@ -61,7 +69,7 @@ void Context::ImGuiRender() {
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void Context::CommitResources() {
+void Context::CommitAll() {
 	for (size_t i = 0; i < uniform_buffers.size(); ++i) {
 		rhi::UniformBuffer& ub = uniform_buffers[i];
 		if (ub.GetSize()) {

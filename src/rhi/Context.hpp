@@ -60,8 +60,6 @@ struct Context {
 	virtual void ImGuiRender() = 0;
 #endif
 
-	virtual void CommitResources() = 0;
-
 	std::array<UniformBuffer, UNIFORM_BUFFERS_COUNT> uniform_buffers = {};
 };
 

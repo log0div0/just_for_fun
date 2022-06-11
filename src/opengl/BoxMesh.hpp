@@ -17,7 +17,7 @@ struct BoxMesh: rhi::BoxMesh {
 	void BindUV(GLuint location);
 	void BindNormal(GLuint location);
 
-	virtual void DoDraw(rhi::ShaderProgram& shader_rhi) override;
+	virtual void Draw(rhi::ShaderProgram& shader_rhi) override;
 
 	mogl::ArrayBuffer vertex_buffer;
 	// mogl::ElementArrayBuffer index_buffer;

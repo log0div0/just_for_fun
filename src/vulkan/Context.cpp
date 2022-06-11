@@ -428,4 +428,8 @@ void Context::WaitIdle() {
 	device.waitIdle();
 }
 
+void Context::CommitAll() {
+	// command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *app->pipeline_layout, 0, {*descriptor_set}, {});
+}
+
 }

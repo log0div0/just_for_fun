@@ -286,7 +286,7 @@ void Context::CommitCBs() {
 	current_frame->descriptor_table_refs.push_back(std::move(cbv_table));
 }
 
-void Context::CommitResources() {
+void Context::CommitAll() {
 	CommitCBs();
 	CommitSRVs();
 	CommitSamplers();

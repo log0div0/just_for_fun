@@ -76,8 +76,6 @@ struct Context: rhi::Context {
 	virtual void ImGuiRender() override;
 #endif
 
-	virtual void CommitResources() override;
-
 	void InitDevice();
 	winapi::ComPtr<ID3D12Device2> device;
 
@@ -112,6 +110,8 @@ struct Context: rhi::Context {
 	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
 
 	void Resize(int w, int h);
+
+	void CommitAll();
 
 	void CreateSRV(size_t root_parameter_index, Texture2D& texture);
 private:

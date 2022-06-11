@@ -34,8 +34,10 @@ void BoxMesh::BindNormal(GLuint location) {
 	vertex_array.enableAttrib(location);
 }
 
-void BoxMesh::DoDraw(rhi::ShaderProgram& shader_rhi) {
+void BoxMesh::Draw(rhi::ShaderProgram& shader_rhi) {
 	auto& shader = static_cast<ShaderProgram&>(shader_rhi);
+
+	g_context->CommitAll();
 
 	shader.shader_program.use();
 

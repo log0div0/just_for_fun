@@ -33,7 +33,7 @@ struct Context: rhi::Context {
 	virtual void ImGuiNewFrame() override;
 	virtual void ImGuiRender() override;
 
-	virtual void CommitResources() override {}
+	void CommitAll();
 
 	Window& window;
 
