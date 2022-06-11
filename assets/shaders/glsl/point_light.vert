@@ -1,8 +1,8 @@
 #version 460 core
 
-layout (location = 0) in vec3 aPos;
+layout (location=0) in vec3 aPos;
 
-layout (binding = 1) uniform Trololo {
+layout (set=0, binding=1) uniform Trololo {
 	mat4 MVP;
 };
 

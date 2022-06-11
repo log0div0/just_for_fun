@@ -89,4 +89,8 @@ void Image::EndFrame() {
 	command_buffer.end();
 }
 
+void Image::CommitAll() {
+	// command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *g_context->pipeline_layout, 0, {*descriptor_set}, {});
+}
+
 }

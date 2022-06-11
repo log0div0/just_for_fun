@@ -1,15 +1,18 @@
 #version 460 core
+#ifndef VULKAN
+#extension GL_KHR_vulkan_glsl : enable
+#endif
 
-layout (location = 0) in vec2 UV;
-layout (location = 1) in vec3 PosWS;
-layout (location = 2) in vec3 Normal;
+layout (location=0) in vec2 UV;
+layout (location=1) in vec3 PosWS;
+layout (location=2) in vec3 Normal;
 
-layout (location = 0) out vec4 FragColor;
+layout (location=0) out vec4 FragColor;
 
-layout (binding = 0) uniform sampler2D Wood;
-layout (binding = 1) uniform sampler2D Lambda;
+layout (set=1, binding=0) uniform sampler2D Wood;
+layout (set=1, binding=1) uniform sampler2D Lambda;
 
-layout (binding = 0) uniform Tralala {
+layout (set=0, binding=0) uniform Tralala {
 	vec3 ObjectColor;
 	vec3 LightColor;
 	vec3 LightPos;

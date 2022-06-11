@@ -23,11 +23,13 @@ BoxMesh::BoxMesh() {
 }
 
 void BoxMesh::Draw(rhi::ShaderProgram& shader_rhi) {
-	g_context->CommitAll();
+	auto& shader = static_cast<ShaderProgram&>(shader_rhi);
 
-	// command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *app->renderer->pipeline);
-	// command_buffer.bindVertexBuffers(0, {*app->mesh_buffer}, {0});
-	// command_buffer.drawIndexed((uint32_t)app->indices.size(), 1, 0, 0, 0);
+	g_context->current_image->CommitAll();
+
+	g_context->current_image->command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, shader.GetPipeline());
+	g_context->current_image->command_buffer.bindVertexBuffers(0, {*mesh_buffer}, {0});
+	// g_context->current_image->command_buffer.draw((uint32_t)box_vertices.size(), 1, 0, 0);
 }
 
 }

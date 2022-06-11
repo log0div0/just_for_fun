@@ -18,6 +18,8 @@ struct Image {
 
 	void BeginFrame();
 	void EndFrame();
+
+	void CommitAll();
 };
 
 }

@@ -16,6 +16,12 @@
 
 namespace vulkan {
 
+enum {
+	SRV_TABLE_SIZE = 8,
+	CBV_TABLE_SIZE = UNIFORM_BUFFERS_COUNT,
+	SAMPLER_TABLE_SIZE = 4
+};
+
 struct Context: rhi::Context {
 	Context(Window& window_);
 	virtual ~Context() override;
@@ -32,8 +38,6 @@ struct Context: rhi::Context {
 	virtual void ImGuiShutdown() override;
 	virtual void ImGuiNewFrame() override;
 	virtual void ImGuiRender() override;
-
-	void CommitAll();
 
 	Window& window;
 
@@ -59,8 +63,9 @@ struct Context: rhi::Context {
 	void InitQueue();
 	vk::raii::Queue queue = nullptr;
 
-	void InitDescriptorSetLayout();
-	vk::raii::DescriptorSetLayout descriptor_set_layout = nullptr;
+	void InitDescriptorSetLayouts();
+	vk::raii::DescriptorSetLayout cbv_set_layout = nullptr;
+	vk::raii::DescriptorSetLayout srv_set_layout = nullptr;
 
 	void InitDescriptorPool();
 	vk::raii::DescriptorPool descriptor_pool = nullptr;

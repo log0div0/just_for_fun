@@ -1,8 +1,8 @@
 #version 460 core
 
-layout (location = 0) out vec4 FragColor;
+layout (location=0) out vec4 FragColor;
 
-layout (binding = 0) uniform Tralala {
+layout (set=0, binding=0) uniform Tralala {
 	vec3 LightColor;
 };
 

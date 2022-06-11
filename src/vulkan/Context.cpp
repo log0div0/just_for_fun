@@ -154,32 +154,57 @@ void Context::InitQueue() {
 }
 
 
-void Context::InitDescriptorSetLayout() {
-	vk::DescriptorSetLayoutBinding binding{
-		.binding = 0,
-		.descriptorType = vk::DescriptorType::eUniformBuffer,
-		.descriptorCount = 1,
-		.stageFlags = vk::ShaderStageFlagBits::eVertex,
-	};
+void Context::InitDescriptorSetLayouts() {
+	{
+		std::vector<vk::DescriptorSetLayoutBinding> bindings;
+		for (uint32_t i = 0; i < CBV_TABLE_SIZE; ++i) {
+			vk::DescriptorSetLayoutBinding binding{
+				.binding = i,
+				.descriptorType = vk::DescriptorType::eUniformBuffer,
+				.descriptorCount = 1,
+				.stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+			};
+			bindings.push_back(binding);
+		}
 
-	vk::DescriptorSetLayoutCreateInfo info{
-		.sType = vk::StructureType::eDescriptorSetLayoutCreateInfo,
-		.bindingCount = 1,
-		.pBindings = &binding,
-	};
+		vk::DescriptorSetLayoutCreateInfo info{
+			.sType = vk::StructureType::eDescriptorSetLayoutCreateInfo,
+			.bindingCount = (uint32_t)bindings.size(),
+			.pBindings = bindings.data(),
+		};
 
-	descriptor_set_layout = vk::raii::DescriptorSetLayout(device, info);
+		cbv_set_layout = vk::raii::DescriptorSetLayout(device, info);
+	}
+	{
+		std::vector<vk::DescriptorSetLayoutBinding> bindings;
+		for (uint32_t i = 0; i < SRV_TABLE_SIZE; ++i) {
+			vk::DescriptorSetLayoutBinding binding{
+				.binding = i,
+				.descriptorType = vk::DescriptorType::eCombinedImageSampler,
+				.descriptorCount = 1,
+				.stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+			};
+			bindings.push_back(binding);
+		}
+		vk::DescriptorSetLayoutCreateInfo info{
+			.sType = vk::StructureType::eDescriptorSetLayoutCreateInfo,
+			.bindingCount = (uint32_t)bindings.size(),
+			.pBindings = bindings.data(),
+		};
+
+		srv_set_layout = vk::raii::DescriptorSetLayout(device, info);
+	}
 }
 
 void Context::InitDescriptorPool() {
 	vk::DescriptorPoolSize uniform_buffer_pool{
 		.type = vk::DescriptorType::eUniformBuffer,
-		.descriptorCount = image_count,
+		.descriptorCount = 1000,
 	};
 
 	vk::DescriptorPoolSize combined_image_sampler_pool{
 		.type = vk::DescriptorType::eCombinedImageSampler,
-		.descriptorCount = 10,
+		.descriptorCount = 1, // 1 for imgui
 	};
 
 	std::vector pools = {uniform_buffer_pool, combined_image_sampler_pool};
@@ -187,7 +212,7 @@ void Context::InitDescriptorPool() {
 	vk::DescriptorPoolCreateInfo info{
 		.sType = vk::StructureType::eDescriptorPoolCreateInfo,
 		.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-		.maxSets = image_count,
+		.maxSets = 1, // 1 for imgui
 		.poolSizeCount = (uint32_t)pools.size(),
 		.pPoolSizes = pools.data(),
 	};
@@ -196,7 +221,7 @@ void Context::InitDescriptorPool() {
 }
 
 void Context::InitPipelineLayout() {
-	std::vector<vk::DescriptorSetLayout> set_layouts { *descriptor_set_layout };
+	std::vector<vk::DescriptorSetLayout> set_layouts { *cbv_set_layout, *srv_set_layout };
 	vk::PipelineLayoutCreateInfo pipeline_layout_info {
 		.sType = vk::StructureType::ePipelineLayoutCreateInfo,
 		.setLayoutCount = (uint32_t)set_layouts.size(),
@@ -329,7 +354,7 @@ Context::Context(Window& window_): window(window_) {
 	InitPhysicalDevice();
 	InitDevice();
 	InitQueue();
-	InitDescriptorSetLayout();
+	InitDescriptorSetLayouts();
 	InitDescriptorPool();
 	InitPipelineLayout();
 	InitCommandPool();
@@ -426,10 +451,6 @@ void Context::Present() {
 
 void Context::WaitIdle() {
 	device.waitIdle();
-}
-
-void Context::CommitAll() {
-	// command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *app->pipeline_layout, 0, {*descriptor_set}, {});
 }
 
 }
