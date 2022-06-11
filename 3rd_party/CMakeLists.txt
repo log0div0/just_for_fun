@@ -9,6 +9,12 @@ if (NOT CMAKE_GENERATOR_PLATFORM MATCHES "^Gaming\\.Xbox")
 add_subdirectory(glfw-3.3.6)
 add_library(glad glad/glad.c)
 
+if (ENABLE_VULKAN)
+	file(TO_CMAKE_PATH "$ENV{VK_SDK_PATH}/Source/SPIRV-Reflect/" SPIRV_REFLECT_DIR)
+	add_library(spirv_reflect ${SPIRV_REFLECT_DIR}/spirv_reflect.c)
+	target_include_directories(spirv_reflect PUBLIC ${SPIRV_REFLECT_DIR})
+endif()
+
 set(IMGUI_SRCS
 	imgui-1.87/imgui.cpp
 	imgui-1.87/imgui_draw.cpp

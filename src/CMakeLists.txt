@@ -98,7 +98,7 @@ if (ENABLE_DX12)
 endif()
 
 if (ENABLE_VULKAN)
-	target_link_libraries(just_for_fun vulkan-1)
+	target_link_libraries(just_for_fun vulkan-1 spirv_reflect)
 
 	file(GLOB GLSL_SRCS
 		"${CMAKE_SOURCE_DIR}/assets/shaders/glsl/*.vert"
@@ -109,7 +109,7 @@ if (ENABLE_VULKAN)
 		set(SHADER_DST "${SHADER_SRC}.bin")
 		add_custom_command(
 			OUTPUT ${SHADER_DST}
-			COMMAND $ENV{VK_SDK_PATH}/bin/glslc.exe ${SHADER_SRC} -o ${SHADER_DST}
+			COMMAND $ENV{VK_SDK_PATH}/bin/glslc.exe ${SHADER_SRC} -o ${SHADER_DST} -O0 -g
 			DEPENDS ${SHADER_SRC}
 		)
 		add_custom_target(GLSL_${SHADER_FILE_NAME} DEPENDS ${SHADER_DST})
