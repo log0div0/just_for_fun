@@ -15,15 +15,18 @@ set(IMGUI_SRCS
 	imgui-1.87/imgui_tables.cpp
 	imgui-1.87/imgui_widgets.cpp
 	imgui-1.87/backends/imgui_impl_glfw.cpp
-	imgui-1.87/backends/imgui_impl_opengl3.cpp
-	imgui-1.87/backends/imgui_impl_vulkan.cpp
 )
 
+if (ENABLE_OPENGL)
+	list(APPEND IMGUI_SRCS imgui-1.87/backends/imgui_impl_opengl3.cpp)
+endif()
 
-if(WIN32)
-	list(APPEND IMGUI_SRCS
-		imgui-1.87/backends/imgui_impl_dx12.cpp
-	)
+if (ENABLE_VULKAN)
+	list(APPEND IMGUI_SRCS imgui-1.87/backends/imgui_impl_vulkan.cpp)
+endif()
+
+if (ENABLE_DX12)
+	list(APPEND IMGUI_SRCS imgui-1.87/backends/imgui_impl_dx12.cpp)
 endif()
 
 add_library(imgui ${IMGUI_SRCS})
@@ -33,16 +36,18 @@ target_include_directories(imgui PUBLIC
 	imgui-1.87/backends
 )
 
-target_link_libraries(imgui glfw vulkan-1)
+target_link_libraries(imgui glfw)
 
-add_executable(imgui_demo
-	imgui-1.87/imgui_demo.cpp
-	imgui-1.87/examples/example_glfw_opengl3/main.cpp
-)
+if (ENABLE_OPENGL)
+	add_executable(imgui_demo
+		imgui-1.87/imgui_demo.cpp
+		imgui-1.87/examples/example_glfw_opengl3/main.cpp
+	)
 
-target_link_libraries(imgui_demo imgui)
-if (WIN32)
-	target_link_libraries(imgui_demo opengl32)
+	target_link_libraries(imgui_demo imgui)
+	if (WIN32)
+		target_link_libraries(imgui_demo opengl32)
+	endif()
 endif()
 
 endif()

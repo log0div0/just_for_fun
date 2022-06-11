@@ -2,6 +2,17 @@ cmake_minimum_required(VERSION 3.15)
 
 project(just_for_fun)
 
+set(ENABLE_OPENGL 1)
+set(ENABLE_VULKAN 1)
+if (WIN32)
+	set(ENABLE_DX12 1)
+endif()
+
+if (CMAKE_GENERATOR_PLATFORM MATCHES "^Gaming\\.Xbox")
+	set(ENABLE_OPENGL 0)
+	set(ENABLE_VULKAN 0)
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 
 if(WIN32)
@@ -43,11 +54,10 @@ include_directories(${CMAKE_SOURCE_DIR}/lib)
 
 configure_file(${CMAKE_SOURCE_DIR}/MicrosoftGame.config ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/MicrosoftGame.config)
 
-include_directories(
-	$ENV{VK_SDK_PATH}/include
-	$ENV{VK_SDK_PATH}/include/dxc
-)
-link_directories($ENV{VK_SDK_PATH}/lib)
+if (ENABLE_VULKAN)
+	include_directories($ENV{VK_SDK_PATH}/include)
+	link_directories($ENV{VK_SDK_PATH}/lib)
+endif()
 
 add_subdirectory(3rd_party)
 add_subdirectory(lib)

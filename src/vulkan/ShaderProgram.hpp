@@ -17,6 +17,9 @@ struct ShaderProgram: rhi::ShaderProgram {
 	virtual void SetParam(const std::string& name, rhi::Texture2D& value) override {
 	}
 
+private:
+	vk::raii::ShaderModule LoadShaderModule(const std::string& path);
+
 	vk::raii::ShaderModule vertex_shader = nullptr;
 	vk::raii::ShaderModule fragment_shader = nullptr;
 };
