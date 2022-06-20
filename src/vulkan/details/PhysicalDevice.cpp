@@ -1,5 +1,5 @@
 
-#include "PhysicalDeviceSelector.hpp"
+#include "PhysicalDevice.hpp"
 #include <set>
 
 std::vector<const char*> GetRequiredDeviceExtensions() {
@@ -49,6 +49,18 @@ uint32_t ChooseGraphicsQueueFamilyIndex(const vk::raii::PhysicalDevice& device) 
 		}
 	}
 	throw std::runtime_error(__PRETTY_FUNCTION__);
+}
+
+
+uint32_t FindMemoryType(const vk::raii::PhysicalDevice& device, uint32_t memory_types, vk::MemoryPropertyFlags memory_props) {
+	vk::PhysicalDeviceMemoryProperties properties = device.getMemoryProperties();
+	for (uint32_t i = 0; i < properties.memoryTypeCount; i++) {
+		if ((memory_types & (1 << i)) && (properties.memoryTypes[i].propertyFlags & memory_props) == memory_props) {
+			return i;
+		}
+	}
+
+	throw std::runtime_error("failed to find suitable memory type!");
 }
 
 

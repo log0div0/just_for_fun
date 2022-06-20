@@ -29,7 +29,7 @@ void BoxMesh::Draw(rhi::ShaderProgram& shader_rhi) {
 
 	g_context->current_image->command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, shader.GetPipeline());
 	g_context->current_image->command_buffer.bindVertexBuffers(0, {*mesh_buffer}, {0});
-	// g_context->current_image->command_buffer.draw((uint32_t)box_vertices.size(), 1, 0, 0);
+	g_context->current_image->command_buffer.draw((uint32_t)box_vertices.size(), 1, 0, 0);
 }
 
 }

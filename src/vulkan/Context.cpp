@@ -1,5 +1,5 @@
 #include "Context.hpp"
-#include "details/PhysicalDeviceSelector.hpp"
+#include "details/PhysicalDevice.hpp"
 
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
@@ -154,6 +154,30 @@ void Context::InitQueue() {
 }
 
 
+void Context::InitDescriptorPool() {
+	vk::DescriptorPoolSize uniform_buffer_pool{
+		.type = vk::DescriptorType::eUniformBuffer,
+		.descriptorCount = 1000,
+	};
+
+	vk::DescriptorPoolSize combined_image_sampler_pool{
+		.type = vk::DescriptorType::eCombinedImageSampler,
+		.descriptorCount = 1000 + 1, // 1 for imgui
+	};
+
+	std::vector pools = {uniform_buffer_pool, combined_image_sampler_pool};
+
+	vk::DescriptorPoolCreateInfo info{
+		.sType = vk::StructureType::eDescriptorPoolCreateInfo,
+		.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+		.maxSets = (2 * image_count) + 1, // 1 for imgui
+		.poolSizeCount = (uint32_t)pools.size(),
+		.pPoolSizes = pools.data(),
+	};
+
+	descriptor_pool = vk::raii::DescriptorPool(device, info);
+}
+
 void Context::InitDescriptorSetLayouts() {
 	{
 		std::vector<vk::DescriptorSetLayoutBinding> bindings;
@@ -196,30 +220,6 @@ void Context::InitDescriptorSetLayouts() {
 	}
 }
 
-void Context::InitDescriptorPool() {
-	vk::DescriptorPoolSize uniform_buffer_pool{
-		.type = vk::DescriptorType::eUniformBuffer,
-		.descriptorCount = 1000,
-	};
-
-	vk::DescriptorPoolSize combined_image_sampler_pool{
-		.type = vk::DescriptorType::eCombinedImageSampler,
-		.descriptorCount = 1000 + 1, // 1 for imgui
-	};
-
-	std::vector pools = {uniform_buffer_pool, combined_image_sampler_pool};
-
-	vk::DescriptorPoolCreateInfo info{
-		.sType = vk::StructureType::eDescriptorPoolCreateInfo,
-		.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-		.maxSets = (2 * image_count) + 1, // 1 for imgui
-		.poolSizeCount = (uint32_t)pools.size(),
-		.pPoolSizes = pools.data(),
-	};
-
-	descriptor_pool = vk::raii::DescriptorPool(device, info);
-}
-
 void Context::InitPipelineLayout() {
 	std::vector<vk::DescriptorSetLayout> set_layouts { *cbv_set_layout, *srv_set_layout };
 	vk::PipelineLayoutCreateInfo pipeline_layout_info {
@@ -239,6 +239,10 @@ void Context::InitCommandPool() {
 	};
 
 	command_pool = vk::raii::CommandPool(device, command_pool_info);
+}
+
+void Context::InitNullTexture() {
+	null_texture.reset(new Texture2D(4, 4));
 }
 
 void Context::InitRenderPass() {
@@ -354,10 +358,11 @@ Context::Context(Window& window_): window(window_) {
 	InitPhysicalDevice();
 	InitDevice();
 	InitQueue();
-	InitDescriptorSetLayouts();
 	InitDescriptorPool();
+	InitDescriptorSetLayouts();
 	InitPipelineLayout();
 	InitCommandPool();
+	InitNullTexture();
 	InitRenderPass();
 	InitSwapchain(w, h);
 	InitImages();
@@ -451,6 +456,37 @@ void Context::Present() {
 
 void Context::WaitIdle() {
 	device.waitIdle();
+}
+
+vk::raii::CommandBuffer Context::BeginCommandBuffer() {
+	vk::CommandBufferAllocateInfo alloc_info{
+		.sType = vk::StructureType::eCommandBufferAllocateInfo,
+		.commandPool = *command_pool,
+		.level = vk::CommandBufferLevel::ePrimary,
+		.commandBufferCount = 1,
+	};
+
+	vk::raii::CommandBuffer command_buffer = std::move(vk::raii::CommandBuffers(device, alloc_info)[0]);
+	vk::CommandBufferBeginInfo begin_info{
+		.sType = vk::StructureType::eCommandBufferBeginInfo,
+		.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+	};
+	command_buffer.begin(begin_info);
+	return command_buffer;
+}
+
+void Context::EndCommandBuffer(vk::raii::CommandBuffer command_buffer) {
+	command_buffer.end();
+
+	std::vector<vk::CommandBuffer> command_buffers = {*command_buffer};
+	vk::SubmitInfo submit_info{
+		.sType = vk::StructureType::eSubmitInfo,
+		.commandBufferCount = (uint32_t)command_buffers.size(),
+		.pCommandBuffers = command_buffers.data(),
+	};
+
+	queue.submit({submit_info}, nullptr);
+	queue.waitIdle();
 }
 
 }

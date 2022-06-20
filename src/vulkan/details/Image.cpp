@@ -86,7 +86,7 @@ void Image::InitCBVSet() {
 	std::array<vk::DescriptorBufferInfo, CBV_TABLE_SIZE> buffer_info = {};
 	std::array<vk::WriteDescriptorSet, CBV_TABLE_SIZE> writes = {};
 
-	for (size_t i = 0; i < UNIFORM_BUFFERS_COUNT; ++i)
+	for (size_t i = 0; i < CBV_TABLE_SIZE; ++i)
 	{
 		buffer_info[i] = vk::DescriptorBufferInfo{
 			.buffer = *uniform_buffers[i],
@@ -118,6 +118,30 @@ void Image::InitSRVSet() {
 	};
 
 	srv_set = std::move(vk::raii::DescriptorSets(g_context->device, alloc_info)[0]);
+
+	std::array<vk::DescriptorImageInfo, SRV_TABLE_SIZE> image_info = {};
+	std::array<vk::WriteDescriptorSet, SRV_TABLE_SIZE> writes = {};
+
+	for (size_t i = 0; i < SRV_TABLE_SIZE; ++i)
+	{
+		image_info[i] = vk::DescriptorImageInfo{
+			.sampler = *g_context->null_texture->sampler,
+			.imageView = *g_context->null_texture->image_view,
+			.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+		};
+
+		writes[i] = vk::WriteDescriptorSet{
+			.sType = vk::StructureType::eWriteDescriptorSet,
+			.dstSet = *srv_set,
+			.dstBinding = (uint32_t)i,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = vk::DescriptorType::eCombinedImageSampler,
+			.pImageInfo = &image_info[i],
+		};
+	}
+
+	g_context->device.updateDescriptorSets(writes, {});
 }
 
 void Image::BeginFrame() {
@@ -128,7 +152,7 @@ void Image::BeginFrame() {
 	};
 	command_buffer.begin(begin_info);
 
-	vk::ClearColorValue clear_color(std::array<float,4>{0.0f, 0.0f, 0.0f, 1.0f});
+	vk::ClearColorValue clear_color(std::array<float,4>{0.2f, 0.3f, 0.3f, 1.0f});
 	std::vector<vk::ClearValue> clear_values = {clear_color};
 	vk::RenderPassBeginInfo begin_pass_info{
 		.sType = vk::StructureType::eRenderPassBeginInfo,
@@ -152,13 +176,16 @@ void Image::EndFrame() {
 void Image::CommitAll() {
 	for (size_t i = 0; i < UNIFORM_BUFFERS_COUNT; ++i) {
 		auto& src = g_context->uniform_buffers[i];
+		if (!src.GetSize()) {
+			continue;
+		}
 		auto& dst = uniform_buffers[i];
 		void* p = dst.memory.mapMemory(0, src.GetSize());
 		memcpy(p, src.GetData(), src.GetSize());
 		dst.memory.unmapMemory();
 		src.Reset();
 	}
-	// command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *g_context->pipeline_layout, 0, {*cbv_set, *srv_set}, {});
+	command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *g_context->pipeline_layout, 0, {*cbv_set, *srv_set}, {});
 }
 
 }

@@ -14,3 +14,5 @@ uint32_t ChooseGraphicsQueueFamilyIndex(const vk::raii::PhysicalDevice& device);
 
 size_t GetDeviceScore(const vk::raii::PhysicalDevice& device);
 std::function<bool(const vk::raii::PhysicalDevice&)> CreateDevicePredicate(const vk::raii::SurfaceKHR& surface);
+
+uint32_t FindMemoryType(const vk::raii::PhysicalDevice& device, uint32_t memory_types, vk::MemoryPropertyFlags memory_props);

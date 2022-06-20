@@ -63,18 +63,21 @@ struct Context: rhi::Context {
 	void InitQueue();
 	vk::raii::Queue queue = nullptr;
 
+	void InitDescriptorPool();
+	vk::raii::DescriptorPool descriptor_pool = nullptr;
+
 	void InitDescriptorSetLayouts();
 	vk::raii::DescriptorSetLayout cbv_set_layout = nullptr;
 	vk::raii::DescriptorSetLayout srv_set_layout = nullptr;
-
-	void InitDescriptorPool();
-	vk::raii::DescriptorPool descriptor_pool = nullptr;
 
 	void InitPipelineLayout();
 	vk::raii::PipelineLayout pipeline_layout = nullptr;
 
 	void InitCommandPool();
 	vk::raii::CommandPool command_pool = nullptr;
+
+	void InitNullTexture();
+	std::unique_ptr<Texture2D> null_texture;
 
 	void InitRenderPass();
 	vk::raii::RenderPass render_pass = nullptr;
@@ -94,6 +97,10 @@ struct Context: rhi::Context {
 
 	Image* current_image = nullptr;
 	Frame* current_frame = nullptr;
+
+	vk::raii::CommandBuffer BeginCommandBuffer();
+	void EndCommandBuffer(vk::raii::CommandBuffer command_buffer);
+
 };
 
 extern Context* g_context;
