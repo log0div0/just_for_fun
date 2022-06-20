@@ -204,7 +204,7 @@ void Context::InitDescriptorPool() {
 
 	vk::DescriptorPoolSize combined_image_sampler_pool{
 		.type = vk::DescriptorType::eCombinedImageSampler,
-		.descriptorCount = 1, // 1 for imgui
+		.descriptorCount = 1000 + 1, // 1 for imgui
 	};
 
 	std::vector pools = {uniform_buffer_pool, combined_image_sampler_pool};
@@ -212,7 +212,7 @@ void Context::InitDescriptorPool() {
 	vk::DescriptorPoolCreateInfo info{
 		.sType = vk::StructureType::eDescriptorPoolCreateInfo,
 		.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-		.maxSets = 1, // 1 for imgui
+		.maxSets = (2 * image_count) + 1, // 1 for imgui
 		.poolSizeCount = (uint32_t)pools.size(),
 		.pPoolSizes = pools.data(),
 	};

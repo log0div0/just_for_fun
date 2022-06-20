@@ -7,6 +7,9 @@ Image::Image(int index_): index(index_) {
 	InitImageView();
 	InitFramebuffer();
 	InitCommandBuffer();
+	InitUniformBuffers();
+	InitCBVSet();
+	InitSRVSet();
 }
 
 void Image::InitImageView() {
@@ -60,6 +63,63 @@ void Image::InitCommandBuffer() {
 	command_buffer = std::move(command_buffers[0]);
 }
 
+void Image::InitUniformBuffers() {
+	for (size_t i = 0; i < UNIFORM_BUFFERS_COUNT; ++i)
+	{
+		uniform_buffers[i] = Buffer(UNIFORM_BUFFER_SIZE,
+			vk::BufferUsageFlagBits::eUniformBuffer,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	}
+}
+
+void Image::InitCBVSet() {
+	std::vector<vk::DescriptorSetLayout> layouts { *g_context->cbv_set_layout };
+	vk::DescriptorSetAllocateInfo alloc_info{
+		.sType = vk::StructureType::eDescriptorSetAllocateInfo,
+		.descriptorPool = *g_context->descriptor_pool,
+		.descriptorSetCount = (uint32_t)layouts.size(),
+		.pSetLayouts = layouts.data(),
+	};
+
+	cbv_set = std::move(vk::raii::DescriptorSets(g_context->device, alloc_info)[0]);
+
+	std::array<vk::DescriptorBufferInfo, CBV_TABLE_SIZE> buffer_info = {};
+	std::array<vk::WriteDescriptorSet, CBV_TABLE_SIZE> writes = {};
+
+	for (size_t i = 0; i < UNIFORM_BUFFERS_COUNT; ++i)
+	{
+		buffer_info[i] = vk::DescriptorBufferInfo{
+			.buffer = *uniform_buffers[i],
+			.offset = 0,
+			.range = uniform_buffers[i].info.size,
+		};
+
+		writes[i] = vk::WriteDescriptorSet{
+			.sType = vk::StructureType::eWriteDescriptorSet,
+			.dstSet = *cbv_set,
+			.dstBinding = (uint32_t)i,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = vk::DescriptorType::eUniformBuffer,
+			.pBufferInfo = &buffer_info[i],
+		};
+	}
+
+	g_context->device.updateDescriptorSets(writes, {});
+}
+
+void Image::InitSRVSet() {
+	std::vector<vk::DescriptorSetLayout> layouts { *g_context->srv_set_layout };
+	vk::DescriptorSetAllocateInfo alloc_info{
+		.sType = vk::StructureType::eDescriptorSetAllocateInfo,
+		.descriptorPool = *g_context->descriptor_pool,
+		.descriptorSetCount = (uint32_t)layouts.size(),
+		.pSetLayouts = layouts.data(),
+	};
+
+	srv_set = std::move(vk::raii::DescriptorSets(g_context->device, alloc_info)[0]);
+}
+
 void Image::BeginFrame() {
 	command_buffer.reset();
 
@@ -90,7 +150,15 @@ void Image::EndFrame() {
 }
 
 void Image::CommitAll() {
-	// command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *g_context->pipeline_layout, 0, {*descriptor_set}, {});
+	for (size_t i = 0; i < UNIFORM_BUFFERS_COUNT; ++i) {
+		auto& src = g_context->uniform_buffers[i];
+		auto& dst = uniform_buffers[i];
+		void* p = dst.memory.mapMemory(0, src.GetSize());
+		memcpy(p, src.GetData(), src.GetSize());
+		dst.memory.unmapMemory();
+		src.Reset();
+	}
+	// command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *g_context->pipeline_layout, 0, {*cbv_set, *srv_set}, {});
 }
 
 }

@@ -7,7 +7,7 @@ namespace fs = ghc::filesystem;
 #include <array>
 
 enum {
-	UNIFORM_BUFFERS_COUNT = 8,
+	UNIFORM_BUFFERS_COUNT = 2,
 	UNIFORM_BUFFER_SIZE = 1024
 };
 
