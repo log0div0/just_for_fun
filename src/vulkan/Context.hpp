@@ -4,7 +4,6 @@
 #include "../rhi/Context.hpp"
 
 #include "details/Frame.hpp"
-#include "details/Image.hpp"
 
 #include <stack>
 
@@ -54,7 +53,7 @@ struct Context: rhi::Context {
 
 	vk::SurfaceFormatKHR surface_format = {};
 	vk::PresentModeKHR present_mode = {};
-	uint32_t image_count = 0;
+	uint32_t frame_count = 0;
 	uint32_t queue_family_index = 0;
 
 	void InitDevice();
@@ -87,15 +86,12 @@ struct Context: rhi::Context {
 	vk::SwapchainCreateInfoKHR swapchain_info = {};
 	vk::raii::SwapchainKHR swapchain = nullptr;
 
-	void InitImages();
-	std::vector<Image> images;
+	void InitNextFrameSemaphore();
+	vk::raii::Semaphore next_frame_semaphore = nullptr;
 
 	void InitFrames();
 	std::vector<Frame> frames;
-	std::stack<Frame*> free_frames;
-	std::vector<Frame*> image_to_frame_map;
 
-	Image* current_image = nullptr;
 	Frame* current_frame = nullptr;
 
 	vk::raii::CommandBuffer BeginCommandBuffer();

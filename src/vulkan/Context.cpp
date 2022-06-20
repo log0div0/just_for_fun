@@ -27,8 +27,8 @@ void Context::ImGuiInit() {
 		.PipelineCache = VK_NULL_HANDLE,
 		.DescriptorPool = *descriptor_pool,
 		.Subpass = 0,
-		.MinImageCount = image_count,
-		.ImageCount = image_count,
+		.MinImageCount = frame_count,
+		.ImageCount = frame_count,
 		.MSAASamples = VK_SAMPLE_COUNT_1_BIT,
 		.Allocator = nullptr,
 		.CheckVkResultFn = CheckVkResult,
@@ -78,7 +78,7 @@ void Context::ImGuiNewFrame() {
 }
 
 void Context::ImGuiRender() {
-	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *current_image->command_buffer);
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *current_frame->command_buffer);
 }
 
 void Context::InitVkInstance() {
@@ -120,7 +120,7 @@ void Context::InitPhysicalDevice() {
 
 	surface_format = ChooseSurfaceFormat(physical_device, surface);
 	present_mode = ChoosePresentMode(physical_device, surface);
-	image_count = ChooseImageCount(physical_device, surface);
+	frame_count = ChooseImageCount(physical_device, surface);
 
 	queue_family_index = ChooseGraphicsQueueFamilyIndex(physical_device);
 }
@@ -170,7 +170,7 @@ void Context::InitDescriptorPool() {
 	vk::DescriptorPoolCreateInfo info{
 		.sType = vk::StructureType::eDescriptorPoolCreateInfo,
 		.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-		.maxSets = (2 * image_count) + 1, // 1 for imgui
+		.maxSets = (2 * frame_count) + 1, // 1 for imgui
 		.poolSizeCount = (uint32_t)pools.size(),
 		.pPoolSizes = pools.data(),
 	};
@@ -299,11 +299,9 @@ void Context::InitRenderPass() {
 void Context::Resize(int w, int h) {
 	queue.waitIdle();
 	frames.clear();
-	images.clear();
 	swapchain = nullptr;
 	if (w && h) {
 		InitSwapchain(w, h);
-		InitImages();
 		InitFrames();
 	}
 }
@@ -312,7 +310,7 @@ void Context::InitSwapchain(int w, int h) {
 	swapchain_info = {
 		.sType = vk::StructureType::eSwapchainCreateInfoKHR,
 		.surface = *surface,
-		.minImageCount = image_count,
+		.minImageCount = frame_count,
 		.imageFormat = surface_format.format,
 		.imageColorSpace = surface_format.colorSpace,
 		.imageExtent = {
@@ -331,23 +329,17 @@ void Context::InitSwapchain(int w, int h) {
 	swapchain = vk::raii::SwapchainKHR(device, swapchain_info);
 }
 
-void Context::InitImages() {
-	for (int i = 0; i < image_count; ++i) {
-		images.push_back(Image(i));
-	}
+void Context::InitNextFrameSemaphore() {
+	vk::SemaphoreCreateInfo semaphore_info = {
+		.sType = vk::StructureType::eSemaphoreCreateInfo,
+	};
+	next_frame_semaphore = vk::raii::Semaphore(device, semaphore_info);
 }
 
 void Context::InitFrames() {
-	for (size_t i = 0; i < image_count + 1; ++i) {
-		frames.push_back(Frame());
+	for (size_t i = 0; i < frame_count; ++i) {
+		frames.push_back(Frame(i));
 	}
-
-	free_frames = {};
-	for (auto& frame: frames) {
-		free_frames.push(&frame);
-	}
-
-	image_to_frame_map = std::vector<Frame*>(images.size(), nullptr);
 }
 
 Context::Context(Window& window_): window(window_) {
@@ -365,7 +357,7 @@ Context::Context(Window& window_): window(window_) {
 	InitNullTexture();
 	InitRenderPass();
 	InitSwapchain(w, h);
-	InitImages();
+	InitNextFrameSemaphore();
 	InitFrames();
 
 	window.OnWindowResize([&](int w, int h) {
@@ -382,28 +374,24 @@ void Context::Clear() {
 		return;
 	}
 
-	current_frame = free_frames.top();
-
-	auto [result, image_index] = swapchain.acquireNextImage(UINT64_MAX, *current_frame->image_available_semaphore, nullptr);
+	auto [result, image_index] = swapchain.acquireNextImage(UINT64_MAX, *next_frame_semaphore, nullptr);
 	if (result != vk::Result::eSuccess) {
 		return;
 	}
-	current_image = &images.at(image_index);
 
-	free_frames.pop();
-
-	if (Frame* old_frame = image_to_frame_map[image_index]) {
-		vk::Result result = device.waitForFences(*old_frame->fence, true, UINT64_MAX);
+	if (current_frame) {
+		vk::Result result = device.waitForFences(*current_frame->fence, true, UINT64_MAX);
 		if (result != vk::Result::eSuccess) {
 			throw std::runtime_error("device.waitForFences() failed");
 		}
-		device.resetFences(*old_frame->fence);
-		free_frames.push(old_frame);
+		device.resetFences(*current_frame->fence);
 	}
 
-	image_to_frame_map[image_index] = current_frame;
+	current_frame = &frames.at(image_index);
 
-	current_image->BeginFrame();
+	std::swap(next_frame_semaphore, current_frame->image_available_semaphore);
+
+	current_frame->BeginFrame();
 }
 
 void Context::Present() {
@@ -411,12 +399,12 @@ void Context::Present() {
 		return;
 	}
 
-	current_image->EndFrame();
+	current_frame->EndFrame();
 
 	{
 		std::vector<vk::Semaphore> wait_semaphores = {*current_frame->image_available_semaphore};
 		std::vector<vk::PipelineStageFlags> wait_stages = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
-		std::vector<vk::CommandBuffer> command_buffers = {*current_image->command_buffer};
+		std::vector<vk::CommandBuffer> command_buffers = {*current_frame->command_buffer};
 		std::vector<vk::Semaphore> signal_semaphores = {*current_frame->render_finished_semaphore};
 
 		vk::SubmitInfo submit_info{
@@ -435,7 +423,7 @@ void Context::Present() {
 
 	{
 		std::vector<vk::Semaphore> wait_semaphores = {*current_frame->render_finished_semaphore};
-		std::vector<uint32_t> image_indexes = {(uint32_t)current_image->index};
+		std::vector<uint32_t> image_indexes = {(uint32_t)current_frame->index};
 		std::vector<vk::SwapchainKHR> swapchains = {*swapchain};
 
 		vk::PresentInfoKHR present_info {
