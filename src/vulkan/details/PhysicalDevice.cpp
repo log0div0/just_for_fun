@@ -4,7 +4,8 @@
 
 std::vector<const char*> GetRequiredDeviceExtensions() {
 	return {
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		VK_KHR_MAINTENANCE_1_EXTENSION_NAME
 	};
 };
 

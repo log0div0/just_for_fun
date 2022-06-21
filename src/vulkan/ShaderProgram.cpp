@@ -122,9 +122,9 @@ vk::Pipeline ShaderProgram::GetPipeline() {
 
 	vk::Viewport viewport{
 		.x = 0.0f,
-		.y = 0.0f,
+		.y = (float)g_context->swapchain_info.imageExtent.height,
 		.width = (float)g_context->swapchain_info.imageExtent.width,
-		.height = (float)g_context->swapchain_info.imageExtent.height,
+		.height = -(float)g_context->swapchain_info.imageExtent.height,
 		.minDepth = 0.0f,
 		.maxDepth = 1.0f,
 	};
