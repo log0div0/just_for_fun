@@ -7,9 +7,6 @@ Frame::Frame(int index_): index(index_) {
 	InitImageView();
 	InitFramebuffer();
 	InitCommandBuffer();
-	InitUniformBuffers();
-	InitCBVSet();
-	InitSRVSet();
 	InitSemaphores();
 	InitFence();
 }
@@ -65,87 +62,6 @@ void Frame::InitCommandBuffer() {
 	command_buffer = std::move(command_buffers[0]);
 }
 
-void Frame::InitUniformBuffers() {
-	for (size_t i = 0; i < UNIFORM_BUFFERS_COUNT; ++i)
-	{
-		uniform_buffers[i] = Buffer(UNIFORM_BUFFER_SIZE,
-			vk::BufferUsageFlagBits::eUniformBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-	}
-}
-
-void Frame::InitCBVSet() {
-	std::vector<vk::DescriptorSetLayout> layouts { *g_context->cbv_set_layout };
-	vk::DescriptorSetAllocateInfo alloc_info{
-		.sType = vk::StructureType::eDescriptorSetAllocateInfo,
-		.descriptorPool = *g_context->descriptor_pool,
-		.descriptorSetCount = (uint32_t)layouts.size(),
-		.pSetLayouts = layouts.data(),
-	};
-
-	cbv_set = std::move(vk::raii::DescriptorSets(g_context->device, alloc_info)[0]);
-
-	std::array<vk::DescriptorBufferInfo, CBV_TABLE_SIZE> buffer_info = {};
-	std::array<vk::WriteDescriptorSet, CBV_TABLE_SIZE> writes = {};
-
-	for (size_t i = 0; i < CBV_TABLE_SIZE; ++i)
-	{
-		buffer_info[i] = vk::DescriptorBufferInfo{
-			.buffer = *uniform_buffers[i],
-			.offset = 0,
-			.range = uniform_buffers[i].info.size,
-		};
-
-		writes[i] = vk::WriteDescriptorSet{
-			.sType = vk::StructureType::eWriteDescriptorSet,
-			.dstSet = *cbv_set,
-			.dstBinding = (uint32_t)i,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = vk::DescriptorType::eUniformBuffer,
-			.pBufferInfo = &buffer_info[i],
-		};
-	}
-
-	g_context->device.updateDescriptorSets(writes, {});
-}
-
-void Frame::InitSRVSet() {
-	std::vector<vk::DescriptorSetLayout> layouts { *g_context->srv_set_layout };
-	vk::DescriptorSetAllocateInfo alloc_info{
-		.sType = vk::StructureType::eDescriptorSetAllocateInfo,
-		.descriptorPool = *g_context->descriptor_pool,
-		.descriptorSetCount = (uint32_t)layouts.size(),
-		.pSetLayouts = layouts.data(),
-	};
-
-	srv_set = std::move(vk::raii::DescriptorSets(g_context->device, alloc_info)[0]);
-
-	std::array<vk::DescriptorImageInfo, SRV_TABLE_SIZE> image_info = {};
-	std::array<vk::WriteDescriptorSet, SRV_TABLE_SIZE> writes = {};
-
-	for (size_t i = 0; i < SRV_TABLE_SIZE; ++i)
-	{
-		image_info[i] = vk::DescriptorImageInfo{
-			.sampler = *g_context->null_texture->sampler,
-			.imageView = *g_context->null_texture->image_view,
-			.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
-		};
-
-		writes[i] = vk::WriteDescriptorSet{
-			.sType = vk::StructureType::eWriteDescriptorSet,
-			.dstSet = *srv_set,
-			.dstBinding = (uint32_t)i,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = vk::DescriptorType::eCombinedImageSampler,
-			.pImageInfo = &image_info[i],
-		};
-	}
-
-	g_context->device.updateDescriptorSets(writes, {});
-}
-
 void Frame::InitSemaphores() {
 	vk::SemaphoreCreateInfo semaphore_info = {
 		.sType = vk::StructureType::eSemaphoreCreateInfo,
@@ -190,19 +106,57 @@ void Frame::EndFrame() {
 	command_buffer.end();
 }
 
-void Frame::CommitAll() {
-	for (size_t i = 0; i < UNIFORM_BUFFERS_COUNT; ++i) {
-		auto& src = g_context->uniform_buffers[i];
-		if (!src.GetSize()) {
-			continue;
-		}
-		auto& dst = uniform_buffers[i];
-		void* p = dst.memory.mapMemory(0, src.GetSize());
-		memcpy(p, src.GetData(), src.GetSize());
-		dst.memory.unmapMemory();
-		src.Reset();
+void Frame::Submit() {
+	std::vector<vk::Semaphore> wait_semaphores = {*image_available_semaphore};
+	std::vector<vk::PipelineStageFlags> wait_stages = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+	std::vector<vk::CommandBuffer> command_buffers = {*command_buffer};
+	std::vector<vk::Semaphore> signal_semaphores = {*render_finished_semaphore};
+
+	vk::SubmitInfo submit_info{
+		.sType = vk::StructureType::eSubmitInfo,
+		.waitSemaphoreCount = (uint32_t)wait_semaphores.size(),
+		.pWaitSemaphores = wait_semaphores.data(),
+		.pWaitDstStageMask = wait_stages.data(),
+		.commandBufferCount = (uint32_t)command_buffers.size(),
+		.pCommandBuffers = command_buffers.data(),
+		.signalSemaphoreCount = (uint32_t)signal_semaphores.size(),
+		.pSignalSemaphores = signal_semaphores.data(),
+	};
+
+	g_context->queue.submit({submit_info}, *fence);
+}
+
+void Frame::Present() {
+	std::vector<vk::Semaphore> wait_semaphores = {*render_finished_semaphore};
+	std::vector<uint32_t> image_indexes = {(uint32_t)index};
+	std::vector<vk::SwapchainKHR> swapchains = {*g_context->swapchain};
+
+	vk::PresentInfoKHR present_info {
+		.sType = vk::StructureType::ePresentInfoKHR,
+		.waitSemaphoreCount = (uint32_t)wait_semaphores.size(),
+		.pWaitSemaphores = wait_semaphores.data(),
+		.swapchainCount = (uint32_t)swapchains.size(),
+		.pSwapchains = swapchains.data(),
+		.pImageIndices = image_indexes.data(),
+	};
+
+	vk::Result result = g_context->queue.presentKHR(present_info);
+	if (result != vk::Result::eSuccess) {
+		throw std::runtime_error("queue.presentKHR() failed");
 	}
-	command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *g_context->pipeline_layout, 0, {*cbv_set, *srv_set}, {});
+}
+
+void Frame::Wait() {
+	vk::Result result = g_context->device.waitForFences(*fence, true, UINT64_MAX);
+	if (result != vk::Result::eSuccess) {
+		throw std::runtime_error("device.waitForFences() failed");
+	}
+	g_context->device.resetFences(*fence);
+}
+
+void Frame::Reset() {
+	descriptor_set_refs.clear();
+	uniform_buffer_refs.clear();
 }
 
 }

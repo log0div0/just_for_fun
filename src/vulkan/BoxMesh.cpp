@@ -25,7 +25,7 @@ BoxMesh::BoxMesh() {
 void BoxMesh::Draw(rhi::ShaderProgram& shader_rhi) {
 	auto& shader = static_cast<ShaderProgram&>(shader_rhi);
 
-	g_context->current_frame->CommitAll();
+	g_context->CommitAll();
 
 	g_context->current_frame->command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, shader.GetPipeline());
 	g_context->current_frame->command_buffer.bindVertexBuffers(0, {*mesh_buffer}, {0});

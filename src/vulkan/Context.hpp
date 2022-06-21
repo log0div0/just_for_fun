@@ -97,6 +97,9 @@ struct Context: rhi::Context {
 	vk::raii::CommandBuffer BeginCommandBuffer();
 	void EndCommandBuffer(vk::raii::CommandBuffer command_buffer);
 
+	vk::raii::DescriptorSet CommitCBs();
+	vk::raii::DescriptorSet CommitSRVs();
+	void CommitAll();
 };
 
 extern Context* g_context;

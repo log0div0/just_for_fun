@@ -380,11 +380,8 @@ void Context::Clear() {
 	}
 
 	if (current_frame) {
-		vk::Result result = device.waitForFences(*current_frame->fence, true, UINT64_MAX);
-		if (result != vk::Result::eSuccess) {
-			throw std::runtime_error("device.waitForFences() failed");
-		}
-		device.resetFences(*current_frame->fence);
+		current_frame->Wait();
+		current_frame->Reset();
 	}
 
 	current_frame = &frames.at(image_index);
@@ -400,46 +397,8 @@ void Context::Present() {
 	}
 
 	current_frame->EndFrame();
-
-	{
-		std::vector<vk::Semaphore> wait_semaphores = {*current_frame->image_available_semaphore};
-		std::vector<vk::PipelineStageFlags> wait_stages = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
-		std::vector<vk::CommandBuffer> command_buffers = {*current_frame->command_buffer};
-		std::vector<vk::Semaphore> signal_semaphores = {*current_frame->render_finished_semaphore};
-
-		vk::SubmitInfo submit_info{
-			.sType = vk::StructureType::eSubmitInfo,
-			.waitSemaphoreCount = (uint32_t)wait_semaphores.size(),
-			.pWaitSemaphores = wait_semaphores.data(),
-			.pWaitDstStageMask = wait_stages.data(),
-			.commandBufferCount = (uint32_t)command_buffers.size(),
-			.pCommandBuffers = command_buffers.data(),
-			.signalSemaphoreCount = (uint32_t)signal_semaphores.size(),
-			.pSignalSemaphores = signal_semaphores.data(),
-		};
-
-		queue.submit({submit_info}, *current_frame->fence);
-	}
-
-	{
-		std::vector<vk::Semaphore> wait_semaphores = {*current_frame->render_finished_semaphore};
-		std::vector<uint32_t> image_indexes = {(uint32_t)current_frame->index};
-		std::vector<vk::SwapchainKHR> swapchains = {*swapchain};
-
-		vk::PresentInfoKHR present_info {
-			.sType = vk::StructureType::ePresentInfoKHR,
-			.waitSemaphoreCount = (uint32_t)wait_semaphores.size(),
-			.pWaitSemaphores = wait_semaphores.data(),
-			.swapchainCount = (uint32_t)swapchains.size(),
-			.pSwapchains = swapchains.data(),
-			.pImageIndices = image_indexes.data(),
-		};
-
-		vk::Result result = queue.presentKHR(present_info);
-		if (result != vk::Result::eSuccess) {
-			throw std::runtime_error("queue.presentKHR() failed");
-		}
-	}
+	current_frame->Submit();
+	current_frame->Present();
 }
 
 void Context::WaitIdle() {
@@ -475,6 +434,106 @@ void Context::EndCommandBuffer(vk::raii::CommandBuffer command_buffer) {
 
 	queue.submit({submit_info}, nullptr);
 	queue.waitIdle();
+}
+
+vk::raii::DescriptorSet Context::CommitCBs() {
+	std::vector<vk::DescriptorSetLayout> layouts { *cbv_set_layout };
+	vk::DescriptorSetAllocateInfo alloc_info{
+		.sType = vk::StructureType::eDescriptorSetAllocateInfo,
+		.descriptorPool = *descriptor_pool,
+		.descriptorSetCount = (uint32_t)layouts.size(),
+		.pSetLayouts = layouts.data(),
+	};
+
+	vk::raii::DescriptorSet cbv_set = std::move(vk::raii::DescriptorSets(device, alloc_info)[0]);
+
+	std::array<vk::DescriptorBufferInfo, CBV_TABLE_SIZE> buffer_info = {};
+	std::array<vk::WriteDescriptorSet, CBV_TABLE_SIZE> writes = {};
+
+	static_assert(CBV_TABLE_SIZE == UNIFORM_BUFFERS_COUNT);
+
+	for (size_t i = 0; i < UNIFORM_BUFFERS_COUNT; ++i)
+	{
+		Buffer dst(UNIFORM_BUFFER_SIZE,
+			vk::BufferUsageFlagBits::eUniformBuffer,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+		buffer_info[i] = vk::DescriptorBufferInfo{
+			.buffer = *dst,
+			.offset = 0,
+			.range = dst.info.size,
+		};
+
+		writes[i] = vk::WriteDescriptorSet{
+			.sType = vk::StructureType::eWriteDescriptorSet,
+			.dstSet = *cbv_set,
+			.dstBinding = (uint32_t)i,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = vk::DescriptorType::eUniformBuffer,
+			.pBufferInfo = &buffer_info[i],
+		};
+
+		rhi::UniformBuffer& src = uniform_buffers[i];
+		if (src.GetSize()) {
+			void* p = dst.memory.mapMemory(0, src.GetSize());
+			memcpy(p, src.GetData(), src.GetSize());
+			dst.memory.unmapMemory();
+			src.Reset();
+		}
+
+		current_frame->uniform_buffer_refs.push_back(std::move(dst));
+	}
+
+	device.updateDescriptorSets(writes, {});
+
+	return cbv_set;
+}
+
+vk::raii::DescriptorSet Context::CommitSRVs() {
+	std::vector<vk::DescriptorSetLayout> layouts { *srv_set_layout };
+	vk::DescriptorSetAllocateInfo alloc_info{
+		.sType = vk::StructureType::eDescriptorSetAllocateInfo,
+		.descriptorPool = *descriptor_pool,
+		.descriptorSetCount = (uint32_t)layouts.size(),
+		.pSetLayouts = layouts.data(),
+	};
+
+	vk::raii::DescriptorSet srv_set = std::move(vk::raii::DescriptorSets(device, alloc_info)[0]);
+
+	std::array<vk::DescriptorImageInfo, SRV_TABLE_SIZE> image_info = {};
+	std::array<vk::WriteDescriptorSet, SRV_TABLE_SIZE> writes = {};
+
+	for (size_t i = 0; i < SRV_TABLE_SIZE; ++i)
+	{
+		image_info[i] = vk::DescriptorImageInfo{
+			.sampler = *null_texture->sampler,
+			.imageView = *null_texture->image_view,
+			.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+		};
+
+		writes[i] = vk::WriteDescriptorSet{
+			.sType = vk::StructureType::eWriteDescriptorSet,
+			.dstSet = *srv_set,
+			.dstBinding = (uint32_t)i,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = vk::DescriptorType::eCombinedImageSampler,
+			.pImageInfo = &image_info[i],
+		};
+	}
+
+	device.updateDescriptorSets(writes, {});
+
+	return srv_set;
+}
+
+void Context::CommitAll() {
+	vk::raii::DescriptorSet cbv_set = CommitCBs();
+	vk::raii::DescriptorSet srv_set = CommitSRVs();
+	current_frame->command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *pipeline_layout, 0, {*cbv_set, *srv_set}, {});
+	current_frame->descriptor_set_refs.push_back(std::move(cbv_set));
+	current_frame->descriptor_set_refs.push_back(std::move(srv_set));
 }
 
 }

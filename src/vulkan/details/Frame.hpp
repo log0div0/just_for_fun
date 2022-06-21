@@ -19,15 +19,6 @@ struct Frame {
 	void InitCommandBuffer();
 	vk::raii::CommandBuffer command_buffer = nullptr;
 
-	void InitUniformBuffers();
-	std::array<Buffer, UNIFORM_BUFFERS_COUNT> uniform_buffers;
-
-	void InitCBVSet();
-	vk::raii::DescriptorSet cbv_set = nullptr;
-
-	void InitSRVSet();
-	vk::raii::DescriptorSet srv_set = nullptr;
-
 	void InitSemaphores();
 	vk::raii::Semaphore image_available_semaphore = nullptr;
 	vk::raii::Semaphore render_finished_semaphore = nullptr;
@@ -38,7 +29,13 @@ struct Frame {
 	void BeginFrame();
 	void EndFrame();
 
-	void CommitAll();
+	void Submit();
+	void Present();
+	void Wait();
+	void Reset();
+
+	std::vector<vk::raii::DescriptorSet> descriptor_set_refs;
+	std::vector<Buffer> uniform_buffer_refs;
 };
 
 }
