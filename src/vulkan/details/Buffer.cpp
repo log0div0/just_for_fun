@@ -30,10 +30,8 @@ Buffer::Buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryProper
 	buffer.bindMemory(*memory, 0);
 }
 
-Buffer::Buffer(uint8_t* data, size_t size):
-	Buffer(size,
-		vk::BufferUsageFlagBits::eTransferSrc,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)
+Buffer::Buffer(const uint8_t* data, size_t size, vk::BufferUsageFlags usage):
+	Buffer(size, usage, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)
 {
 	uint8_t* p = (uint8_t*)memory.mapMemory(0, size);
 	memcpy(p, data, size);

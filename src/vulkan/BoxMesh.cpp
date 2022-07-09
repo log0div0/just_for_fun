@@ -7,7 +7,7 @@ namespace vulkan {
 BoxMesh::BoxMesh() {
 	size_t buffer_size = sizeof(box_vertices[0]) * box_vertices.size();
 
-	Buffer staging_buffer((uint8_t*)box_vertices.data(), buffer_size);
+	Buffer staging_buffer((uint8_t*)box_vertices.data(), buffer_size, vk::BufferUsageFlagBits::eTransferSrc);
 
 	mesh_buffer = Buffer(buffer_size,
 		vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer,

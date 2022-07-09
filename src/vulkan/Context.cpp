@@ -89,7 +89,8 @@ void Context::InitVkInstance() {
 		"VK_LAYER_KHRONOS_validation",
 #endif
 	};
-	const std::vector<const char*> extensions = glfw::getRequiredInstanceExtensions();
+	std::vector<const char*> extensions = glfw::getRequiredInstanceExtensions();
+	extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
 	vk::InstanceCreateInfo instance_info {
 		.sType = vk::StructureType::eInstanceCreateInfo,
@@ -128,6 +129,11 @@ void Context::InitPhysicalDevice() {
 }
 
 void Context::InitDevice() {
+	vk::PhysicalDeviceDescriptorIndexingFeatures descriptor_indexing_features {
+		.sType = vk::StructureType::ePhysicalDeviceDescriptorIndexingFeatures,
+		.descriptorBindingPartiallyBound = true,
+	};
+
 	std::vector<float> priorities = {1.0f};
 
 	vk::DeviceQueueCreateInfo device_queue_info {
@@ -142,6 +148,7 @@ void Context::InitDevice() {
 
 	vk::DeviceCreateInfo device_info {
 		.sType = vk::StructureType::eDeviceCreateInfo,
+		.pNext = &descriptor_indexing_features,
 		.queueCreateInfoCount = (uint32_t)device_queue_infos.size(),
 		.pQueueCreateInfos = device_queue_infos.data(),
 		.enabledExtensionCount = (uint32_t)device_extensions.size(),
@@ -183,6 +190,7 @@ void Context::InitDescriptorPool() {
 void Context::InitDescriptorSetLayouts() {
 	{
 		std::vector<vk::DescriptorSetLayoutBinding> bindings;
+		std::vector<vk::DescriptorBindingFlags> binding_flags;
 		for (uint32_t i = 0; i < CBV_TABLE_SIZE; ++i) {
 			vk::DescriptorSetLayoutBinding binding{
 				.binding = i,
@@ -191,10 +199,16 @@ void Context::InitDescriptorSetLayouts() {
 				.stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
 			};
 			bindings.push_back(binding);
+			binding_flags.push_back(vk::DescriptorBindingFlagBits::ePartiallyBound);
 		}
-
+		vk::DescriptorSetLayoutBindingFlagsCreateInfo binding_flags_info {
+			.sType = vk::StructureType::eDescriptorSetLayoutBindingFlagsCreateInfo,
+			.bindingCount = (uint32_t)binding_flags.size(),
+			.pBindingFlags = binding_flags.data(),
+		};
 		vk::DescriptorSetLayoutCreateInfo info{
 			.sType = vk::StructureType::eDescriptorSetLayoutCreateInfo,
+			.pNext = &binding_flags_info,
 			.bindingCount = (uint32_t)bindings.size(),
 			.pBindings = bindings.data(),
 		};
@@ -203,6 +217,7 @@ void Context::InitDescriptorSetLayouts() {
 	}
 	{
 		std::vector<vk::DescriptorSetLayoutBinding> bindings;
+		std::vector<vk::DescriptorBindingFlags> binding_flags;
 		for (uint32_t i = 0; i < SRV_TABLE_SIZE; ++i) {
 			vk::DescriptorSetLayoutBinding binding{
 				.binding = i,
@@ -211,9 +226,16 @@ void Context::InitDescriptorSetLayouts() {
 				.stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
 			};
 			bindings.push_back(binding);
+			binding_flags.push_back(vk::DescriptorBindingFlagBits::ePartiallyBound);
 		}
+		vk::DescriptorSetLayoutBindingFlagsCreateInfo binding_flags_info {
+			.sType = vk::StructureType::eDescriptorSetLayoutBindingFlagsCreateInfo,
+			.bindingCount = (uint32_t)binding_flags.size(),
+			.pBindingFlags = binding_flags.data(),
+		};
 		vk::DescriptorSetLayoutCreateInfo info{
 			.sType = vk::StructureType::eDescriptorSetLayoutCreateInfo,
+			.pNext = &binding_flags_info,
 			.bindingCount = (uint32_t)bindings.size(),
 			.pBindings = bindings.data(),
 		};
@@ -241,75 +263,6 @@ void Context::InitCommandPool() {
 	};
 
 	command_pool = vk::raii::CommandPool(device, command_pool_info);
-}
-
-void Context::InitNullTexture() {
-	null_texture.format = vk::Format::eR8G8B8A8Srgb;
-
-	vk::ImageCreateInfo image_info{
-		.sType = vk::StructureType::eImageCreateInfo,
-		.imageType = vk::ImageType::e2D,
-		.format = null_texture.format,
-		.extent = {
-			.width = 4,
-			.height = 4,
-			.depth = 1,
-		},
-		.mipLevels = 1,
-		.arrayLayers = 1,
-		.samples = vk::SampleCountFlagBits::e1,
-		.tiling = vk::ImageTiling::eOptimal,
-		.usage = vk::ImageUsageFlagBits::eSampled,
-		.sharingMode = vk::SharingMode::eExclusive,
-		.initialLayout = vk::ImageLayout::eUndefined,
-
-	};
-
-	null_texture.image = vk::raii::Image(device, image_info);
-	null_texture.InitMemory();
-
-	vk::ImageViewCreateInfo view_info{
-		.sType = vk::StructureType::eImageViewCreateInfo,
-		.image = *null_texture.image,
-		.viewType = vk::ImageViewType::e2D,
-		.format = null_texture.format,
-		.subresourceRange = {
-			.aspectMask = vk::ImageAspectFlagBits::eColor,
-			.baseMipLevel = 0,
-			.levelCount = 1,
-			.baseArrayLayer = 0,
-			.layerCount = 1,
-		},
-	};
-
-	null_texture.image_view = vk::raii::ImageView(device, view_info);
-
-	vk::raii::CommandBuffer command_buffer = BeginCommandBuffer();
-	SCOPE_SUCCESS{ EndCommandBuffer(std::move(command_buffer)); };
-
-	vk::ImageMemoryBarrier barrier{
-		.sType = vk::StructureType::eImageMemoryBarrier,
-		.srcAccessMask = vk::AccessFlagBits::eNone,
-		.dstAccessMask = vk::AccessFlagBits::eShaderRead,
-		.oldLayout = vk::ImageLayout::eUndefined,
-		.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
-		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.image = *null_texture.image,
-		.subresourceRange = {
-			.aspectMask = vk::ImageAspectFlagBits::eColor,
-			.baseMipLevel = 0,
-			.levelCount = 1,
-			.baseArrayLayer = 0,
-			.layerCount = 1,
-		}
-	};
-
-	command_buffer.pipelineBarrier(
-		vk::PipelineStageFlagBits::eTopOfPipe,
-		vk::PipelineStageFlagBits::eFragmentShader,
-		vk::DependencyFlags{},
-		{}, {}, {barrier});
 }
 
 void Context::InitDepthStencilTexture(int w, int h) {
@@ -509,7 +462,6 @@ Context::Context(Window& window_): window(window_) {
 	InitDescriptorSetLayouts();
 	InitPipelineLayout();
 	InitCommandPool();
-	InitNullTexture();
 	InitDepthStencilTexture(w, h);
 	InitDefaultSampler();
 	InitRenderPass();
@@ -606,44 +558,40 @@ vk::raii::DescriptorSet Context::CommitCBs() {
 	vk::raii::DescriptorSet cbv_set = std::move(vk::raii::DescriptorSets(device, alloc_info)[0]);
 
 	std::array<vk::DescriptorBufferInfo, CBV_TABLE_SIZE> buffer_info = {};
-	std::array<vk::WriteDescriptorSet, CBV_TABLE_SIZE> writes = {};
+	std::vector<vk::WriteDescriptorSet> writes = {};
 
 	static_assert(CBV_TABLE_SIZE == UNIFORM_BUFFERS_COUNT);
 
 	for (size_t i = 0; i < UNIFORM_BUFFERS_COUNT; ++i)
 	{
-		Buffer dst(UNIFORM_BUFFER_SIZE,
-			vk::BufferUsageFlagBits::eUniformBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-
-		buffer_info[i] = vk::DescriptorBufferInfo{
-			.buffer = *dst,
-			.offset = 0,
-			.range = dst.info.size,
-		};
-
-		writes[i] = vk::WriteDescriptorSet{
-			.sType = vk::StructureType::eWriteDescriptorSet,
-			.dstSet = *cbv_set,
-			.dstBinding = (uint32_t)i,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = vk::DescriptorType::eUniformBuffer,
-			.pBufferInfo = &buffer_info[i],
-		};
-
 		rhi::UniformBuffer& src = uniform_buffers[i];
 		if (src.GetSize()) {
-			void* p = dst.memory.mapMemory(0, src.GetSize());
-			memcpy(p, src.GetData(), src.GetSize());
-			dst.memory.unmapMemory();
+			Buffer dst(src.GetData(), src.GetSize(), vk::BufferUsageFlagBits::eUniformBuffer);
 			src.Reset();
-		}
 
-		current_frame->uniform_buffer_refs.push_back(std::move(dst));
+			buffer_info[i] = vk::DescriptorBufferInfo{
+				.buffer = *dst,
+				.offset = 0,
+				.range = dst.info.size,
+			};
+
+			writes.push_back(vk::WriteDescriptorSet{
+				.sType = vk::StructureType::eWriteDescriptorSet,
+				.dstSet = *cbv_set,
+				.dstBinding = (uint32_t)i,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = vk::DescriptorType::eUniformBuffer,
+				.pBufferInfo = &buffer_info[i],
+			});
+
+			current_frame->uniform_buffer_refs.push_back(std::move(dst));
+		}
 	}
 
-	device.updateDescriptorSets(writes, {});
+	if (writes.size()) {
+		device.updateDescriptorSets(writes, {});
+	}
 
 	return cbv_set;
 }
@@ -654,7 +602,6 @@ void Context::InitSRVTable() {
 	{
 		srv_table[i] = vk::DescriptorImageInfo{
 			.sampler = *default_sampler,
-			.imageView = *null_texture.image_view,
 			.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
 		};
 	}
@@ -675,24 +622,27 @@ vk::raii::DescriptorSet Context::CommitSRVs() {
 
 	vk::raii::DescriptorSet srv_set = std::move(vk::raii::DescriptorSets(device, alloc_info)[0]);
 
-	std::array<vk::WriteDescriptorSet, SRV_TABLE_SIZE> writes = {};
+	std::vector<vk::WriteDescriptorSet> writes;
 
 	for (size_t i = 0; i < SRV_TABLE_SIZE; ++i)
 	{
-		writes[i] = vk::WriteDescriptorSet{
-			.sType = vk::StructureType::eWriteDescriptorSet,
-			.dstSet = *srv_set,
-			.dstBinding = (uint32_t)i,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = vk::DescriptorType::eCombinedImageSampler,
-			.pImageInfo = &srv_table[i],
-		};
+		if (srv_table[i].imageView) {
+			writes.push_back(vk::WriteDescriptorSet{
+				.sType = vk::StructureType::eWriteDescriptorSet,
+				.dstSet = *srv_set,
+				.dstBinding = (uint32_t)i,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = vk::DescriptorType::eCombinedImageSampler,
+				.pImageInfo = &srv_table[i],
+			});
+		}
 	}
 
-	device.updateDescriptorSets(writes, {});
-
-	InitSRVTable();
+	if (writes.size()) {
+		device.updateDescriptorSets(writes, {});
+		InitSRVTable();
+	}
 
 	return srv_set;
 }
