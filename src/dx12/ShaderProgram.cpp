@@ -237,7 +237,7 @@ void ShaderProgram::PopulateBindingsMap(ComPtr<IDxcBlob> shader_blob)
 void ShaderProgram::SetParam(const std::string& name, rhi::Texture2D& value_rhi) {
 	auto& value = static_cast<Texture2D&>(value_rhi);
 	int binding = texture_bindings.at(name);
-	g_context->CreateSRV(binding, value);
+	g_context->SetSRV(binding, value);
 }
 
 }

@@ -30,6 +30,16 @@ Buffer::Buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryProper
 	buffer.bindMemory(*memory, 0);
 }
 
+Buffer::Buffer(uint8_t* data, size_t size):
+	Buffer(size,
+		vk::BufferUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)
+{
+	uint8_t* p = (uint8_t*)memory.mapMemory(0, size);
+	memcpy(p, data, size);
+	memory.unmapMemory();
+}
+
 void Buffer::copy_to(Buffer& other) {
 	if (this->info.size > other.info.size) {
 		throw std::runtime_error("src size > dst size");

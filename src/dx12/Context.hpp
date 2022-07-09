@@ -113,7 +113,7 @@ struct Context: rhi::Context {
 
 	void CommitAll();
 
-	void CreateSRV(size_t root_parameter_index, Texture2D& texture);
+	void SetSRV(size_t root_parameter_index, Texture2D& texture);
 private:
 	void CommitCBs();
 

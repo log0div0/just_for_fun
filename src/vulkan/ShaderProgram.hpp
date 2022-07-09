@@ -14,8 +14,7 @@ namespace vulkan {
 struct ShaderProgram: rhi::ShaderProgram {
 	ShaderProgram(const std::string& name);
 
-	virtual void SetParam(const std::string& name, rhi::Texture2D& value) override {
-	}
+	virtual void SetParam(const std::string& name, rhi::Texture2D& value) override;
 
 	vk::Pipeline GetPipeline();
 
@@ -29,6 +28,8 @@ private:
 	uint16_t h = 0;
 
 	vk::raii::Pipeline pipeline = nullptr;
+
+	std::map<std::string, int> texture_bindings;
 };
 
 }

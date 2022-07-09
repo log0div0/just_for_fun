@@ -103,9 +103,14 @@ struct Context: rhi::Context {
 	vk::raii::CommandBuffer BeginCommandBuffer();
 	void EndCommandBuffer(vk::raii::CommandBuffer command_buffer);
 
+	void SetSRV(size_t binding, Texture2D& texture);
+
 	vk::raii::DescriptorSet CommitCBs();
 	vk::raii::DescriptorSet CommitSRVs();
 	void CommitAll();
+
+	void InitSRVTable();
+	std::array<vk::DescriptorImageInfo, SRV_TABLE_SIZE> srv_table = {};
 };
 
 extern Context* g_context;

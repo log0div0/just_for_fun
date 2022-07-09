@@ -12,9 +12,7 @@ namespace vulkan {
 
 struct Texture2D: rhi::Texture2D {
 	Texture2D() = default;
-	Texture2D(const fs::path& path)
-	{
-	}
+	Texture2D(const fs::path& path);
 
 	vk::Format format = vk::Format::eUndefined;
 

@@ -516,6 +516,7 @@ Context::Context(Window& window_): window(window_) {
 	InitSwapchain(w, h);
 	InitNextFrameSemaphore();
 	InitFrames();
+	InitSRVTable();
 
 	window.OnWindowResize([&](int w, int h) {
 		Resize(w, h);
@@ -647,6 +648,22 @@ vk::raii::DescriptorSet Context::CommitCBs() {
 	return cbv_set;
 }
 
+
+void Context::InitSRVTable() {
+	for (size_t i = 0; i < SRV_TABLE_SIZE; ++i)
+	{
+		srv_table[i] = vk::DescriptorImageInfo{
+			.sampler = *default_sampler,
+			.imageView = *null_texture.image_view,
+			.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+		};
+	}
+}
+
+void Context::SetSRV(size_t binding, Texture2D& texture) {
+	srv_table[binding].imageView = *texture.image_view;
+}
+
 vk::raii::DescriptorSet Context::CommitSRVs() {
 	std::vector<vk::DescriptorSetLayout> layouts { *srv_set_layout };
 	vk::DescriptorSetAllocateInfo alloc_info{
@@ -658,17 +675,10 @@ vk::raii::DescriptorSet Context::CommitSRVs() {
 
 	vk::raii::DescriptorSet srv_set = std::move(vk::raii::DescriptorSets(device, alloc_info)[0]);
 
-	std::array<vk::DescriptorImageInfo, SRV_TABLE_SIZE> image_info = {};
 	std::array<vk::WriteDescriptorSet, SRV_TABLE_SIZE> writes = {};
 
 	for (size_t i = 0; i < SRV_TABLE_SIZE; ++i)
 	{
-		image_info[i] = vk::DescriptorImageInfo{
-			.sampler = *default_sampler,
-			.imageView = *null_texture.image_view,
-			.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
-		};
-
 		writes[i] = vk::WriteDescriptorSet{
 			.sType = vk::StructureType::eWriteDescriptorSet,
 			.dstSet = *srv_set,
@@ -676,11 +686,13 @@ vk::raii::DescriptorSet Context::CommitSRVs() {
 			.dstArrayElement = 0,
 			.descriptorCount = 1,
 			.descriptorType = vk::DescriptorType::eCombinedImageSampler,
-			.pImageInfo = &image_info[i],
+			.pImageInfo = &srv_table[i],
 		};
 	}
 
 	device.updateDescriptorSets(writes, {});
+
+	InitSRVTable();
 
 	return srv_set;
 }

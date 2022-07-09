@@ -293,7 +293,7 @@ void Context::CommitAll() {
 	CommitSamplers();
 }
 
-void Context::CreateSRV(size_t root_parameter_index, Texture2D& texture) {
+void Context::SetSRV(size_t root_parameter_index, Texture2D& texture) {
 	if (srv_table.GetSize() == 0) {
 		srv_table = DescriptorTable(&view_heap, SRV_TABLE_SIZE);
 	}

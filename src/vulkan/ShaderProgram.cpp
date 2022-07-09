@@ -68,6 +68,8 @@ vk::raii::ShaderModule ShaderProgram::LoadShaderModule(const std::string& path) 
 						member.offset
 					});
 				}
+			} else if (descriptor->resource_type & SPV_REFLECT_RESOURCE_FLAG_SRV) {
+				texture_bindings.emplace(descriptor->name, descriptor->binding);
 			}
 		}
 	}
@@ -78,6 +80,12 @@ vk::raii::ShaderModule ShaderProgram::LoadShaderModule(const std::string& path) 
 		.pCode = reinterpret_cast<const uint32_t*>(code.data()),
 	};
 	return vk::raii::ShaderModule(g_context->device, create_info);
+}
+
+void ShaderProgram::SetParam(const std::string& name, rhi::Texture2D& value_rhi) {
+	auto& value = static_cast<Texture2D&>(value_rhi);
+	int binding = texture_bindings.at(name);
+	g_context->SetSRV(binding, value);
 }
 
 vk::Pipeline ShaderProgram::GetPipeline() {

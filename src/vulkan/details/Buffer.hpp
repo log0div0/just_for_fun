@@ -8,6 +8,7 @@ namespace vulkan {
 struct Buffer {
 	Buffer() = default;
 	Buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties);
+	Buffer(uint8_t* data, size_t size);
 
 	void copy_to(Buffer& other);
 
