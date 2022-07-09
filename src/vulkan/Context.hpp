@@ -78,6 +78,9 @@ struct Context: rhi::Context {
 	void InitNullTexture();
 	Texture2D null_texture;
 
+	void InitDepthStencilTexture(int w, int h);
+	Texture2D depth_stencil_texture;
+
 	void InitDefaultSampler();
 	vk::raii::Sampler default_sampler = nullptr;
 

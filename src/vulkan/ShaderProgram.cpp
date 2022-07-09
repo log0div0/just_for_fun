@@ -177,6 +177,12 @@ vk::Pipeline ShaderProgram::GetPipeline() {
 
 	std::vector<vk::PipelineShaderStageCreateInfo> shader_stages = {vertex_stage_info, fragment_stage_info};
 
+	vk::PipelineDepthStencilStateCreateInfo depth_stencil_state = {
+		.depthTestEnable = true,
+		.depthWriteEnable = true,
+		.depthCompareOp = vk::CompareOp::eGreater,
+	};
+
 	vk::GraphicsPipelineCreateInfo pipeline_info {
 		.sType = vk::StructureType::eGraphicsPipelineCreateInfo,
 
@@ -188,7 +194,7 @@ vk::Pipeline ShaderProgram::GetPipeline() {
 		.pViewportState = &viewport_info,
 		.pRasterizationState = &rasterization_info,
 		.pMultisampleState = &multisample_info,
-		.pDepthStencilState = nullptr,
+		.pDepthStencilState = &depth_stencil_state,
 		.pColorBlendState = &color_blend_info,
 		.pDynamicState = nullptr,
 

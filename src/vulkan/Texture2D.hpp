@@ -18,13 +18,11 @@ struct Texture2D: rhi::Texture2D {
 
 	vk::Format format = vk::Format::eUndefined;
 
-	void InitImage(size_t w, size_t h);
 	vk::raii::Image image = nullptr;
 
 	void InitMemory();
 	vk::raii::DeviceMemory memory = nullptr;
 
-	void InitImageView();
 	vk::raii::ImageView image_view = nullptr;
 };
 

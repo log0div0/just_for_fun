@@ -246,9 +246,43 @@ void Context::InitCommandPool() {
 void Context::InitNullTexture() {
 	null_texture.format = vk::Format::eR8G8B8A8Srgb;
 
-	null_texture.InitImage(4, 4);
+	vk::ImageCreateInfo image_info{
+		.sType = vk::StructureType::eImageCreateInfo,
+		.imageType = vk::ImageType::e2D,
+		.format = null_texture.format,
+		.extent = {
+			.width = 4,
+			.height = 4,
+			.depth = 1,
+		},
+		.mipLevels = 1,
+		.arrayLayers = 1,
+		.samples = vk::SampleCountFlagBits::e1,
+		.tiling = vk::ImageTiling::eOptimal,
+		.usage = vk::ImageUsageFlagBits::eSampled,
+		.sharingMode = vk::SharingMode::eExclusive,
+		.initialLayout = vk::ImageLayout::eUndefined,
+
+	};
+
+	null_texture.image = vk::raii::Image(device, image_info);
 	null_texture.InitMemory();
-	null_texture.InitImageView();
+
+	vk::ImageViewCreateInfo view_info{
+		.sType = vk::StructureType::eImageViewCreateInfo,
+		.image = *null_texture.image,
+		.viewType = vk::ImageViewType::e2D,
+		.format = null_texture.format,
+		.subresourceRange = {
+			.aspectMask = vk::ImageAspectFlagBits::eColor,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		},
+	};
+
+	null_texture.image_view = vk::raii::ImageView(device, view_info);
 
 	vk::raii::CommandBuffer command_buffer = BeginCommandBuffer();
 	SCOPE_SUCCESS{ EndCommandBuffer(std::move(command_buffer)); };
@@ -278,6 +312,48 @@ void Context::InitNullTexture() {
 		{}, {}, {barrier});
 }
 
+void Context::InitDepthStencilTexture(int w, int h) {
+	depth_stencil_texture.format = vk::Format::eD32Sfloat;
+
+	vk::ImageCreateInfo image_info{
+		.sType = vk::StructureType::eImageCreateInfo,
+		.imageType = vk::ImageType::e2D,
+		.format = depth_stencil_texture.format,
+		.extent = {
+			.width = (uint32_t)w,
+			.height = (uint32_t)h,
+			.depth = 1,
+		},
+		.mipLevels = 1,
+		.arrayLayers = 1,
+		.samples = vk::SampleCountFlagBits::e1,
+		.tiling = vk::ImageTiling::eOptimal,
+		.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment,
+		.sharingMode = vk::SharingMode::eExclusive,
+		.initialLayout = vk::ImageLayout::eUndefined,
+
+	};
+
+	depth_stencil_texture.image = vk::raii::Image(device, image_info);
+	depth_stencil_texture.InitMemory();
+
+	vk::ImageViewCreateInfo view_info{
+		.sType = vk::StructureType::eImageViewCreateInfo,
+		.image = *depth_stencil_texture.image,
+		.viewType = vk::ImageViewType::e2D,
+		.format = depth_stencil_texture.format,
+		.subresourceRange = {
+			.aspectMask = vk::ImageAspectFlagBits::eDepth,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		},
+	};
+
+	depth_stencil_texture.image_view = vk::raii::ImageView(device, view_info);
+}
+
 void Context::InitDefaultSampler() {
 	vk::PhysicalDeviceProperties properties = physical_device.getProperties();
 
@@ -301,6 +377,9 @@ void Context::InitDefaultSampler() {
 }
 
 void Context::InitRenderPass() {
+	// -----------------------------------------------------
+	// ATTACHMENTS
+	// -----------------------------------------------------
 	vk::AttachmentDescription color_attachment {
 		.format = surface_format.format,
 		.samples = vk::SampleCountFlagBits::e1,
@@ -312,9 +391,30 @@ void Context::InitRenderPass() {
 		.finalLayout = vk::ImageLayout::ePresentSrcKHR,
 	};
 
+	vk::AttachmentDescription depth_stencil_attachment {
+		.format = depth_stencil_texture.format,
+		.samples = vk::SampleCountFlagBits::e1,
+		.loadOp = vk::AttachmentLoadOp::eClear,
+		.storeOp = vk::AttachmentStoreOp::eDontCare,
+		.stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+		.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+		.initialLayout = vk::ImageLayout::eUndefined,
+		.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+	};
+
+	std::vector<vk::AttachmentDescription> attachments = {color_attachment, depth_stencil_attachment};
+
+	// -----------------------------------------------------
+	// SUBPASSES
+	// -----------------------------------------------------
 	vk::AttachmentReference color_attachment_ref {
 		.attachment = 0,
 		.layout = vk::ImageLayout::eColorAttachmentOptimal,
+	};
+
+	vk::AttachmentReference depth_stencil_attachment_ref {
+		.attachment = 1,
+		.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
 	};
 
 	std::vector<vk::AttachmentReference> color_attachment_refs = {color_attachment_ref};
@@ -323,21 +423,19 @@ void Context::InitRenderPass() {
 		.pipelineBindPoint = vk::PipelineBindPoint::eGraphics,
 		.colorAttachmentCount = (uint32_t)color_attachment_refs.size(),
 		.pColorAttachments = color_attachment_refs.data(),
+		.pDepthStencilAttachment = &depth_stencil_attachment_ref,
 	};
 
-	vk::SubpassDependency dependency {
-		.srcSubpass = VK_SUBPASS_EXTERNAL,
-		.dstSubpass = 0,
-		.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
-		.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
-		.srcAccessMask = vk::AccessFlagBits::eNoneKHR,
-		.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
-	};
-
-	std::vector<vk::AttachmentDescription> attachments = {color_attachment};
 	std::vector<vk::SubpassDescription> subpasses = {subpass};
-	std::vector<vk::SubpassDependency> dependencies = {dependency};
 
+	// -----------------------------------------------------
+	// SUBPASS DEPENDENCIES
+	// -----------------------------------------------------
+	std::vector<vk::SubpassDependency> dependencies = {};
+
+	// -----------------------------------------------------
+	// PASS
+	// -----------------------------------------------------
 	vk::RenderPassCreateInfo render_pass_info {
 		.sType = vk::StructureType::eRenderPassCreateInfo,
 		.attachmentCount = (uint32_t)attachments.size(),
@@ -354,9 +452,11 @@ void Context::InitRenderPass() {
 void Context::Resize(int w, int h) {
 	queue.waitIdle();
 	frames.clear();
+	depth_stencil_texture = {};
 	swapchain = nullptr;
 	if (w && h) {
 		InitSwapchain(w, h);
+		InitDepthStencilTexture(w, h);
 		InitFrames();
 	}
 }
@@ -410,6 +510,7 @@ Context::Context(Window& window_): window(window_) {
 	InitPipelineLayout();
 	InitCommandPool();
 	InitNullTexture();
+	InitDepthStencilTexture(w, h);
 	InitDefaultSampler();
 	InitRenderPass();
 	InitSwapchain(w, h);

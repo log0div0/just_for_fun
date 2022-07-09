@@ -36,7 +36,7 @@ void Frame::InitImageView() {
 }
 
 void Frame::InitFramebuffer() {
-	std::vector<vk::ImageView> attachments = {*image_view};
+	std::vector<vk::ImageView> attachments = {*image_view, *g_context->depth_stencil_texture.image_view};
 
 	vk::FramebufferCreateInfo framebuffer_info{
 		.sType = vk::StructureType::eFramebufferCreateInfo,
@@ -86,7 +86,8 @@ void Frame::BeginFrame() {
 	command_buffer.begin(begin_info);
 
 	vk::ClearColorValue clear_color(std::array<float,4>{0.2f, 0.3f, 0.3f, 1.0f});
-	std::vector<vk::ClearValue> clear_values = {clear_color};
+	vk::ClearDepthStencilValue clear_depth_stencil(0.0f, 0);
+	std::vector<vk::ClearValue> clear_values = {clear_color, clear_depth_stencil};
 	vk::RenderPassBeginInfo begin_pass_info{
 		.sType = vk::StructureType::eRenderPassBeginInfo,
 		.renderPass = *g_context->render_pass,
