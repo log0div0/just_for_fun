@@ -76,7 +76,10 @@ struct Context: rhi::Context {
 	vk::raii::CommandPool command_pool = nullptr;
 
 	void InitNullTexture();
-	std::unique_ptr<Texture2D> null_texture;
+	Texture2D null_texture;
+
+	void InitDefaultSampler();
+	vk::raii::Sampler default_sampler = nullptr;
 
 	void InitRenderPass();
 	vk::raii::RenderPass render_pass = nullptr;

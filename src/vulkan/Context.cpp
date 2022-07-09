@@ -4,6 +4,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
 
+#include <scope_guard.hpp>
+
 namespace vulkan {
 
 Context* g_context = nullptr;
@@ -242,7 +244,60 @@ void Context::InitCommandPool() {
 }
 
 void Context::InitNullTexture() {
-	null_texture.reset(new Texture2D(4, 4));
+	null_texture.format = vk::Format::eR8G8B8A8Srgb;
+
+	null_texture.InitImage(4, 4);
+	null_texture.InitMemory();
+	null_texture.InitImageView();
+
+	vk::raii::CommandBuffer command_buffer = BeginCommandBuffer();
+	SCOPE_SUCCESS{ EndCommandBuffer(std::move(command_buffer)); };
+
+	vk::ImageMemoryBarrier barrier{
+		.sType = vk::StructureType::eImageMemoryBarrier,
+		.srcAccessMask = vk::AccessFlagBits::eNone,
+		.dstAccessMask = vk::AccessFlagBits::eShaderRead,
+		.oldLayout = vk::ImageLayout::eUndefined,
+		.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.image = *null_texture.image,
+		.subresourceRange = {
+			.aspectMask = vk::ImageAspectFlagBits::eColor,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		}
+	};
+
+	command_buffer.pipelineBarrier(
+		vk::PipelineStageFlagBits::eTopOfPipe,
+		vk::PipelineStageFlagBits::eFragmentShader,
+		vk::DependencyFlags{},
+		{}, {}, {barrier});
+}
+
+void Context::InitDefaultSampler() {
+	vk::PhysicalDeviceProperties properties = physical_device.getProperties();
+
+	vk::SamplerCreateInfo sampler_info{
+		.sType = vk::StructureType::eSamplerCreateInfo,
+		.magFilter = vk::Filter::eLinear,
+		.minFilter = vk::Filter::eLinear,
+		.mipmapMode = vk::SamplerMipmapMode::eLinear,
+		.addressModeU = vk::SamplerAddressMode::eRepeat,
+		.addressModeV = vk::SamplerAddressMode::eRepeat,
+		.addressModeW = vk::SamplerAddressMode::eRepeat,
+		.anisotropyEnable = VK_FALSE,
+		.maxAnisotropy = properties.limits.maxSamplerAnisotropy,
+		.compareEnable = VK_FALSE,
+		.compareOp = vk::CompareOp::eAlways,
+		.borderColor = vk::BorderColor::eIntOpaqueBlack,
+		.unnormalizedCoordinates = VK_FALSE,
+	};
+
+	default_sampler = vk::raii::Sampler(device, sampler_info);
 }
 
 void Context::InitRenderPass() {
@@ -355,6 +410,7 @@ Context::Context(Window& window_): window(window_) {
 	InitPipelineLayout();
 	InitCommandPool();
 	InitNullTexture();
+	InitDefaultSampler();
 	InitRenderPass();
 	InitSwapchain(w, h);
 	InitNextFrameSemaphore();
@@ -507,8 +563,8 @@ vk::raii::DescriptorSet Context::CommitSRVs() {
 	for (size_t i = 0; i < SRV_TABLE_SIZE; ++i)
 	{
 		image_info[i] = vk::DescriptorImageInfo{
-			.sampler = *null_texture->sampler,
-			.imageView = *null_texture->image_view,
+			.sampler = *default_sampler,
+			.imageView = *null_texture.image_view,
 			.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
 		};
 

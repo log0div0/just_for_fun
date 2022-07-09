@@ -132,13 +132,15 @@ void Context::InitDepthStencilHandle() {
 	dsv_handle = dsv_heap.alloc().cpu;
 }
 
-void Context::InitDepthStencilBuffer(int w, int h) {
+void Context::InitDepthStencilTexture(int w, int h) {
+	depth_stencil_texture.img_format = DXGI_FORMAT_D32_FLOAT;
+
 	{
 		CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_DEFAULT);
-		CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, w, h,
+		CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(depth_stencil_texture.img_format, w, h,
 			1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 		D3D12_CLEAR_VALUE clear_value = {
-			.Format = DXGI_FORMAT_D32_FLOAT,
+			.Format = depth_stencil_texture.img_format,
 			.DepthStencil = { 0.0f, 0 },
 		};
 
@@ -148,13 +150,13 @@ void Context::InitDepthStencilBuffer(int w, int h) {
 			&desc,
 			D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&clear_value,
-			IID_GRAPHICS_PPV_ARGS(&depth_stencil_buffer)
+			IID_GRAPHICS_PPV_ARGS(&depth_stencil_texture.img_buffer)
 		));
 	}
 
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC desc = {
-			.Format = DXGI_FORMAT_D32_FLOAT,
+			.Format = depth_stencil_texture.img_format,
 			.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D,
 			.Flags = D3D12_DSV_FLAG_NONE,
 			.Texture2D = {
@@ -162,8 +164,7 @@ void Context::InitDepthStencilBuffer(int w, int h) {
 			},
 		};
 
-
-		device->CreateDepthStencilView(depth_stencil_buffer, &desc, dsv_handle);
+		device->CreateDepthStencilView(depth_stencil_texture.img_buffer, &desc, dsv_handle);
 	}
 }
 
@@ -185,7 +186,7 @@ Context::Context(Window& window_): window(window_) {
 	InitQueues();
 	InitSwapchain(w, h);
 	InitDepthStencilHandle();
-	InitDepthStencilBuffer(w, h);
+	InitDepthStencilTexture(w, h);
 	InitFrames();
 	window.OnWindowResize([&](int w, int h) {
 		Resize(w, h);
@@ -204,14 +205,14 @@ void Context::Resize(int w, int h) {
 	for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++) {
 		frames[i].render_target_buffer = {};
 	}
-	depth_stencil_buffer = {};
+	depth_stencil_texture = {};
 	swap_chain.ResizeBuffers(w, h);
 	viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(w), static_cast<float>(h));
 	scissor_rect = CD3DX12_RECT(0, 0, w, h);
 	for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++) {
 		frames[i].InitRenderTargetBuffer(i);
 	}
-	InitDepthStencilBuffer(w, h);
+	InitDepthStencilTexture(w, h);
 }
 
 void Context::WaitIdle() {
@@ -297,7 +298,7 @@ void Context::CreateSRV(size_t root_parameter_index, Texture2D& texture) {
 		srv_table = DescriptorTable(&view_heap, SRV_TABLE_SIZE);
 	}
 	D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {
-		.Format = Texture2D::img_format,
+		.Format = texture.img_format,
 		.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
 		.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
 		.Texture2D = {
@@ -305,7 +306,7 @@ void Context::CreateSRV(size_t root_parameter_index, Texture2D& texture) {
 			.MipLevels = 1,
 		}
 	};
-	device->CreateShaderResourceView(texture.resource, &srv_desc, srv_table.GetCPUHandle(root_parameter_index));
+	device->CreateShaderResourceView(texture.img_buffer, &srv_desc, srv_table.GetCPUHandle(root_parameter_index));
 	srv_table_map[root_parameter_index] = true;
 }
 
@@ -316,7 +317,7 @@ void Context::CommitSRVs() {
 	for (size_t i = 0; i < SRV_TABLE_SIZE; ++i) {
 		if (srv_table_map[i] == false) {
 			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {
-				.Format = Texture2D::img_format,
+				.Format = DXGI_FORMAT_R8G8B8A8_UNORM, // we don't care about the actual format of "null" texture
 				.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
 				.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
 				.Texture2D = {

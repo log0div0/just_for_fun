@@ -11,12 +11,12 @@
 namespace vulkan {
 
 struct Texture2D: rhi::Texture2D {
-	Texture2D(size_t w, size_t h);
+	Texture2D() = default;
 	Texture2D(const fs::path& path)
 	{
 	}
 
-	static const vk::Format format = vk::Format::eR8G8B8A8Srgb;
+	vk::Format format = vk::Format::eUndefined;
 
 	void InitImage(size_t w, size_t h);
 	vk::raii::Image image = nullptr;
@@ -26,11 +26,6 @@ struct Texture2D: rhi::Texture2D {
 
 	void InitImageView();
 	vk::raii::ImageView image_view = nullptr;
-
-	void InitSampler();
-	vk::raii::Sampler sampler = nullptr;
-
-	void Barrier(vk::raii::CommandBuffer& command_buffer, vk::ImageLayout old_layout, vk::ImageLayout new_layout);
 };
 
 }

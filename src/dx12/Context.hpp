@@ -100,8 +100,8 @@ struct Context: rhi::Context {
     void InitDepthStencilHandle();
 	D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle = {};
 
-	void InitDepthStencilBuffer(int w, int h);
-	winapi::ComPtr<ID3D12Resource> depth_stencil_buffer;
+	void InitDepthStencilTexture(int w, int h);
+	Texture2D depth_stencil_texture;
 
 	void InitFrames();
 	std::array<Frame, NUM_FRAMES_IN_FLIGHT> frames = {};
