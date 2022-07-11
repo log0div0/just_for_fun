@@ -1,8 +1,14 @@
 
 #pragma once
 
-#ifndef _GAMING_XBOX
+#ifdef WIN32
 #include <Windows.h>
+#endif
+
+#ifdef _GAMING_XBOX
+#include <winapi/ComPtr.hpp>
+#include <GameInput.h>
+#else
 #include <glfwpp/glfwpp.h>
 #endif
 
@@ -20,14 +26,10 @@ struct Window {
 	Window(Window&& other) = delete;
 	Window& operator=(Window&& other) = delete;
 
-	bool IsCameraMovingForward();
-	bool IsCameraMovingBack();
-	bool IsCameraMovingRight();
-	bool IsCameraMovingLeft();
-	bool IsCameraMovingUp();
-	bool IsCameraMovingDown();
-	void OnCameraRotate(std::function<void(float, float)> cb);
-	void OnCameraAccelerate(std::function<void(float)> cb);
+	float CameraForwardSpeed();
+	float CameraRightSpeed();
+	float CameraUpSpeed();
+	std::pair<float, float> CameraRotationSpeed();
 
 	void Update(float delta_time);
 	bool ShouldClose();
@@ -36,6 +38,8 @@ struct Window {
 	std::tuple<int, int> GetWindowSize();
 
 #ifdef _GAMING_XBOX
+	winapi::ComPtr<IGameInput> game_input;
+	GameInputGamepadState gamepad_state;
 	bool should_close = false;
 #else
 	glfw::Window& GetGLFW() {
@@ -45,7 +49,8 @@ struct Window {
 private:
 	int x, y, w, h;
 	using CursorPos = math::Vector<double, 2>;
-	CursorPos last_cursor_pos;
+	CursorPos prev_cursor_pos;
+	CursorPos current_cursor_pos;
 	glfw::Window window;
 #endif
 };

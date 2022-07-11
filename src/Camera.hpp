@@ -11,7 +11,6 @@
 struct Camera {
 	math::Vector3 pos;
 	math::Quaternion rot;
-	float speed = 1.0f;
 	float aspect = 1.0f;
 
 	Camera(Window& window);
@@ -30,7 +29,5 @@ struct Camera {
 	void Update(float delta_time);
 
 private:
-	void Move(float delta_time, const math::Vector3& dir);
-
 	Window& window;
 };

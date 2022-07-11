@@ -2,48 +2,52 @@
 
 #ifdef _GAMING_XBOX
 
-#include <Windows.h>
 #include <XGameRuntime.h>
+#include <winapi/Functions.hpp>
 
 Window::Window(const std::string& name)
 {
-	if (FAILED(XGameRuntimeInitialize())) {
-		throw std::runtime_error("XGameRuntimeInitialize failed");
-	}
+	THROW_IF_FAILED(XGameRuntimeInitialize());
+	THROW_IF_FAILED(GameInputCreate(&game_input));
 }
 
 Window::~Window() {
 	XGameRuntimeUninitialize();
 }
 
-bool Window::IsCameraMovingForward() {
-	return false;
+float Window::CameraForwardSpeed() {
+	if ((gamepad_state.leftThumbstickY < -0.1f) || (gamepad_state.leftThumbstickY > 0.1)) {
+		return gamepad_state.leftThumbstickY;
+	}
+	return 0;
 }
 
-bool Window::IsCameraMovingBack() {
-	return false;
+float Window::CameraRightSpeed() {
+	if ((gamepad_state.leftThumbstickX < -0.1f) || (gamepad_state.leftThumbstickX > 0.1)) {
+		return gamepad_state.leftThumbstickX;
+	}
+	return 0;
 }
 
-bool Window::IsCameraMovingRight() {
-	return false;
+float Window::CameraUpSpeed() {
+	if (gamepad_state.buttons & GameInputGamepadRightShoulder) {
+		return 1.0f;
+	} else if (gamepad_state.buttons & GameInputGamepadLeftShoulder) {
+		return -1.0f;
+	}
+	return 0.0f;
 }
 
-bool Window::IsCameraMovingLeft() {
-	return false;
-}
-
-bool Window::IsCameraMovingUp() {
-	return false;
-}
-
-bool Window::IsCameraMovingDown() {
-	return false;
-}
-
-void Window::OnCameraRotate(std::function<void(float, float)> cb) {
-}
-
-void Window::OnCameraAccelerate(std::function<void(float)> cb) {
+std::pair<float, float> Window::CameraRotationSpeed() {
+	float dx = 0;
+	float dy = 0;
+	if ((gamepad_state.rightThumbstickX < -0.1f) || (gamepad_state.rightThumbstickX > 0.1)) {
+		dx = -gamepad_state.rightThumbstickX;
+	}
+	if ((gamepad_state.rightThumbstickY < -0.1f) || (gamepad_state.rightThumbstickY > 0.1)) {
+		dy = gamepad_state.rightThumbstickY;
+	}
+	return {dx, dy};
 }
 
 void Window::Update(float delta_time) {
@@ -55,6 +59,18 @@ void Window::Update(float delta_time) {
 		}
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
+	}
+
+	gamepad_state = {};
+
+	winapi::ComPtr<IGameInputReading> game_input_reading;
+	if (FAILED(game_input->GetCurrentReading(GameInputKindGamepad, nullptr, &game_input_reading)))
+	{
+		// Failure indicates no gamepad is connected
+	}
+	else
+	{
+		game_input_reading->GetGamepadState(&gamepad_state);
 	}
 }
 
@@ -104,56 +120,52 @@ Window::Window(const std::string& name): x(0), y(0), w(1200), h(900)
 				break;
 		};
 	});
-	last_cursor_pos = std::make_from_tuple<CursorPos>(window.getCursorPos());
+	prev_cursor_pos = current_cursor_pos = std::make_from_tuple<CursorPos>(window.getCursorPos());
 }
 
 Window::~Window() {
 
 }
 
-bool Window::IsCameraMovingForward() {
-	return window.getKey(glfw::KeyCode::W);
+float Window::CameraForwardSpeed() {
+	if (window.getKey(glfw::KeyCode::W)) {
+		return 1.0f;
+	} else if (window.getKey(glfw::KeyCode::S)) {
+		return -1.0f;
+	}
+	return 0.0f;
 }
 
-bool Window::IsCameraMovingBack() {
-	return window.getKey(glfw::KeyCode::S);
+float Window::CameraRightSpeed() {
+	if (window.getKey(glfw::KeyCode::D)) {
+		return 1.0f;
+	} else if (window.getKey(glfw::KeyCode::A)) {
+		return -1.0f;
+	}
+	return 0.0f;
 }
 
-bool Window::IsCameraMovingRight() {
-	return window.getKey(glfw::KeyCode::D);
+float Window::CameraUpSpeed() {
+	if (window.getKey(glfw::KeyCode::E)) {
+		return 1.0f;
+	} else if (window.getKey(glfw::KeyCode::Q)) {
+		return -1.0f;
+	}
+	return 0.0f;
 }
 
-bool Window::IsCameraMovingLeft() {
-	return window.getKey(glfw::KeyCode::A);
-}
-
-bool Window::IsCameraMovingUp() {
-	return window.getKey(glfw::KeyCode::E);
-}
-
-bool Window::IsCameraMovingDown() {
-	return window.getKey(glfw::KeyCode::Q);
-}
-
-void Window::OnCameraRotate(std::function<void(float, float)> cb) {
-	window.cursorPosEvent.subscribe([this, cb](glfw::Window& window, double x, double y) {
-		CursorPos pos{x, y};
-		if (window.getMouseButton(glfw::MouseButton::Right)) {
-			CursorPos diff = last_cursor_pos - pos;
-			cb(diff.X(), diff.Y());
-		}
-		last_cursor_pos = pos;
-	});
-}
-
-void Window::OnCameraAccelerate(std::function<void(float)> cb) {
-	window.scrollEvent.subscribe([this, cb](glfw::Window& window, double x, double y) {
-		cb(y);
-	});
+std::pair<float, float> Window::CameraRotationSpeed() {
+	if (window.getMouseButton(glfw::MouseButton::Right)) {
+		CursorPos diff = (prev_cursor_pos - current_cursor_pos) / 3;
+		return {(float)diff.X(), (float)diff.Y()};
+	}
+	return {};
 }
 
 void Window::Update(float delta_time) {
 	glfw::pollEvents();
+	prev_cursor_pos = current_cursor_pos;
+	current_cursor_pos = std::make_from_tuple<CursorPos>(window.getCursorPos());
 }
 
 bool Window::ShouldClose() {
