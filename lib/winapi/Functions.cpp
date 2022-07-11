@@ -11,6 +11,15 @@ void throw_error(const std::string& ascii_desc, DWORD error_code) {
 	throw std::system_error(ec, ascii_desc);
 }
 
+void throw_if_failed(const std::string& ascii_desc, HRESULT error_code)
+{
+	if (FAILED(error_code))
+	{
+		// TODO: make a category for COM errors: https://kb.firedaemon.com/support/solutions/articles/4000121648-fitting-com-into-c-system-error-handling
+		throw std::runtime_error(ascii_desc);
+	}
+}
+
 std::wstring multi_byte_to_wide_char(const std::string& multi_byte, UINT codepage) {
 	if (multi_byte.empty()) {
 		return {};

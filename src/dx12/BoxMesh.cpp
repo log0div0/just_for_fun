@@ -2,8 +2,9 @@
 #include "BoxMesh.hpp"
 #include "Context.hpp"
 
-#include "details/Exceptions.hpp"
 #include "../Vertex.hpp"
+
+#include <winapi/Functions.hpp>
 
 using namespace winapi;
 
@@ -16,7 +17,7 @@ BoxMesh::BoxMesh() {
 		CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_DEFAULT);
 		CD3DX12_RESOURCE_DESC buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(buffer_size);
 
-		ThrowIfFailed(g_context->device->CreateCommittedResource(
+		THROW_IF_FAILED(g_context->device->CreateCommittedResource(
 		    &heap_props,
 		    D3D12_HEAP_FLAG_NONE,
 		    &buffer_desc,
@@ -31,7 +32,7 @@ BoxMesh::BoxMesh() {
 		CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_UPLOAD);
 		CD3DX12_RESOURCE_DESC buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(buffer_size);
 
-		ThrowIfFailed(g_context->device->CreateCommittedResource(
+		THROW_IF_FAILED(g_context->device->CreateCommittedResource(
 		    &heap_props,
 		    D3D12_HEAP_FLAG_NONE,
 		    &buffer_desc,
@@ -43,8 +44,8 @@ BoxMesh::BoxMesh() {
 	{
 		winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
 		winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
-		ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_GRAPHICS_PPV_ARGS(&command_allocator)));
-		ThrowIfFailed(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
+		THROW_IF_FAILED(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_GRAPHICS_PPV_ARGS(&command_allocator)));
+		THROW_IF_FAILED(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
 
 		D3D12_SUBRESOURCE_DATA subresource_data = {
 		    .pData = box_vertices.data(),
@@ -61,8 +62,8 @@ BoxMesh::BoxMesh() {
 	{
 		winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
 		winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
-		ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_GRAPHICS_PPV_ARGS(&command_allocator)));
-		ThrowIfFailed(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
+		THROW_IF_FAILED(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_GRAPHICS_PPV_ARGS(&command_allocator)));
+		THROW_IF_FAILED(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
 
 	    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 	    	vertex_buffer,

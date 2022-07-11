@@ -1,7 +1,8 @@
 #include "DescriptorHeap.hpp"
-#include "Exceptions.hpp"
 #include "../Context.hpp"
 #include <cassert>
+
+#include <winapi/Functions.hpp>
 
 namespace dx12 {
 
@@ -16,7 +17,7 @@ DescriptorHeap::DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, size_t size): he
 		.NumDescriptors = (UINT)heap_size,
 		.Flags = flags,
 	};
-	ThrowIfFailed(g_context->device->CreateDescriptorHeap(&desc, IID_GRAPHICS_PPV_ARGS(&heap)));
+	THROW_IF_FAILED(g_context->device->CreateDescriptorHeap(&desc, IID_GRAPHICS_PPV_ARGS(&heap)));
 
 	descriptor_size = g_context->device->GetDescriptorHandleIncrementSize(type);
 	allocation_map.resize(heap_size, false);

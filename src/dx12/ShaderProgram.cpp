@@ -1,7 +1,6 @@
 #include "ShaderProgram.hpp"
 #include "Context.hpp"
 
-#include "details/Exceptions.hpp"
 #include "../Vertex.hpp"
 #include "../Utils.hpp"
 
@@ -21,7 +20,7 @@ public:
 	DXCIncludeHandler(const fs::path& include_path_) :
 		include_path(include_path_)
 	{
-		ThrowIfFailed(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&dxc_library)));
+		THROW_IF_FAILED(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&dxc_library)));
 	}
 
 	virtual HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override
@@ -70,7 +69,7 @@ ComPtr<IDxcBlob> LoadShader(const std::string& name)
 	std::string src = LoadTextFile(path);
 
 	ComPtr<IDxcCompiler3> compiler;
-	ThrowIfFailed(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler)));
+	THROW_IF_FAILED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler)));
 
 	DXCIncludeHandler include_handler(path.parent_path());
 
@@ -93,7 +92,7 @@ ComPtr<IDxcBlob> LoadShader(const std::string& name)
 	args.push_back(TEXT("-Zss"));
 	args.push_back(TEXT("-Qstrip_debug"));
 
-	ThrowIfFailed(compiler->Compile(
+	THROW_IF_FAILED(compiler->Compile(
 		&src_buffer,
 		args.data(),
 		args.size(),
@@ -137,9 +136,9 @@ ComPtr<IDxcBlob> LoadShader(const std::string& name)
 	fs::path path = GetAssetsDir() / "shaders" / "hlsl" / (name + ext);
 	std::vector<uint8_t> data = LoadBinaryFile(path);
 	ComPtr<IDxcUtils> utils;
-	ThrowIfFailed(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)));
+	THROW_IF_FAILED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)));
 	IDxcBlobEncoding* blob = nullptr;
-	ThrowIfFailed(utils->CreateBlob(data.data(), data.size(), 0, &blob));
+	THROW_IF_FAILED(utils->CreateBlob(data.data(), data.size(), 0, &blob));
 	return ComPtr<IDxcBlob>(blob);
 #endif
 }
@@ -189,7 +188,7 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 	D3D12_PIPELINE_STATE_STREAM_DESC pipeline_state_stream_desc = {
 		sizeof(pipeline_state_stream), &pipeline_state_stream
 	};
-	ThrowIfFailed(g_context->device->CreatePipelineState(&pipeline_state_stream_desc, IID_GRAPHICS_PPV_ARGS(&pipeline_state)));
+	THROW_IF_FAILED(g_context->device->CreatePipelineState(&pipeline_state_stream_desc, IID_GRAPHICS_PPV_ARGS(&pipeline_state)));
 
 	PopulateBindingsMap(vertex_shader_blob);
 	PopulateBindingsMap(pixel_shader_blob);
@@ -198,14 +197,14 @@ ShaderProgram::ShaderProgram(const std::string& name) {
 void ShaderProgram::PopulateBindingsMap(ComPtr<IDxcBlob> shader_blob)
 {
 	ComPtr<IDxcContainerReflection> container_reflection;
-	ThrowIfFailed(DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&container_reflection)));
-	ThrowIfFailed(container_reflection->Load(shader_blob.Get()));
+	THROW_IF_FAILED(DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&container_reflection)));
+	THROW_IF_FAILED(container_reflection->Load(shader_blob.Get()));
 	UINT32 shader_index = 0;
-	ThrowIfFailed(container_reflection->FindFirstPartKind(DXC_PART_DXIL, &shader_index));
+	THROW_IF_FAILED(container_reflection->FindFirstPartKind(DXC_PART_DXIL, &shader_index));
 	ComPtr<ID3D12ShaderReflection> shader_reflection;
-	ThrowIfFailed(container_reflection->GetPartReflection(shader_index, IID_PPV_ARGS(&shader_reflection)));
+	THROW_IF_FAILED(container_reflection->GetPartReflection(shader_index, IID_PPV_ARGS(&shader_reflection)));
 	D3D12_SHADER_DESC shader_desc = {};
-	ThrowIfFailed(shader_reflection->GetDesc(&shader_desc));
+	THROW_IF_FAILED(shader_reflection->GetDesc(&shader_desc));
 
 	// Constant buffers
 	for (UINT i = 0; i < shader_desc.BoundResources; i++)

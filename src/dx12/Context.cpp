@@ -1,10 +1,11 @@
 #include "Context.hpp"
-#include "details/Exceptions.hpp"
 
 #ifndef _GAMING_XBOX
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_dx12.h"
 #endif
+
+#include <winapi/Functions.hpp>
 
 using namespace winapi;
 
@@ -42,7 +43,7 @@ void Context::ImGuiRender() {
 void Context::InitDevice()
 {
 	ComPtr<ID3D12Debug> debug;
-	ThrowIfFailed(D3D12GetDebugInterface(IID_GRAPHICS_PPV_ARGS(&debug)));
+	THROW_IF_FAILED(D3D12GetDebugInterface(IID_GRAPHICS_PPV_ARGS(&debug)));
 	debug->EnableDebugLayer();
 
 #ifdef _GAMING_XBOX
@@ -72,14 +73,14 @@ void Context::InitDevice()
 #endif
 	}
 #endif
-	ThrowIfFailed(hr);
+	THROW_IF_FAILED(hr);
 #else
-	ThrowIfFailed(D3D12CreateDevice(NULL, D3D_FEATURE_LEVEL_12_0, IID_GRAPHICS_PPV_ARGS(&device)));
+	THROW_IF_FAILED(D3D12CreateDevice(NULL, D3D_FEATURE_LEVEL_12_0, IID_GRAPHICS_PPV_ARGS(&device)));
 
 	ComPtr<ID3D12InfoQueue> info_queue = device.QueryInterface<ID3D12InfoQueue>();
-	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
-	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
-	ThrowIfFailed(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
+	THROW_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
+	THROW_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
+	THROW_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
 #endif
 }
 
@@ -102,8 +103,8 @@ void Context::InitRootSignature()
 
 	ComPtr<ID3DBlob> root_sig_blob;
 	ComPtr<ID3DBlob> error_blob;
-	ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &root_sig_blob, &error_blob));
-	ThrowIfFailed(device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
+	THROW_IF_FAILED(D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &root_sig_blob, &error_blob));
+	THROW_IF_FAILED(device->CreateRootSignature(0, root_sig_blob->GetBufferPointer(),
 		root_sig_blob->GetBufferSize(), IID_GRAPHICS_PPV_ARGS(&root_signature)));
 }
 
@@ -144,7 +145,7 @@ void Context::InitDepthStencilTexture(int w, int h) {
 			.DepthStencil = { 0.0f, 0 },
 		};
 
-		ThrowIfFailed(device->CreateCommittedResource(
+		THROW_IF_FAILED(device->CreateCommittedResource(
 			&heap_props,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
@@ -230,7 +231,7 @@ void Context::Clear() {
 
 	current_frame->command_allocator->Reset();
 	if (command_list.IsNull()) {
-		ThrowIfFailed(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, current_frame->command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
+		THROW_IF_FAILED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, current_frame->command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
 	} else {
 		command_list->Reset(current_frame->command_allocator, NULL);
 	}

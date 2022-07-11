@@ -1,8 +1,8 @@
 #include "Texture2D.hpp"
-#include "details/Exceptions.hpp"
 #include "Context.hpp"
 
 #include <stb/Image.hpp>
+#include <winapi/Functions.hpp>
 
 using namespace winapi;
 
@@ -19,7 +19,7 @@ Texture2D::Texture2D(const fs::path& path) {
 		CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_DEFAULT);
 		CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(img_format, img.w, img.h, 1, mips_num);
 
-		ThrowIfFailed(g_context->device->CreateCommittedResource(
+		THROW_IF_FAILED(g_context->device->CreateCommittedResource(
 			&heap_props,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
@@ -36,7 +36,7 @@ Texture2D::Texture2D(const fs::path& path) {
 		CD3DX12_HEAP_PROPERTIES heap_props(D3D12_HEAP_TYPE_UPLOAD);
 		CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(required_size);
 
-		ThrowIfFailed(g_context->device->CreateCommittedResource(
+		THROW_IF_FAILED(g_context->device->CreateCommittedResource(
 			&heap_props,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
@@ -47,8 +47,8 @@ Texture2D::Texture2D(const fs::path& path) {
 
 	winapi::ComPtr<ID3D12CommandAllocator> command_allocator;
 	winapi::ComPtr<ID3D12GraphicsCommandList> command_list;
-	ThrowIfFailed(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_GRAPHICS_PPV_ARGS(&command_allocator)));
-	ThrowIfFailed(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
+	THROW_IF_FAILED(g_context->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_GRAPHICS_PPV_ARGS(&command_allocator)));
+	THROW_IF_FAILED(g_context->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, command_allocator, NULL, IID_GRAPHICS_PPV_ARGS(&command_list)));
 
 	D3D12_SUBRESOURCE_DATA subresource_data = {
 	    .pData = img.data,

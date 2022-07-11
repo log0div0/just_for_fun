@@ -8,6 +8,7 @@
 namespace winapi {
 
 void throw_error(const std::string& ascii_desc, DWORD error_code);
+void throw_if_failed(const std::string& ascii_desc, HRESULT error_code);
 
 std::wstring multi_byte_to_wide_char(const std::string& multi_byte, UINT codepage);
 std::string wide_char_to_multi_byte(const std::wstring& wide_char, UINT codepage);
@@ -21,3 +22,5 @@ std::wstring expand_environment_strings(const std::wstring& str);
 std::string expand_environment_strings(const std::string& str);
 
 }
+
+#define THROW_IF_FAILED(expr) ::winapi::throw_if_failed(#expr, expr)
