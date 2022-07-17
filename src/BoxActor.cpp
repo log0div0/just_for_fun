@@ -8,7 +8,7 @@ BoxActor::BoxActor() {
 	wood_texture.reset(rhi::g_context->CreateTexture2D(GetAssetsDir()/"textures"/"Wood_Crate_001_basecolor.jpg"));
 	lambda_texture.reset(rhi::g_context->CreateTexture2D(GetAssetsDir()/"textures"/"Half-Life_lambda_logo.png"));
 
-	mesh.reset(rhi::g_context->CreateBoxMesh());
+	mesh.reset(rhi::g_context->CreateMesh("box.obj"));
 }
 
 void BoxActor::Update(float delta_time) {

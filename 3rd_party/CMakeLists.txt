@@ -9,6 +9,12 @@ if (NOT CMAKE_GENERATOR_PLATFORM MATCHES "^Gaming\\.Xbox")
 add_subdirectory(glfw-3.3.6)
 add_library(glad glad/glad.c)
 
+add_library(tinyobjloader tinyobjloader/tiny_obj_loader.cc)
+
+target_include_directories(tinyobjloader PUBLIC
+	tinyobjloader
+)
+
 if (ENABLE_VULKAN)
 	file(TO_CMAKE_PATH "$ENV{VK_SDK_PATH}/Source/SPIRV-Reflect/" SPIRV_REFLECT_DIR)
 	add_library(spirv_reflect ${SPIRV_REFLECT_DIR}/spirv_reflect.c)

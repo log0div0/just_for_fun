@@ -16,7 +16,7 @@ struct BoxActor {
 	std::unique_ptr<rhi::ShaderProgram> shader_program;
 	std::unique_ptr<rhi::Texture2D> wood_texture;
 	std::unique_ptr<rhi::Texture2D> lambda_texture;
-	std::unique_ptr<rhi::BoxMesh> mesh;
+	std::unique_ptr<rhi::Mesh> mesh;
 
 	math::Vector3 color = {1.0f, 0.5f, 0.31f};
 };

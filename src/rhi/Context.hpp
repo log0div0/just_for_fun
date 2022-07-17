@@ -16,7 +16,7 @@ namespace rhi
 
 struct Texture2D;
 struct ShaderProgram;
-struct BoxMesh;
+struct Mesh;
 
 struct UniformBuffer {
 	UniformBuffer() = default;
@@ -47,7 +47,7 @@ struct Context {
 
 	virtual Texture2D* CreateTexture2D(const fs::path& path) = 0;
 	virtual ShaderProgram* CreateShaderProgram(const std::string& name) = 0;
-	virtual BoxMesh* CreateBoxMesh() = 0;
+	virtual Mesh* CreateMesh(const fs::path& path) = 0;
 
 	virtual void Clear() = 0;
 	virtual void Present() = 0;

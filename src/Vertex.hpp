@@ -9,6 +9,3 @@ struct Vertex {
 	math::Vector2 uv;
 	math::Vector3 normal;
 };
-
-extern std::vector<Vertex> box_vertices;
-// extern std::vector<uint32_t> box_indices;

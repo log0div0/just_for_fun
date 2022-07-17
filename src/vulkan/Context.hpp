@@ -9,7 +9,7 @@
 
 #include "Texture2D.hpp"
 #include "ShaderProgram.hpp"
-#include "BoxMesh.hpp"
+#include "Mesh.hpp"
 
 #include "../Window.hpp"
 
@@ -27,7 +27,7 @@ struct Context: rhi::Context {
 
 	virtual rhi::Texture2D* CreateTexture2D(const fs::path& path) override { return new Texture2D(path); }
 	virtual rhi::ShaderProgram* CreateShaderProgram(const std::string& name) override { return new ShaderProgram(name); }
-	virtual rhi::BoxMesh* CreateBoxMesh() override { return new BoxMesh(); }
+	virtual rhi::Mesh* CreateMesh(const fs::path& path) override { return new Mesh(path); }
 
 	virtual void Clear() override;
 	virtual void Present() override;

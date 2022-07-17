@@ -3,7 +3,7 @@
 
 PointLight::PointLight() {
 	shader_program.reset(rhi::g_context->CreateShaderProgram("point_light"));
-	mesh.reset(rhi::g_context->CreateBoxMesh());
+	mesh.reset(rhi::g_context->CreateMesh("sphere.obj"));
 }
 
 void PointLight::Update(float delta_time) {

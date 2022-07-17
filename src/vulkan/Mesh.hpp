@@ -3,20 +3,20 @@
 
 #include "../Vertex.hpp"
 
-#include "../rhi/BoxMesh.hpp"
+#include "../rhi/Mesh.hpp"
 
 #include "ShaderProgram.hpp"
 #include "details/Buffer.hpp"
 
 namespace vulkan {
 
-struct BoxMesh: rhi::BoxMesh {
-	BoxMesh();
+struct Mesh: rhi::Mesh {
+	Mesh(const fs::path& path);
 
 	virtual void Draw(rhi::ShaderProgram& shader_rhi) override;
 
 private:
-	Buffer mesh_buffer;
+	Buffer vertex_buffer, index_buffer;
 };
 
 }

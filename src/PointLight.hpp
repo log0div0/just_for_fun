@@ -3,7 +3,7 @@
 
 #include "Camera.hpp"
 #include "rhi/ShaderProgram.hpp"
-#include "rhi/BoxMesh.hpp"
+#include "rhi/Mesh.hpp"
 
 struct PointLight {
 	PointLight();
@@ -12,7 +12,7 @@ struct PointLight {
 	void Render(const Camera& camera);
 
 	std::unique_ptr<rhi::ShaderProgram> shader_program;
-	std::unique_ptr<rhi::BoxMesh> mesh;
+	std::unique_ptr<rhi::Mesh> mesh;
 
 	math::Vector3 color = {1.0f, 1.0f, 1.0f};
 	math::Vector3 pos;
