@@ -11,7 +11,7 @@ namespace dx12 {
 Texture2D::Texture2D(const fs::path& path) {
 	img_format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	stb::Image img(path, 4);
+	stb::Image img = LoadFromFile(path);
 
 	int mips_num = 1;
 

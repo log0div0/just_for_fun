@@ -17,7 +17,7 @@ std::pair<std::vector<Vertex>, std::vector<uint32_t>> Mesh::LoadFromFile(const f
 	std::vector<tinyobj::material_t> materials;
 	std::string warn, err;
 
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, full_path.string().c_str())) {
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, full_path.c_str())) {
 		throw std::runtime_error(err);
 	}
 

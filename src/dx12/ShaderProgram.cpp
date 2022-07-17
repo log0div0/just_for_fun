@@ -49,7 +49,7 @@ private:
 
 #endif
 
-ComPtr<IDxcBlob> LoadShader(const std::string& name)
+ComPtr<IDxcBlob> LoadShader(const fs::path& name)
 {
 #if COMPILE_SHADERS_IN_RUNTIME
 	fs::path path = GetAssetsDir() / "shaders" / "hlsl" / name;
@@ -133,7 +133,7 @@ ComPtr<IDxcBlob> LoadShader(const std::string& name)
 #else
 	ext = ".bin";
 #endif
-	fs::path path = GetAssetsDir() / "shaders" / "hlsl" / (name + ext);
+	fs::path path = GetAssetsDir() / "shaders" / "hlsl" / (name.string() + ext);
 	std::vector<uint8_t> data = LoadBinaryFile(path);
 	ComPtr<IDxcUtils> utils;
 	THROW_IF_FAILED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils)));
@@ -143,9 +143,9 @@ ComPtr<IDxcBlob> LoadShader(const std::string& name)
 #endif
 }
 
-ShaderProgram::ShaderProgram(const std::string& name) {
-	ComPtr<IDxcBlob> vertex_shader_blob = LoadShader(name + ".vert");
-	ComPtr<IDxcBlob> pixel_shader_blob = LoadShader(name + ".frag");
+ShaderProgram::ShaderProgram(const fs::path& name) {
+	ComPtr<IDxcBlob> vertex_shader_blob = LoadShader(name.string() + ".vert");
+	ComPtr<IDxcBlob> pixel_shader_blob = LoadShader(name.string() + ".frag");
 
 	D3D12_INPUT_ELEMENT_DESC input_layout[] = {
 		{ "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },

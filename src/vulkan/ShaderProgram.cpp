@@ -36,10 +36,10 @@ std::vector<vk::VertexInputAttributeDescription> GetAttributeDescriptions() {
 	return {pos, uv, normal};
 }
 
-ShaderProgram::ShaderProgram(const std::string& name)
+ShaderProgram::ShaderProgram(const fs::path& path)
 {
-	vertex_shader = LoadShaderModule(GetAssetsDir() / "shaders" / "glsl" / (name + ".vert.bin"));
-	fragment_shader = LoadShaderModule(GetAssetsDir() / "shaders" / "glsl" / (name + ".frag.bin"));
+	vertex_shader = LoadShaderModule(GetAssetsDir() / "shaders" / "glsl" / (path.string() + ".vert.bin"));
+	fragment_shader = LoadShaderModule(GetAssetsDir() / "shaders" / "glsl" / (path.string() + ".frag.bin"));
 }
 
 void VerifyReflect(SpvReflectResult result) {

@@ -12,7 +12,7 @@
 namespace dx12 {
 
 struct ShaderProgram: rhi::ShaderProgram {
-	ShaderProgram(const std::string& name);
+	ShaderProgram(const fs::path& path);
 
 	virtual void SetParam(const std::string& name, rhi::Texture2D& value) override;
 

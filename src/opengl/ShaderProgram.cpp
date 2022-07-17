@@ -4,13 +4,13 @@
 
 namespace opengl {
 
-ShaderProgram::ShaderProgram(const std::string& name)
+ShaderProgram::ShaderProgram(const fs::path& path)
 {
 	mogl::Shader vertex_shader(GL_VERTEX_SHADER);
 	mogl::Shader fragment_shader(GL_FRAGMENT_SHADER);
 
-	vertex_shader.compile(LoadTextFile(GetAssetsDir() / "shaders" / "glsl" / (name + ".vert")));
-	fragment_shader.compile(LoadTextFile(GetAssetsDir() / "shaders" / "glsl" / (name + ".frag")));
+	vertex_shader.compile(LoadTextFile(GetAssetsDir() / "shaders" / "glsl" / (path.string() + ".vert")));
+	fragment_shader.compile(LoadTextFile(GetAssetsDir() / "shaders" / "glsl" / (path.string() + ".frag")));
 
 	shader_program.attach(vertex_shader);
 	shader_program.attach(fragment_shader);

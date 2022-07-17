@@ -8,7 +8,7 @@ namespace vulkan {
 Texture2D::Texture2D(const fs::path& path) {
 	format = vk::Format::eR8G8B8A8Srgb;
 
-	stb::Image img(path, 4);
+	stb::Image img = LoadFromFile(path);
 	Buffer staging_buffer(img.data, img.data_len(), vk::BufferUsageFlagBits::eTransferSrc);
 
 	vk::ImageCreateInfo image_info{

@@ -26,7 +26,7 @@ struct Context: rhi::Context {
 	virtual ~Context() override;
 
 	virtual rhi::Texture2D* CreateTexture2D(const fs::path& path) override { return new Texture2D(path); }
-	virtual rhi::ShaderProgram* CreateShaderProgram(const std::string& name) override { return new ShaderProgram(name); }
+	virtual rhi::ShaderProgram* CreateShaderProgram(const fs::path& path) override { return new ShaderProgram(path); }
 	virtual rhi::Mesh* CreateMesh(const fs::path& path) override { return new Mesh(path); }
 
 	virtual void Clear() override;
