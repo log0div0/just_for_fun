@@ -25,6 +25,8 @@ std::pair<std::vector<Vertex>, std::vector<uint32_t>> Mesh::LoadFromFile(const f
 		std::cerr << warn << std::endl;
 	}
 
+	std::unordered_map<Vertex, uint32_t> vertex_map;
+
 	for (const auto& shape : shapes) {
 		for (const auto& index : shape.mesh.indices) {
 			Vertex vertex{};
@@ -46,8 +48,12 @@ std::pair<std::vector<Vertex>, std::vector<uint32_t>> Mesh::LoadFromFile(const f
 				attrib.normals[3 * index.normal_index + 2]
 			};
 
-			vertices.push_back(vertex);
-			indices.push_back(indices.size());
+			auto [it, inserted] = vertex_map.emplace(vertex, (uint32_t)vertices.size());
+			if (inserted) {
+				vertices.push_back(vertex);
+			}
+
+			indices.push_back(it->second);
 		}
 	}
 

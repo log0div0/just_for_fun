@@ -250,3 +250,16 @@ bool operator==(const math::Vector<T, N>& a, const Nearly<math::Vector<T, N>>& n
 	}
 	return true;
 }
+
+namespace std {
+	template<typename T, size_t N> struct hash<math::Vector<T, N>> {
+		size_t operator()(const math::Vector<T, N>& vector) const {
+			// TODO: improve and test me
+			size_t result = hash<T>()(vector[0]);
+			for (size_t i = 0; i < N; ++i) {
+				result = result ^ hash<T>()(vector[i]);
+			}
+			return result;
+		}
+	};
+}
